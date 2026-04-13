@@ -6,9 +6,23 @@ const fs = require('fs');
 const path = require('path');
 
 const app = express();
+
+// ==========================================
+// 基礎設定 (Middlewares & Static Files)
+// ==========================================
 app.use(cors());
-// 提高 payload 限制，因為圖片 base64 可能非常大
+// 提高 payload 限制，因為前端傳來的 HTML 與圖片 base64 可能非常大
 app.use(express.json({ limit: '100mb' }));
+
+// 讓 Express 提供靜態檔案服務 (CSS / JS / 圖片 等，如果有的話)
+app.use(express.static(__dirname));
+
+// ==========================================
+// ⭐ 首頁路由 (非常關鍵，讓 Render 能顯示畫面)
+// ==========================================
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // ==========================================
 // 1. 圖片渲染 API (/render-image)
@@ -18,7 +32,7 @@ app.post('/render-image', async (req, res) => {
 
   let browser;
   try {
-    // 產品級 Puppeteer 啟動參數
+    // 產品級 Puppeteer 啟動參數 (雲端環境必備)
     browser = await puppeteer.launch({
       headless: 'new',
       args: ['--no-sandbox', '--disable-setuid-sandbox']
@@ -54,7 +68,7 @@ app.post('/render-video', async (req, res) => {
   const { html, format, isTransparent, targetId } = req.body;
   const reqId = Date.now();
   
-  // 建立當次請求專屬的暫存資料夾與輸出路徑，避免併發錯亂
+  // 建立當次請求專屬的暫存資料夾與輸出路徑，避免多人同時使用時檔案錯亂
   const framesDir = path.join(__dirname, `frames_${reqId}`);
   const outFile = path.join(__dirname, `output_${reqId}.${format}`);
 
@@ -93,7 +107,7 @@ app.post('/render-video', async (req, res) => {
       await element.screenshot({ path: framePath, omitBackground: isTransparent });
     }
 
-    // 關閉瀏覽器釋放記憶體
+    // 關閉瀏覽器釋放雲端伺服器記憶體
     await browser.close();
     browser = null;
 
@@ -101,14 +115,14 @@ app.post('/render-video', async (req, res) => {
     let ffmpegCmd = '';
     if (format === 'mp4') {
       ffmpegCmd = `ffmpeg -y -framerate ${fps} -i "${framesDir}/frame_%03d.png" -c:v libx264 -pix_fmt yuv420p "${outFile}"`;
-    } else { // WebM (支援透明)
+    } else { // WebM (支援透明背景)
       ffmpegCmd = `ffmpeg -y -framerate ${fps} -i "${framesDir}/frame_%03d.png" -c:v libvpx-vp9 -pix_fmt yuva420p "${outFile}"`;
     }
     execSync(ffmpegCmd);
 
     // 回傳生成的影片檔給前端
     res.download(outFile, (err) => {
-      // 下載完成後徹底清理暫存檔
+      // 下載完成後徹底清理暫存檔，防止伺服器硬碟爆滿
       try {
         fs.rmSync(framesDir, { recursive: true, force: true });
         if (fs.existsSync(outFile)) fs.unlinkSync(outFile);
@@ -128,7 +142,10 @@ app.post('/render-video', async (req, res) => {
   }
 });
 
-const PORT = 3000;
+// ==========================================
+// 伺服器啟動 (Render 動態 PORT 支援)
+// ==========================================
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`[BinTools Backend] Server is running on http://localhost:${PORT}`);
+  console.log(`[BinTools Backend] Server is running on port ${PORT}`);
 });
