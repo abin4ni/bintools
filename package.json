@@ -1,0 +1,14 @@
+{
+  "name": "bintools-backend",
+  "version": "1.0.0",
+  "description": "Backend rendering engine for BinTools",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "puppeteer": "^21.5.0"
+  }
+}
