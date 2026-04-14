@@ -214,10 +214,8 @@
           <div style="font-weight: 600;">圖片預覽</div>
           <div style="display: flex; gap: 8px; align-items: center;">
             <span id="usageTextTable" style="font-size:12px; color:var(--text-muted); margin-right:12px;">今日額度: -/3</span>
-            <!-- ★ Upgrade 提示 ★ -->
             <span class="pro-upsell" style="font-size:12px; color:var(--apple-blue); margin-right:12px; font-weight:500;">Upgrade to Pro for 1080p & no watermark</span>
             <select id="exportFormat" class="form-select" style="width: auto; display:inline-block; padding:6px;"><option value="png">PNG</option><option value="jpeg">JPG</option></select>
-            <!-- ★ API 相對路徑 ./api/ ★ -->
             <button class="btn-blue" onclick="App.exportMedia('./api/render-image', 'captureArea', 'exportFormat')">雲端下載</button>
           </div>
         </div>
@@ -258,10 +256,8 @@
         <div class="preview-toolbar">
           <div style="font-weight: 600;">圖片預覽</div>
           <div style="display: flex; gap: 8px; align-items: center;">
-            <!-- ★ Upgrade 提示 ★ -->
             <span class="pro-upsell" style="font-size:12px; color:var(--apple-blue); margin-right:12px; font-weight:500;">Upgrade to Pro for 1080p & no watermark</span>
             <select id="exportFormatCode" class="form-select" style="width: 80px; padding: 6px;"><option value="png">PNG</option></select>
-            <!-- ★ API 相對路徑 ./api/ ★ -->
             <button class="btn-blue" onclick="App.exportMedia('./api/render-image', 'captureAreaCode', 'exportFormatCode')">雲端下載</button>
           </div>
         </div>
@@ -306,9 +302,7 @@
           <div style="display: flex; gap: 8px; align-items: center;">
             <button class="btn-outline" onclick="ToolAnim.playPreview()">▶ 預覽</button>
             <span id="usageTextAnim" style="font-size:12px; color:var(--text-muted); margin: 0 12px;">今日額度: -/3</span>
-            <!-- ★ Upgrade 提示 ★ -->
             <span class="pro-upsell" style="font-size:12px; color:var(--apple-blue); margin-right:12px; font-weight:500;">Upgrade to Pro for 60fps & no watermark</span>
-            <!-- ★ API 相對路徑 ./api/ ★ -->
             <button class="btn-blue" onclick="App.exportMedia('./api/render-video', 'captureAreaAnim', 'animVideoFormat')">生成影片</button>
           </div>
         </div>
@@ -318,7 +312,6 @@
       </div>
     </div>
   </div>
-
   <!-- ★ SEO ABOUT SECTION (底部) ★ -->
   <section class="seo-about">
     <h2>About BinTools Platform</h2>
@@ -346,7 +339,6 @@
     fetchUserStatus: async function() {
       const uid = window.MockAuth.currentUser ? window.MockAuth.currentUser.uid : 'guest';
       try {
-        // 【路徑修正】 ./api/
         const res = await fetch(`./api/user-status`, { headers: { 'x-user-uid': uid } });
         const data = await res.json();
         this.user = { uid, ...data };
@@ -410,13 +402,11 @@
       if (isTransparentBg && format === 'jpeg') { finalFormat = 'png'; alert("JPG 不支援透明，自動轉為 PNG。"); }
       if (isTransparentBg && format === 'mp4') { finalFormat = 'webm'; alert("MP4 不支援透明，自動轉為 WebM。"); }
 
-      // 【UX 優化】顯示 Rendering 狀態
       btn.innerHTML = "Rendering..."; 
       btn.disabled = true;
       const uid = window.MockAuth.currentUser ? window.MockAuth.currentUser.uid : 'guest';
 
       try {
-        // 【路徑修正】強制使用相對路徑
         const response = await fetch(`./${apiEndpoint}`, {
           method: 'POST', headers: { 'Content-Type': 'application/json', 'x-user-uid': uid },
           body: JSON.stringify({ html: this.getRenderPayload(targetId, isTransparentBg), format: finalFormat, targetId, isTransparent: isTransparentBg })
@@ -424,7 +414,7 @@
         
         if (response.status === 403) { 
           alert((await response.json()).message); 
-          window.location.href='./#pricing'; // 相對路徑導向
+          window.location.href='./#pricing'; 
           btn.innerHTML = originHTML; btn.disabled = false; 
           return; 
         }
@@ -439,7 +429,6 @@
         
         await this.fetchUserStatus();
 
-        // 【UX 優化】完成後顯示 Download Ready
         btn.innerHTML = `✔ Download Ready`;
         setTimeout(() => {
           btn.innerHTML = originHTML;
