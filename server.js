@@ -12,21 +12,17 @@ app.use(cors());
 app.use('/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json({ limit: '200mb' }));
 
-// 靜態檔案服務 (CSS, 圖片等)
+// 確保靜態檔案可以正常載入 (如 CSS, JS, 圖片)
 app.use(express.static(__dirname));
 
-// ==========================================
-// ★ 頁面路由 (Page Routes) ★
-// ==========================================
-
-// 1. 首頁 (Landing Page - SEO, 行銷, 價格)
+// 首頁 (Landing Page)
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(__dirname + '/index.html');
 });
 
-// 2. 工具頁 (SaaS 實際應用區)
+// 實際工具頁 (獨立為 /app)
 app.get('/app', (req, res) => {
-  res.sendFile(path.join(__dirname, 'app.html'));
+  res.sendFile(__dirname + '/app.html');
 });
 
 // 3. 捕捉舊版路由，全部導向首頁，保護 SEO
