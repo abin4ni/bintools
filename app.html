@@ -46,7 +46,7 @@
   body { background: var(--bg-main); color: var(--text-main); font-family: var(--font-text); font-size: 15px; line-height: 1.47; transition: background-color 0.3s, color 0.3s; display: flex; flex-direction: column; min-height: 100vh; }
 
   /* --- NAVIGATION --- */
-  .nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 32px; height: 56px; background: var(--bg-nav); backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid var(--border-color); }
+  .nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 32px; height: 56px; background: var(--bg-nav); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid var(--border-color); }
   .nav-left, .nav-center, .nav-right { flex: 1; display: flex; align-items: center; }
   .nav-center { justify-content: center; gap: 8px; } .nav-right { justify-content: flex-end; gap: 16px; }
   .nav-brand { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 600; cursor: pointer; text-decoration: none; color: var(--text-main); }
@@ -55,23 +55,24 @@
   .nav-link:hover { opacity: 1; }
 
   .user-avatar { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 1px solid var(--border-color); }
-  .btn-pro { background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 99%, #FECFEF 100%); color: #1d1d1f; font-weight: 700; padding: 6px 14px; border-radius: 12px; border: none; cursor: pointer; font-size: 13px; box-shadow: 0 4px 10px rgba(255, 154, 158, 0.3); transition: transform 0.2s; }
+  .btn-pro { background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 99%, #FECFEF 100%); color: #1d1d1f; font-weight: 700; padding: 6px 14px; border-radius: 12px; border: none; cursor: pointer; font-size: 13px; box-shadow: 0 4px 10px rgba(255, 154, 158, 0.3); transition: transform 0.2s; text-decoration: none;}
   .btn-pro:hover { transform: scale(1.05); }
   
   .icon-btn, .lang-btn { background: transparent; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 12px; font-size: 13px; font-weight: 600; padding: 6px 12px; cursor: pointer; transition: all 0.2s; }
   .icon-btn:hover, .lang-btn:hover { background: var(--button-active); }
-  .btn-blue { background: var(--apple-blue); color: #ffffff; padding: 10px 20px; border-radius: 980px; border: none; font-size: 14px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
+  .btn-blue { background: var(--apple-blue); color: #ffffff; padding: 10px 20px; border-radius: 980px; border: none; font-size: 14px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: 0.3s;}
   .btn-blue:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-blue.success { background: #34c759; }
   .btn-outline { background: transparent; color: var(--text-main); padding: 10px 20px; border-radius: 980px; border: 1px solid var(--border-color); cursor: pointer; font-size: 14px; font-weight: 500;}
 
   /* --- VIEWS --- */
   .view-container { flex: 1; display: flex; flex-direction: column; }
-  .view { display: none; animation: fadeIn 0.4s ease; padding-bottom: 80px; flex: 1; }
+  .view { display: none; animation: fadeIn 0.4s ease; padding-bottom: 40px; flex: 1; }
   .view.active { display: block; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-  .hero { padding: 60px 32px 40px; text-align: center; }
-  .hero h1 { font-size: 44px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 16px; }
+  .hero { padding: 40px 32px 24px; text-align: center; }
+  .hero h1 { font-size: 32px; font-weight: 600; letter-spacing: -0.5px; }
 
   /* --- TOOL LAYOUT & CONTROLS --- */
   .tool-container { max-width: 1400px; margin: 0 auto; padding: 0 32px; display: grid; grid-template-columns: 360px 1fr; gap: 24px; align-items: flex-start; }
@@ -114,16 +115,18 @@
   .preview-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
   .capture-area-wrapper { width: 100%; aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; border-radius: 16px; border: 1px solid var(--border-color); overflow: hidden; position: relative; background-color: #f5f5f7; padding: 40px; }
   
-  .table-card-container { background: #ffffff; padding: 24px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.12); backdrop-filter: blur(30px) saturate(180%); border: 1px solid rgba(255,255,255,0.25); max-width: 90%; }
-  .output-table { width: 100%; border-collapse: collapse; }
-  .output-table th, .output-table td { padding: 14px 20px; text-align: left; border-bottom: 1px solid var(--border-color); }
-  
-  .mac-window { background: #1e1e1e; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.12); width: 100%; max-width: 800px; overflow: hidden; display: flex; flex-direction: column; border: 1px solid rgba(255,255,255,0.25); }
+  .table-card-container { background: var(--tbl-container-bg, #ffffff); padding: 24px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08); max-width: 90%; max-height: 90%; overflow: hidden; backdrop-filter: blur(30px) saturate(180%); -webkit-backdrop-filter: blur(30px) saturate(180%); border: 1px solid rgba(255,255,255,0.25); transition: box-shadow 0.2s; }
+  .output-table { width: 100%; border-collapse: collapse; font-family: var(--tbl-font); font-size: var(--tbl-font-size); color: var(--tbl-color); }
+  .output-table th, .output-table td { padding: var(--tbl-pad-y) var(--tbl-pad-x); text-align: left; border-bottom: 1px solid var(--tbl-border-color); }
+  .output-table th { font-weight: 600; background: var(--tbl-header-bg); color: var(--tbl-header-color); border-bottom: var(--tbl-header-border); }
+  .output-table.zebra-on tbody tr:nth-child(even) { background-color: var(--tbl-alt-bg); }
+
+  .mac-window { background: #1e1e1e; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08); width: 100%; max-width: 800px; overflow: hidden; display: flex; flex-direction: column; border: 1px solid rgba(255,255,255,0.25); backdrop-filter: blur(30px) saturate(180%); -webkit-backdrop-filter: blur(30px) saturate(180%); }
   .mac-header { padding: 12px 16px; display: flex; gap: 8px; background: rgba(45, 45, 45, 0.8); }
   .mac-dot { width: 12px; height: 12px; border-radius: 50%; } .mac-dot.red { background: #ff5f56; } .mac-dot.yellow { background: #ffbd2e; } .mac-dot.green { background: #27c93f; }
-  .code-container { padding: 24px; overflow-y: auto; } .code-container pre { margin: 0; } .code-container code { font-family: 'Fira Code', monospace; line-height: 1.5; background: transparent; padding: 0; }
+  .code-container { padding: 24px; overflow-y: auto; background: transparent; } .code-container pre { margin: 0; } .code-container code { font-family: 'Fira Code', monospace; line-height: 1.5; background: transparent; padding: 0; }
 
-  .anim-image-preview { max-width: 85%; max-height: 85%; object-fit: contain; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.12); border: 1px solid rgba(255,255,255,0.25); backdrop-filter: blur(30px) saturate(180%); }
+  .anim-image-preview { max-width: 85%; max-height: 85%; object-fit: contain; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08); border: 1px solid rgba(255,255,255,0.25); opacity: 1; backdrop-filter: blur(30px) saturate(180%); -webkit-backdrop-filter: blur(30px) saturate(180%); }
   .play-popup { animation: applePopup 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
   @keyframes applePopup { 0% { opacity: 0; transform: scale(0.7) translateY(30px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
 
@@ -131,13 +134,23 @@
   .bg-ipad-aurora { background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%); }
   .bg-dark-mesh { background: linear-gradient(135deg, #0f3460 0%, #16213e 50%, #1a1a2e 100%); }
 
+  /* --- SEO ABOUT SECTION (底部) --- */
+  .seo-about { max-width: 1000px; margin: 40px auto; padding: 32px; color: var(--text-muted); font-size: 14px; line-height: 1.6; background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border-color); }
+  .seo-about h2 { font-size: 18px; color: var(--text-main); margin-bottom: 12px; }
+
   @media (max-width: 900px) { .tool-container { grid-template-columns: 1fr; } .right-panel { position: static; } }
+  
+  /* --- FOOTER UI --- */
+  footer { padding: 32px; text-align: center; border-top: 1px solid var(--border-color); background: var(--bg-main); margin-top: auto; }
+  footer a { color: var(--text-muted); text-decoration: none; margin: 0 16px; font-size: 13px; transition: color 0.2s; cursor: pointer; }
+  footer a:hover { color: var(--text-main); }
+  .footer-copyright { display: block; margin-top: 16px; color: var(--text-muted); font-size: 12px; }
 </style>
 </head>
 <body>
 
 <nav class="nav">
-  <div class="nav-left"><a href="/" class="nav-brand"><div class="b-logo">B</div> BinTools</a></div>
+  <div class="nav-left"><a href="./" class="nav-brand"><div class="b-logo">B</div> BinTools</a></div>
   <div class="nav-center">
     <a class="nav-link" onclick="App.switchView('excel2jpg')">表格生成器</a>
     <a class="nav-link" onclick="App.switchView('code2jpg')">程式碼海報</a>
@@ -199,10 +212,13 @@
       <div class="right-panel card">
         <div class="preview-toolbar">
           <div style="font-weight: 600;">圖片預覽</div>
-          <div>
+          <div style="display: flex; gap: 8px; align-items: center;">
             <span id="usageTextTable" style="font-size:12px; color:var(--text-muted); margin-right:12px;">今日額度: -/3</span>
-            <select id="exportFormat" class="form-select" style="width: auto; display:inline-block; margin-right:8px; padding:6px;"><option value="png">PNG</option><option value="jpeg">JPG</option></select>
-            <button class="btn-blue" onclick="App.exportMedia('api/render-image', 'captureArea', 'exportFormat')">雲端下載</button>
+            <!-- ★ Upgrade 提示 ★ -->
+            <span class="pro-upsell" style="font-size:12px; color:var(--apple-blue); margin-right:12px; font-weight:500;">Upgrade to Pro for 1080p & no watermark</span>
+            <select id="exportFormat" class="form-select" style="width: auto; display:inline-block; padding:6px;"><option value="png">PNG</option><option value="jpeg">JPG</option></select>
+            <!-- ★ API 相對路徑 ./api/ ★ -->
+            <button class="btn-blue" onclick="App.exportMedia('./api/render-image', 'captureArea', 'exportFormat')">雲端下載</button>
           </div>
         </div>
         <div id="captureArea" class="capture-area-wrapper">
@@ -241,9 +257,12 @@
       <div class="right-panel card">
         <div class="preview-toolbar">
           <div style="font-weight: 600;">圖片預覽</div>
-          <div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <!-- ★ Upgrade 提示 ★ -->
+            <span class="pro-upsell" style="font-size:12px; color:var(--apple-blue); margin-right:12px; font-weight:500;">Upgrade to Pro for 1080p & no watermark</span>
             <select id="exportFormatCode" class="form-select" style="width: 80px; padding: 6px;"><option value="png">PNG</option></select>
-            <button class="btn-blue" onclick="App.exportMedia('api/render-image', 'captureAreaCode', 'exportFormatCode')">雲端下載</button>
+            <!-- ★ API 相對路徑 ./api/ ★ -->
+            <button class="btn-blue" onclick="App.exportMedia('./api/render-image', 'captureAreaCode', 'exportFormatCode')">雲端下載</button>
           </div>
         </div>
         <div id="captureAreaCode" class="capture-area-wrapper bg-mac-monterey">
@@ -284,10 +303,13 @@
       <div class="right-panel card">
         <div class="preview-toolbar">
           <div style="font-weight: 600;">動畫預覽</div>
-          <div>
+          <div style="display: flex; gap: 8px; align-items: center;">
             <button class="btn-outline" onclick="ToolAnim.playPreview()">▶ 預覽</button>
             <span id="usageTextAnim" style="font-size:12px; color:var(--text-muted); margin: 0 12px;">今日額度: -/3</span>
-            <button class="btn-blue" onclick="App.exportMedia('api/render-video', 'captureAreaAnim', 'animVideoFormat')">生成影片</button>
+            <!-- ★ Upgrade 提示 ★ -->
+            <span class="pro-upsell" style="font-size:12px; color:var(--apple-blue); margin-right:12px; font-weight:500;">Upgrade to Pro for 60fps & no watermark</span>
+            <!-- ★ API 相對路徑 ./api/ ★ -->
+            <button class="btn-blue" onclick="App.exportMedia('./api/render-video', 'captureAreaAnim', 'animVideoFormat')">生成影片</button>
           </div>
         </div>
         <div id="captureAreaAnim" class="capture-area-wrapper">
@@ -296,7 +318,23 @@
       </div>
     </div>
   </div>
+
+  <!-- ★ SEO ABOUT SECTION (底部) ★ -->
+  <section class="seo-about">
+    <h2>About BinTools Platform</h2>
+    <p>BinTools 是一個專為創作者與開發者打造的專業內容生成工具 (Content Generation Tool)。我們提供高畫質的表格海報生成、程式碼語法高亮截圖，以及 60fps 動態展演短影片匯出。所有渲染過程皆保留頂級的 Apple 風格毛玻璃 (Glassmorphism) 與物理懸浮陰影。免費用戶可享每日基本額度，升級 Pro 即可解鎖 1080p 畫質、完全去除浮水印 (No Watermark) 並開放商用授權，是您社群行銷與簡報製作的最佳生產力助手。</p>
+  </section>
+
 </div> <!-- End view-container -->
+
+<!-- ★ FOOTER ★ -->
+<footer>
+  <a href="./" onclick="window.location.href='./'">回到首頁</a>
+  <a href="#" onclick="event.preventDefault(); window.location.href='./#privacy'">Privacy Policy</a>
+  <a href="#" onclick="event.preventDefault(); window.location.href='./#terms'">Terms of Service</a>
+  <a href="#" onclick="event.preventDefault(); window.location.href='./#contact'">Contact</a>
+  <span class="footer-copyright">&copy; 2024 BinTools. All rights reserved.</span>
+</footer>
 
 <script>
   const App = {
@@ -308,7 +346,8 @@
     fetchUserStatus: async function() {
       const uid = window.MockAuth.currentUser ? window.MockAuth.currentUser.uid : 'guest';
       try {
-        const res = await fetch(`/api/user-status`, { headers: { 'x-user-uid': uid } });
+        // 【路徑修正】 ./api/
+        const res = await fetch(`./api/user-status`, { headers: { 'x-user-uid': uid } });
         const data = await res.json();
         this.user = { uid, ...data };
         this.updateAuthUI();
@@ -319,7 +358,7 @@
       const isPro = this.user && this.user.plan === 'pro';
 
       if (window.MockAuth.currentUser) {
-        authArea.innerHTML = `${!isPro ? `<button class="btn-pro" onclick="window.location.href='/#pricing'">升級 Pro</button>` : `<span style="font-size:12px; font-weight:bold; color:#ff2d55; margin-right:12px;">PRO 用戶</span>`}<img src="${window.MockAuth.currentUser.photoURL}" class="user-avatar" onclick="window.MockAuth.logout()">`;
+        authArea.innerHTML = `${!isPro ? `<button class="btn-pro" onclick="window.location.href='./#pricing'">升級 Pro</button>` : `<span style="font-size:12px; font-weight:bold; color:#ff2d55; margin-right:12px;">PRO 用戶</span>`}<img src="${window.MockAuth.currentUser.photoURL}" class="user-avatar" onclick="window.MockAuth.logout()">`;
       } else {
         authArea.innerHTML = `<button class="btn-outline" onclick="window.MockAuth.login()">登入</button>`;
       }
@@ -329,6 +368,7 @@
       document.getElementById('usageTextAnim').innerText = `今日額度: ${limitText}`;
 
       document.querySelectorAll('.ad-banner').forEach(el => { el.style.display = isPro ? 'none' : 'flex'; });
+      document.querySelectorAll('.pro-upsell').forEach(el => { el.style.display = isPro ? 'none' : 'inline-block'; });
     },
     switchView: function(viewId) {
       document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
@@ -356,9 +396,12 @@
       const styles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]')).map(el => el.outerHTML).join('\n');
       return `<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">${styles}<style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:transparent;} #${targetId}{width:1920px!important;height:1080px!important;transform:none!important;border-radius:0!important;border:none!important;}</style><script>window.addEventListener('load', () => { document.getAnimations().forEach(anim => { anim.pause(); anim.currentTime = 0; }); });<\/script></head><body data-theme="${document.body.getAttribute('data-theme') || ''}">${clone.outerHTML}</body></html>`;
     },
+
+    // ★ 核心下載 API 邏輯 (包含 UX 優化) ★
     exportMedia: async function(apiEndpoint, targetId, formatId) {
       const format = document.getElementById(formatId).value;
-      const btn = event.currentTarget; const originHTML = btn.innerHTML;
+      const btn = event.currentTarget; 
+      const originHTML = btn.innerHTML;
       
       const bgSelectId = targetId === 'captureAreaAnim' ? 'animCanvasBgSelect' : (targetId === 'captureArea' ? 'canvasBgSelect' : 'codeCanvasBgSelect');
       const isTransparentBg = document.getElementById(bgSelectId).value === 'transparent';
@@ -367,26 +410,44 @@
       if (isTransparentBg && format === 'jpeg') { finalFormat = 'png'; alert("JPG 不支援透明，自動轉為 PNG。"); }
       if (isTransparentBg && format === 'mp4') { finalFormat = 'webm'; alert("MP4 不支援透明，自動轉為 WebM。"); }
 
-      btn.innerHTML = "雲端處理中..."; btn.disabled = true;
+      // 【UX 優化】顯示 Rendering 狀態
+      btn.innerHTML = "Rendering..."; 
+      btn.disabled = true;
       const uid = window.MockAuth.currentUser ? window.MockAuth.currentUser.uid : 'guest';
 
       try {
-        const response = await fetch(`/${apiEndpoint}`, {
+        // 【路徑修正】強制使用相對路徑
+        const response = await fetch(`./${apiEndpoint}`, {
           method: 'POST', headers: { 'Content-Type': 'application/json', 'x-user-uid': uid },
           body: JSON.stringify({ html: this.getRenderPayload(targetId, isTransparentBg), format: finalFormat, targetId, isTransparent: isTransparentBg })
         });
-        if (response.status === 403) { alert((await response.json()).message); window.location.href='/#pricing'; return; }
+        
+        if (response.status === 403) { 
+          alert((await response.json()).message); 
+          window.location.href='./#pricing'; // 相對路徑導向
+          btn.innerHTML = originHTML; btn.disabled = false; 
+          return; 
+        }
         if (!response.ok) throw new Error("Server error");
         
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a'); a.href = url;
         a.download = `BinTools_Export_${Date.now()}.${finalFormat}`;
-        a.click(); window.URL.revokeObjectURL(url);
+        a.click(); 
+        window.URL.revokeObjectURL(url);
+        
         await this.fetchUserStatus();
+
+        // 【UX 優化】完成後顯示 Download Ready
+        btn.innerHTML = `✔ Download Ready`;
+        setTimeout(() => {
+          btn.innerHTML = originHTML;
+          btn.disabled = false;
+        }, 2500);
+
       } catch (e) {
         console.error(e); alert("後端伺服器未啟動或渲染失敗！");
-      } finally {
         btn.innerHTML = originHTML; btn.disabled = false;
       }
     }

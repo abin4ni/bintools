@@ -29,7 +29,12 @@ app.get('/app', (req, res) => {
   res.sendFile(path.join(__dirname, 'app.html'));
 });
 
-// 3. 捕捉舊版路由，全部導向首頁，保護 SEO
+// 3. 教學文章頁 (SEO 獨立頁面)
+app.get('/blog', (req, res) => {
+  res.sendFile(path.join(__dirname, 'blog.html'));
+});
+
+// 4. 捕捉舊版路由，全部導向首頁，保護 SEO
 app.get('/pricing', (req, res) => res.redirect('/#pricing'));
 app.get('/privacy', (req, res) => res.redirect('/#privacy'));
 app.get('/terms', (req, res) => res.redirect('/#terms'));
@@ -92,7 +97,11 @@ app.post('/api/render-image', checkUsageLimit, async (req, res) => {
 
   let browser;
   try {
-    browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    browser = await puppeteer.launch({ 
+      headless: "new", 
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      timeout: 60000 
+    });
     const page = await browser.newPage();
     
     const scale = isPro ? 2 : 1.5;
@@ -103,6 +112,8 @@ app.post('/api/render-image', checkUsageLimit, async (req, res) => {
     await page.setContent(html, { waitUntil: 'networkidle0' });
 
     const element = await page.$(`#${targetId}`);
+    if (!element) throw new Error("Target element not found");
+
     const buffer = await element.screenshot({ type: format === 'jpeg' ? 'jpeg' : 'png', omitBackground: isTransparent });
 
     if (!isPro) getUserData(req.user.uid).downloadsToday += 1;
@@ -134,7 +145,11 @@ app.post('/api/render-video', checkUsageLimit, async (req, res) => {
     fs.mkdirSync(framesDir);
     if (fs.existsSync(outFile)) fs.unlinkSync(outFile);
 
-    browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    browser = await puppeteer.launch({ 
+      headless: "new", 
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      timeout: 60000 
+    });
     const page = await browser.newPage();
     
     const scale = isPro ? 2 : 1;
@@ -147,6 +162,7 @@ app.post('/api/render-video', checkUsageLimit, async (req, res) => {
     await page.setViewport({ width, height, deviceScaleFactor: scale });
     await page.setContent(html, { waitUntil: 'networkidle0' });
     const element = await page.$(`#${targetId}`);
+    if (!element) throw new Error("Target element not found");
 
     for (let i = 0; i < totalFrames; i++) {
       await page.evaluate((timeMs) => { document.getAnimations().forEach(anim => anim.currentTime = timeMs); }, i * (1000 / fps));

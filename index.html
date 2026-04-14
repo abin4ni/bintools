@@ -20,9 +20,8 @@
     --font-display: 'Inter', sans-serif;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: var(--bg-main); color: var(--text-main); font-family: var(--font-display); line-height: 1.5; overflow-x: hidden;}
+  body { background: var(--bg-main); color: var(--text-main); font-family: var(--font-display); line-height: 1.5; overflow-x: hidden; display: flex; flex-direction: column; min-height: 100vh;}
   
-  /* Navbar */
   .nav { position: fixed; top: 0; width: 100%; z-index: 100; display: flex; justify-content: space-between; align-items: center; padding: 0 40px; height: 60px; background: rgba(0,0,0,0.7); backdrop-filter: blur(20px); border-bottom: 1px solid var(--glass-border); }
   .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; color: #fff; text-decoration: none;}
   .b-logo { width: 30px; height: 30px; background: #fff; color: #000; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800;}
@@ -32,8 +31,7 @@
   .btn-primary { background: var(--apple-blue); color: #fff; text-decoration: none; padding: 8px 20px; border-radius: 20px; font-size: 14px; font-weight: 600; transition: 0.3s; }
   .btn-primary:hover { background: var(--apple-blue-hover); transform: scale(1.05); }
 
-  /* Hero Section */
-  .hero { text-align: center; padding: 180px 20px 100px; position: relative; }
+  .hero { text-align: center; padding: 180px 20px 100px; position: relative; flex: 1;}
   .hero h1 { font-size: 64px; font-weight: 700; letter-spacing: -1.5px; margin-bottom: 24px; background: linear-gradient(135deg, #fff 0%, #a5a5a5 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
   .hero p { font-size: 22px; color: var(--text-muted); max-width: 700px; margin: 0 auto 40px; }
   .hero-buttons { display: flex; justify-content: center; gap: 16px; }
@@ -41,142 +39,175 @@
   .btn-secondary:hover { background: rgba(255,255,255,0.1); }
   .btn-primary-large { padding: 14px 28px; border-radius: 30px; font-size: 16px; }
 
-  /* Features Section */
   .section-title { text-align: center; font-size: 40px; margin-bottom: 60px; font-weight: 700; letter-spacing: -1px; }
   .features { max-width: 1200px; margin: 0 auto 120px; padding: 0 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
-  .feature-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 24px; padding: 40px; backdrop-filter: blur(20px); transition: transform 0.3s, box-shadow 0.3s; text-align: left;}
+  .feature-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 24px; padding: 40px; backdrop-filter: blur(20px); transition: transform 0.3s; text-align: left;}
   .feature-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
   .f-icon { font-size: 40px; margin-bottom: 20px; }
   .feature-card h3 { font-size: 24px; margin-bottom: 12px; }
   .feature-card p { color: var(--text-muted); font-size: 15px; }
 
-  /* Pricing Section */
   .pricing { max-width: 900px; margin: 0 auto 120px; padding: 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
   .price-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 30px; padding: 50px; text-align: left; backdrop-filter: blur(20px); }
-  .price-card.pro { border-color: #FF9A9E; box-shadow: 0 20px 60px rgba(255, 154, 158, 0.1); position: relative; }
+  .price-card.pro { border-color: #FF9A9E; position: relative; }
   .badge { position: absolute; top: -15px; right: 40px; background: linear-gradient(135deg, #FF9A9E, #FECFEF); color: #000; font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 20px; }
-  .p-title { font-size: 20px; font-weight: 600; color: var(--text-muted); margin-bottom: 16px;}
   .p-price { font-size: 56px; font-weight: 700; margin-bottom: 30px; display: flex; align-items: baseline; gap: 8px;}
   .p-price span { font-size: 16px; color: var(--text-muted); font-weight: 400; }
   .p-list { list-style: none; margin-bottom: 40px; }
-  .p-list li { margin-bottom: 16px; color: #fff; font-size: 15px; display: flex; align-items: center; gap: 12px; }
+  .p-list li { margin-bottom: 16px; font-size: 15px; display: flex; align-items: center; gap: 12px; }
   .p-list li::before { content: '✓'; color: var(--apple-blue); font-weight: bold; }
-  
-  /* Legal Content (Hidden by default, targeted by hash) */
+
+  footer { border-top: 1px solid var(--glass-border); padding: 40px 20px; text-align: center; margin-top: auto;}
+  .f-links { display: flex; justify-content: center; gap: 24px; margin-bottom: 20px; }
+  .f-links a { color: var(--text-muted); text-decoration: none; font-size: 14px; transition: 0.2s; }
+  .f-links a:hover { color: #fff; }
+
+  .view { display: none; animation: fadeIn 0.4s ease; }
+  .view.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
   .legal-section { max-width: 800px; margin: 100px auto; padding: 40px 20px; }
   .legal-section h2 { font-size: 32px; margin-bottom: 24px; border-bottom: 1px solid var(--glass-border); padding-bottom: 16px;}
   .legal-section p { color: var(--text-muted); margin-bottom: 16px; }
 
-  /* Footer */
-  footer { border-top: 1px solid var(--glass-border); padding: 40px 20px; text-align: center; }
-  .f-links { display: flex; justify-content: center; gap: 24px; margin-bottom: 20px; flex-wrap: wrap; }
-  .f-links a { color: var(--text-muted); text-decoration: none; font-size: 14px; transition: 0.2s; }
-  .f-links a:hover { color: #fff; }
-  .copyright { color: rgba(255,255,255,0.3); font-size: 12px; }
-
-  @media (max-width: 768px) {
-    .pricing { grid-template-columns: 1fr; }
-    .hero h1 { font-size: 48px; }
-    .nav-links { display: none; }
-  }
+  @media (max-width: 768px) { .pricing { grid-template-columns: 1fr; } .hero h1 { font-size: 48px; } .nav-links { display: none; } }
 </style>
 </head>
 <body>
 
 <nav class="nav">
-  <a href="/" class="brand"><div class="b-logo">B</div> BinTools</a>
+  <a href="./" class="brand" onclick="event.preventDefault(); App.switchView('home')"><div class="b-logo">B</div> BinTools</a>
   <div class="nav-links">
-    <a href="#features">功能介紹</a>
-    <a href="#pricing">方案價格</a>
-    <a href="/app">進入工具區</a>
+    <a href="#features" onclick="event.preventDefault(); App.switchView('home'); window.location.hash='features';">功能介紹</a>
+    <a href="#pricing" onclick="event.preventDefault(); App.switchView('home'); window.location.hash='pricing';">方案價格</a>
+    <a href="#blog" onclick="event.preventDefault(); App.switchView('blog')">教學文章</a>
   </div>
-  <a href="/app" class="btn-primary">免費開始</a>
+  <a href="./app" class="btn-primary">進入工具區</a>
 </nav>
 
-<header class="hero">
-  <h1>資料呈現，從未如此優雅。</h1>
-  <p>將繁雜的數據與程式碼，一鍵轉化為頂級質感的 Apple 風格海報與 60fps 動態展演短影片。免安裝，瀏覽器即刻運行。</p>
-  <div class="hero-buttons">
-    <a href="/app" class="btn-primary btn-primary-large">開啟工作區</a>
-    <a href="#pricing" class="btn-secondary">查看方案</a>
+<div class="view-container">
+  <!-- ================= HOME VIEW ================= -->
+  <div id="view-home" class="view active">
+    <header class="hero">
+      <h1>資料呈現，從未如此優雅。</h1>
+      <p>將繁雜的數據與程式碼，一鍵轉化為頂級質感的 Apple 風格海報與 60fps 動態展演短影片。免安裝，雲端即刻渲染。</p>
+      <div class="hero-buttons">
+        <a href="./app" class="btn-primary btn-primary-large">免費開始使用</a>
+        <a href="#pricing" class="btn-secondary">查看方案</a>
+      </div>
+    </header>
+
+    <section id="features">
+      <h2 class="section-title">三大生產力工具</h2>
+      <div class="features">
+        <div class="feature-card"><div class="f-icon">📊</div><h3>表格海報生成器</h3><p>支援匯入 Excel、CSV。自動排版出帶有毛玻璃、深邃陰影的高級數據海報。</p></div>
+        <div class="feature-card"><div class="f-icon">👨‍💻</div><h3>程式碼視窗截圖</h3><p>將冰冷的程式碼裝入 macOS 風格視窗，支援自動語法高亮與開發者風格背景。</p></div>
+        <div class="feature-card"><div class="f-icon">🎬</div><h3>動態展演生成</h3><p>獨家雲端渲染引擎，為圖片加入 Apple 彈性特效，支援 1080p 60fps 透明去背影片。</p></div>
+      </div>
+    </section>
+
+    <!-- ★ BLOG 導流區塊 ★ -->
+    <section style="max-width: 1000px; margin: 60px auto 120px; padding: 0 32px;">
+      <h2 class="section-title" style="margin-bottom: 40px;">最新教學與技巧</h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
+        <div style="background: var(--glass-bg); padding: 30px; border-radius: 20px; border: 1px solid var(--glass-border); cursor: pointer; backdrop-filter: blur(20px); transition: transform 0.3s;" onclick="App.switchView('blog')" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='none'">
+          <h4 style="margin-bottom: 12px; font-size: 18px; color: #fff;">IG 貼文生成器技巧</h4>
+          <p style="color: var(--text-muted); font-size: 14px;">如何用數據表格一鍵產出高質感 Instagram 貼文...</p>
+        </div>
+        <div style="background: var(--glass-bg); padding: 30px; border-radius: 20px; border: 1px solid var(--glass-border); cursor: pointer; backdrop-filter: blur(20px); transition: transform 0.3s;" onclick="App.switchView('blog')" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='none'">
+          <h4 style="margin-bottom: 12px; font-size: 18px; color: #fff;">Canva 免費替代工具</h4>
+          <p style="color: var(--text-muted); font-size: 14px;">專注於數據與程式碼呈現的極簡高級生成器...</p>
+        </div>
+      </div>
+      <div style="text-align: center; margin-top: 40px;">
+        <button class="btn-secondary" onclick="App.switchView('blog')">閱讀全部文章</button>
+      </div>
+    </section>
+
+    <section id="pricing">
+      <h2 class="section-title">選擇適合你的方案</h2>
+      <div class="pricing">
+        <div class="price-card">
+          <div style="font-size: 20px; font-weight: 600; color: var(--text-muted); margin-bottom: 16px;">Free</div>
+          <div class="p-price">$0 <span>/ 永久</span></div>
+          <ul class="p-list">
+            <li>每日 3 次下載額度</li><li>最高 720p 30fps 畫質</li><li>帶有 BinTools 浮水印</li><li style="color: rgba(255,255,255,0.4)">支援去除浮水印</li>
+          </ul>
+          <a href="./app" class="btn-secondary" style="display:block; text-align:center;">免費註冊</a>
+        </div>
+        <div class="price-card pro">
+          <div class="badge">最受歡迎</div>
+          <div style="font-size: 20px; font-weight: 600; color: var(--text-muted); margin-bottom: 16px;">Pro</div>
+          <div class="p-price">$9.9 <span>/ 月</span></div>
+          <ul class="p-list">
+            <li>無限制下載次數</li><li>解鎖 1080p 60fps 頂級畫質</li><li>完全去除浮水印</li><li>商用授權與去背影片支援</li>
+          </ul>
+          <a href="./app" class="btn-primary btn-primary-large" style="display:block; text-align:center; padding:14px;">前往升級 Pro</a>
+        </div>
+      </div>
+    </section>
   </div>
-</header>
 
-<section id="features">
-  <h2 class="section-title">三大生產力工具</h2>
-  <div class="features">
-    <div class="feature-card">
-      <div class="f-icon">📊</div>
-      <h3>表格海報生成器</h3>
-      <p>支援匯入 Excel、CSV 與 Google Sheets。自動排版出帶有毛玻璃、深邃陰影的高級數據海報。</p>
-    </div>
-    <div class="feature-card">
-      <div class="f-icon">👨‍💻</div>
-      <h3>程式碼視窗截圖</h3>
-      <p>將冰冷的程式碼裝入 macOS 風格視窗，支援自動語法高亮與多種開發者風格漸層背景。</p>
-    </div>
-    <div class="feature-card">
-      <div class="f-icon">🎬</div>
-      <h3>動態展演生成</h3>
-      <p>獨家前端渲染引擎，為靜態圖片加入 Apple 彈性緩動特效，支援 1080p 60fps 透明去背影片匯出。</p>
-    </div>
-  </div>
-</section>
+  <!-- ================= BLOG VIEW (SEO 文章區) ================= -->
+  <div id="view-blog" class="view">
+    <section class="hero" style="padding-bottom: 60px;">
+      <h1>精選教學與設計技巧</h1>
+      <p>探索如何利用 BinTools 提升您的社群視覺與工作效率。</p>
+    </section>
+    <div class="blog-container" style="max-width: 900px; margin: 0 auto; padding: 0 32px 100px;">
+      <article style="background: var(--glass-bg); padding: 40px; border-radius: 24px; border: 1px solid var(--glass-border); margin-bottom: 40px; backdrop-filter: blur(20px);">
+        <h2 style="font-size: 28px; color: #fff; margin-bottom: 16px; font-weight: 700;">1. 爆紅 IG 貼文生成器！如何用數據表格一鍵產出高質感 Instagram 貼文</h2>
+        <p style="color: var(--text-muted); font-size: 15px; margin-bottom: 24px; font-weight: 500;">在這個視覺先行的時代，如何將生硬的數據轉化為吸睛的 IG 圖片？本文教您利用 BinTools 表格海報生成器，一秒搞定社群排版...</p>
+        <p style="color: var(--text-muted); line-height: 1.8; font-size: 16px;">經營 Instagram 最頭痛的就是製作圖表。傳統作法需要打開 Illustrator 或 Photoshop 慢慢拉表格，耗時又費力。現在，您只需要將 Excel 裡整理好的數據複製，貼進 BinTools 表格生成器中，選擇 Apple 經典的毛玻璃風格，就能產出 16:9 且帶有物理懸浮陰影的高級感圖片。這不僅能大幅縮短您的貼文製作時間，其乾淨俐落的 UI 風格，更是極受現代年輕族群喜愛的極簡美學，能有效提升貼文的點擊與收藏率。</p>
+      </article>
 
-<section id="pricing">
-  <h2 class="section-title">選擇適合你的方案</h2>
-  <div class="pricing">
-    <div class="price-card">
-      <div class="p-title">Free</div>
-      <div class="p-price">$0 <span>/ 永久</span></div>
-      <ul class="p-list">
-        <li>每日 3 次下載額度</li>
-        <li>最高 720p 30fps 畫質</li>
-        <li>帶有 BinTools 浮水印</li>
-        <li style="color: rgba(255,255,255,0.4)">支援去除浮水印</li>
-      </ul>
-      <a href="/app" class="btn-secondary" style="display:block; text-align:center;">免費註冊</a>
-    </div>
-    <div class="price-card pro">
-      <div class="badge">最受歡迎</div>
-      <div class="p-title">Pro</div>
-      <div class="p-price">$9.9 <span>/ 月</span></div>
-      <ul class="p-list">
-        <li>無限制下載次數</li>
-        <li>解鎖 1080p 60fps 頂級畫質</li>
-        <li>完全去除浮水印</li>
-        <li>商用授權與去背影片支援</li>
-      </ul>
-      <a href="/app" class="btn-primary btn-primary-large" style="display:block; text-align:center; padding:14px;">立即升級 Pro</a>
+      <article style="background: var(--glass-bg); padding: 40px; border-radius: 24px; border: 1px solid var(--glass-border); margin-bottom: 40px; backdrop-filter: blur(20px);">
+        <h2 style="font-size: 28px; color: #fff; margin-bottom: 16px; font-weight: 700;">2. 尋找免費 Canva 替代工具？試試專注於數據與程式碼呈現的生成器</h2>
+        <p style="color: var(--text-muted); font-size: 15px; margin-bottom: 24px; font-weight: 500;">Canva 雖然強大，但在處理程式碼區塊和標準格線數據時往往力不從心。了解 BinTools 如何在特定領域提供更完美的解決方案...</p>
+        <p style="color: var(--text-muted); line-height: 1.8; font-size: 16px;">許多行銷人員習慣使用 Canva 進行設計，但當遇到需要展示「工程師程式碼」或「精密數據比較表」時，Canva 的排版常常會跑版，或是字體不夠專業。BinTools 正是為此而生的垂直利基工具。我們的程式碼海報生成器內建了 Atom One Dark 等經典開發者主題，能自動辨識語法並高亮。而表格工具更能直接控制「列寬」與「行距」，配合 Fira Code 等等寬字體，能產出絕對不跑版、專屬於科技與專業感的高質感視覺素材。</p>
+      </article>
+
+      <article style="background: var(--glass-bg); padding: 40px; border-radius: 24px; border: 1px solid var(--glass-border); margin-bottom: 40px; backdrop-filter: blur(20px);">
+        <h2 style="font-size: 28px; color: #fff; margin-bottom: 16px; font-weight: 700;">3. 短影片教學：如何用 Apple 風格彈窗特效為你的簡報加分</h2>
+        <p style="color: var(--text-muted); font-size: 15px; margin-bottom: 24px; font-weight: 500;">靜態圖片已經不夠看，本文將詳細拆解如何利用動態展演生成器，製作出 60fps 絲滑彈窗 WebM 影片，直接套用剪輯軟體...</p>
+        <p style="color: var(--text-muted); line-height: 1.8; font-size: 16px;">在 YouTube Shorts 或 TikTok 上，帶有微縮放與回彈的「Apple 彈窗動畫」是最受歡迎的特效之一。如果您想在剪輯軟體中純手工拉出這種具有物理慣性（Overshoot）的曲線，通常需要花費大量的時間調整關鍵幀。透過 BinTools 的動態展演生成器，您只需上傳一張圖片，系統便會利用雲端渲染技術，直接生成完美的 60fps 特效。若您使用的是專業剪輯軟體如 Premiere Pro，建議匯出時選擇「WebM 格式」並搭配「透明背景」，拉入時間軸後就能直接完成去背，免去綠幕去背的瑕疵！</p>
+      </article>
     </div>
   </div>
-</section>
 
-<section id="privacy" class="legal-section">
-  <h2>隱私權政策 (Privacy Policy)</h2>
-  <p>我們非常重視您的隱私。本平台處理的所有圖片與影片均透過雲端隔離運算，生成完畢後即刻銷毀暫存，絕不保留您的商業機密數據。</p>
-</section>
-
-<section id="terms" class="legal-section">
-  <h2>服務條款 (Terms of Service)</h2>
-  <p>使用本服務即代表您同意我們合理處理您的渲染請求。Pro 用戶享有無限次數之「合理使用」規範，嚴禁惡意機器人大量呼叫 API。</p>
-</section>
-
-<section id="contact" class="legal-section" style="margin-bottom: 120px;">
-  <h2>聯絡我們 (Contact)</h2>
-  <p>有任何功能建議、企業方案需求或技術問題，請來信至：<strong>support@bintools.com</strong></p>
-</section>
+  <!-- ================= STATIC VIEWS ================= -->
+  <div id="view-privacy" class="view legal-section">
+    <h2>Privacy Policy</h2>
+    <p>您的隱私權對我們很重要。本站不會將您的資料分享給第三方...</p>
+  </div>
+  <div id="view-terms" class="view legal-section">
+    <h2>Terms of Service</h2>
+    <p>使用本服務即代表您同意我們合理處理您的渲染請求。嚴禁惡意機器人大量呼叫 API...</p>
+  </div>
+  <div id="view-contact" class="view legal-section">
+    <h2>Contact Us</h2>
+    <p>有任何功能建議或技術問題，請來信：support@bintools.com</p>
+  </div>
+</div>
 
 <footer>
   <div class="f-links">
-    <a href="#features">功能介紹</a>
-    <a href="#pricing">方案價格</a>
-    <a href="#privacy">Privacy Policy</a>
-    <a href="#terms">Terms of Service</a>
-    <a href="#contact">Contact</a>
+    <a href="#" onclick="event.preventDefault(); App.switchView('privacy')">Privacy Policy</a>
+    <a href="#" onclick="event.preventDefault(); App.switchView('terms')">Terms of Service</a>
+    <a href="#" onclick="event.preventDefault(); App.switchView('contact')">Contact</a>
   </div>
   <div class="copyright">&copy; 2024 BinTools. All rights reserved. Designed for Productivity.</div>
 </footer>
 
+<script>
+  const App = {
+    switchView: function(viewId) {
+      document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+      const target = document.getElementById(`view-${viewId}`);
+      if(target) target.classList.add('active');
+      window.scrollTo(0,0);
+    }
+  };
+</script>
 </body>
 </html>
