@@ -3,20 +3,37 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BinTools - 蘋果風格實用工具箱</title>
+<title>BinTools - 專業內容生成平台</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Serif+TC:wght@400;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
 
-<!-- SheetJS (僅保留讀取 Excel 用的前端套件) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<!-- Highlight.js for Code to Image -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+  
+  // TODO: 替換為你的 Firebase Config
+  const firebaseConfig = { apiKey: "YOUR_API_KEY", authDomain: "YOUR_AUTH_DOMAIN", projectId: "YOUR_PROJECT_ID" };
+  // const app = initializeApp(firebaseConfig);
+  // window.auth = getAuth(app);
+  // window.provider = new GoogleAuthProvider();
+  
+  // 模擬登入系統 (方便測試)
+  window.MockAuth = {
+    currentUser: null,
+    login: function() { this.currentUser = { uid: 'user_123', displayName: '王大明', photoURL: 'https://ui-avatars.com/api/?name=王' }; App.syncUser(); },
+    logout: function() { this.currentUser = null; App.syncUser(); }
+  };
+</script>
+
 <style>
-  /* --- BASE CSS VARIABLES (LIGHT) --- */
+  /* --- BASE CSS VARIABLES --- */
   :root {
     --bg-main: #f5f5f7; --bg-card: #ffffff; --bg-nav: rgba(255, 255, 255, 0.72); 
     --bg-filter: #fafafc; --text-main: #1d1d1f; --text-muted: rgba(0,0,0,0.56);
@@ -25,80 +42,83 @@
     --font-display: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-text: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   }
-
-  /* --- DARK THEME VARIABLES --- */
   [data-theme="dark"] {
     --bg-main: #000000; --bg-card: #1c1c1e; --bg-nav: rgba(28, 28, 30, 0.72);
     --bg-filter: #2c2c2e; --text-main: #f5f5f7; --text-muted: rgba(255,255,255,0.56);
     --border-color: rgba(255,255,255,0.15); --button-active: #3a3a3c;
     --shadow-card: rgba(0,0,0,0.4) 0px 10px 30px 0px;
   }
-  
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: var(--bg-main); color: var(--text-main); font-family: var(--font-text); font-size: 15px; line-height: 1.47; -webkit-font-smoothing: antialiased; transition: background-color 0.3s, color 0.3s; }
+  body { background: var(--bg-main); color: var(--text-main); font-family: var(--font-text); font-size: 15px; line-height: 1.47; transition: background-color 0.3s, color 0.3s; display: flex; flex-direction: column; min-height: 100vh; }
 
   /* --- NAVIGATION --- */
-  .nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 32px; height: 56px; background: var(--bg-nav); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid var(--border-color); transition: background-color 0.3s, border-color 0.3s; }
+  .nav { position: sticky; top: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 0 32px; height: 56px; background: var(--bg-nav); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid var(--border-color); }
   .nav-left, .nav-center, .nav-right { flex: 1; display: flex; align-items: center; }
-  .nav-center { justify-content: center; } .nav-right { justify-content: flex-end; gap: 16px; }
-  .nav-brand { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 600; cursor: pointer; }
-  .b-logo { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: var(--text-main); color: var(--bg-main); border-radius: 8px; font-family: var(--font-display); font-size: 18px; font-weight: 700; transition: background-color 0.3s, color 0.3s; }
-
-  /* --- DROPDOWN --- */
-  .nav-item { position: relative; height: 56px; display: flex; align-items: center; }
-  .nav-link { font-size: 14px; font-weight: 500; color: var(--text-main); cursor: pointer; opacity: 0.8; transition: opacity 0.2s; padding: 0 12px; height: 100%; display: flex; align-items: center; }
+  .nav-center { justify-content: center; gap: 8px; } .nav-right { justify-content: flex-end; gap: 16px; }
+  .nav-brand { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 600; cursor: pointer; text-decoration: none; color: var(--text-main); }
+  .b-logo { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: var(--text-main); color: var(--bg-main); border-radius: 8px; font-family: var(--font-display); font-size: 18px; font-weight: 700; }
+  .nav-link { font-size: 14px; font-weight: 500; color: var(--text-main); cursor: pointer; opacity: 0.8; padding: 0 12px; height: 56px; display: flex; align-items: center; text-decoration: none; }
   .nav-link:hover { opacity: 1; }
-  .nav-overlay { position: fixed; top: 56px; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s; cursor: default; pointer-events: none; }
-  .nav-item:hover .nav-overlay { opacity: 1; visibility: visible; }
-  .dropdown-menu { position: absolute; top: 56px; left: 50%; transform: translateX(-50%) translateY(-10px); background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 0 0 16px 16px; padding: 24px 32px; min-width: 320px; box-shadow: 0 20px 40px rgba(0,0,0,0.12); opacity: 0; visibility: hidden; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 10; pointer-events: none; }
-  [data-theme="dark"] .dropdown-menu { box-shadow: 0 20px 40px rgba(0,0,0,0.6); }
-  .nav-item:hover .dropdown-menu { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); pointer-events: auto; }
-  .dropdown-title { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; }
-  .dropdown-link { display: flex; align-items: center; font-size: 18px; font-weight: 600; color: var(--text-main); text-decoration: none; cursor: pointer; padding: 10px 12px; border-radius: 8px; margin: 0 -12px; transition: background 0.2s; }
-  .dropdown-link:hover { background: var(--button-active); }
 
-  /* UI Buttons */
-  .icon-btn { background: transparent; border: none; color: var(--text-main); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; transition: background 0.2s; }
-  .icon-btn:hover { background: var(--button-active); }
-  .lang-btn { font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border-color); background: transparent; color: var(--text-main); cursor: pointer; transition: all 0.2s; }
-  .lang-btn:hover { background: var(--button-active); }
-  .btn-blue { background: var(--apple-blue); color: #ffffff; padding: 10px 20px; border-radius: 980px; border: none; font-size: 14px; font-weight: 500; cursor: pointer; display: inline-flex; justify-content: center; align-items: center; gap: 8px; transition: 0.2s; }
-  .btn-blue:hover { opacity: 0.88; }
+  .user-avatar { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 1px solid var(--border-color); }
+  .btn-pro { background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 99%, #FECFEF 100%); color: #1d1d1f; font-weight: 700; padding: 6px 14px; border-radius: 12px; border: none; cursor: pointer; font-size: 13px; box-shadow: 0 4px 10px rgba(255, 154, 158, 0.3); transition: transform 0.2s; }
+  .btn-pro:hover { transform: scale(1.05); }
+  
+  .icon-btn, .lang-btn { background: transparent; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 12px; font-size: 13px; font-weight: 600; padding: 6px 12px; cursor: pointer; transition: all 0.2s; }
+  .icon-btn:hover, .lang-btn:hover { background: var(--button-active); }
+  .btn-blue { background: var(--apple-blue); color: #ffffff; padding: 10px 20px; border-radius: 980px; border: none; font-size: 14px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
   .btn-blue:disabled { opacity: 0.5; cursor: not-allowed; }
-  .btn-outline { background: transparent; color: var(--text-main); padding: 10px 20px; border-radius: 980px; border: 1px solid var(--border-color); font-size: 14px; font-weight: 500; cursor: pointer; transition: 0.2s; text-align: center; }
-  .btn-outline:hover { background: var(--button-active); }
+  .btn-outline { background: transparent; color: var(--text-main); padding: 10px 20px; border-radius: 980px; border: 1px solid var(--border-color); cursor: pointer; font-size: 14px; font-weight: 500;}
 
-  /* --- VIEW CONTAINERS --- */
-  .view { display: none; animation: fadeIn 0.4s ease; }
+  /* --- VIEWS --- */
+  .view-container { flex: 1; display: flex; flex-direction: column; }
+  .view { display: none; animation: fadeIn 0.4s ease; padding-bottom: 80px; flex: 1; }
   .view.active { display: block; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-  /* --- HERO & HOME SECTION --- */
-  .hero { padding: 48px 32px 24px; text-align: center; }
-  .hero h1 { font-family: var(--font-display); font-size: 40px; font-weight: 600; margin-bottom: 12px; letter-spacing: -0.5px;}
-  .hero p { font-size: 17px; color: var(--text-muted); max-width: 600px; margin: 0 auto; }
-  .tools-grid { max-width: 1000px; margin: 40px auto; padding: 0 32px 80px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
-  .tool-card { background: var(--bg-card); border-radius: 16px; padding: 32px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid var(--border-color); cursor: pointer; transition: transform 0.3s, box-shadow 0.3s; }
+  .hero { padding: 60px 32px 40px; text-align: center; }
+  .hero h1 { font-size: 44px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 16px; }
+  .hero p { font-size: 18px; color: var(--text-muted); max-width: 600px; margin: 0 auto; }
+
+  /* --- HOME GRID --- */
+  .tools-grid { max-width: 1000px; margin: 0 auto; padding: 0 32px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+  .tool-card { background: var(--bg-card); border-radius: 20px; padding: 32px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); cursor: pointer; transition: 0.3s; }
   .tool-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-card); }
-  .tool-icon { width: 48px; height: 48px; background: var(--apple-blue); color: white; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 20px; }
-  .code-icon { background: #333333; } .anim-icon { background: #ff2d55; }
+  .tool-icon { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 28px; margin-bottom: 20px; background: var(--apple-blue); color: #fff;}
+  .code-icon { background: #333; } .anim-icon { background: #ff2d55; }
 
-  /* --- TOOL LAYOUT --- */
-  .tool-container { max-width: 1400px; margin: 0 auto; padding: 0 32px 80px; display: grid; grid-template-columns: 360px 1fr; gap: 24px; align-items: flex-start; }
+  /* --- PRICING PAGE --- */
+  .pricing-grid { max-width: 900px; margin: 40px auto; display: grid; grid-template-columns: 1fr 1fr; gap: 32px; padding: 0 32px; }
+  .price-card { background: var(--bg-card); border-radius: 24px; padding: 40px; border: 1px solid var(--border-color); text-align: left; position: relative;}
+  .price-card.pro { border: 2px solid #FF9A9E; box-shadow: 0 20px 40px rgba(255, 154, 158, 0.15); }
+  .price-title { font-size: 24px; font-weight: 700; margin-bottom: 8px; }
+  .price-amount { font-size: 48px; font-weight: 700; margin-bottom: 24px; display: flex; align-items: baseline; gap: 4px; }
+  .price-amount span { font-size: 16px; color: var(--text-muted); font-weight: 400; }
+  .price-list { list-style: none; margin-bottom: 32px; }
+  .price-list li { margin-bottom: 12px; display: flex; gap: 12px; color: var(--text-muted); }
+  .price-list li::before { content: '✓'; color: var(--apple-blue); font-weight: bold; }
+  .btn-subscribe { width: 100%; background: var(--text-main); color: var(--bg-main); font-size: 16px; font-weight: 600; padding: 14px; border-radius: 12px; border: none; cursor: pointer; }
+
+  /* --- TOOL LAYOUT & CONTROLS --- */
+  .tool-container { max-width: 1400px; margin: 0 auto; padding: 0 32px; display: grid; grid-template-columns: 360px 1fr; gap: 24px; align-items: flex-start; }
   .left-panel { display: flex; flex-direction: column; gap: 20px; }
-  .right-panel { position: sticky; top: 80px; display: flex; flex-direction: column; height: fit-content; }
-  .card { background: var(--bg-card); border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.02); border: 1px solid var(--border-color); transition: background-color 0.3s, border-color 0.3s; }
+  .right-panel { position: sticky; top: 80px; }
+  .card { background: var(--bg-card); border-radius: 16px; padding: 24px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); }
   .card-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
-
-  /* --- FORMS & UI COMPONENTS --- */
+  
+  .ad-container { margin-top: 16px; background: var(--bg-filter); border-radius: 16px; border: 1px dashed var(--border-color); padding: 12px; text-align: center; min-height: 250px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); font-size: 12px; overflow: hidden;}
+  .ad-horizontal { max-width: 1000px; margin: 0 auto 40px; min-height: 90px; }
+  
   .segmented-control { display: flex; position: relative; background: var(--button-active); border-radius: 9px; padding: 3px; margin-bottom: 16px; }
   .segment-btn { flex: 1; text-align: center; padding: 6px 12px; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; position: relative; z-index: 1; transition: color 0.3s; }
   .segment-btn.active { color: var(--text-main); }
   .segment-slider { position: absolute; top: 3px; bottom: 3px; left: 3px; width: calc(33.333% - 2px); background: var(--bg-card); border-radius: 7px; box-shadow: var(--shadow-sm); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 0; }
+  
   .input-panel { display: none; animation: fadeIn 0.3s ease; } .input-panel.active { display: block; }
-  .form-textarea { width: 100%; height: 160px; background: var(--bg-filter); border: 1px solid var(--border-color); color: var(--text-main); padding: 12px; border-radius: 12px; font-family: ui-monospace, monospace; font-size: 13px; resize: none; outline: none; }
-  .form-input, .form-select { width: 100%; background: var(--bg-filter); border: 1px solid var(--border-color); color: var(--text-main); padding: 10px 12px; border-radius: 10px; font-size: 14px; outline: none; font-family: var(--font-text); }
+  .form-textarea, .form-input, .form-select { width: 100%; background: var(--bg-filter); border: 1px solid var(--border-color); color: var(--text-main); padding: 10px 12px; border-radius: 10px; outline: none; font-family: var(--font-text); margin-bottom: 12px; font-size: 14px;}
+  .form-textarea { height: 120px; resize: none; font-family: ui-monospace, monospace; font-size: 13px; }
   .form-textarea:focus, .form-input:focus, .form-select:focus { border-color: var(--apple-blue); box-shadow: 0 0 0 3px rgba(0,113,227,0.2); }
+  
   .drop-zone { border: 2px dashed var(--border-color); border-radius: 12px; padding: 30px 16px; text-align: center; background: var(--bg-filter); cursor: pointer; transition: border-color 0.2s; }
   .drop-zone:hover { border-color: var(--apple-blue); }
 
@@ -117,334 +137,348 @@
   .slider-toggle:before { position: absolute; content: ""; height: 20px; width: 20px; left: 2px; bottom: 2px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
   .toggle-switch input:checked + .slider-toggle { background-color: #34c759; } .toggle-switch input:checked + .slider-toggle:before { transform: translateX(20px); }
 
-  /* --- 16:9 CAPTURE AREA --- */
-  .preview-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
-  .capture-area-wrapper { width: 100%; aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; border-radius: 16px; border: 1px solid var(--border-color); overflow: hidden; position: relative; background-color: #f5f5f7; transition: background 0.3s; padding: 40px; }
+  /* --- CAPTURE UI --- */
+  .preview-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .capture-area-wrapper { width: 100%; aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center; border-radius: 16px; border: 1px solid var(--border-color); overflow: hidden; position: relative; background-color: #f5f5f7; padding: 40px; }
   
-  /* --- ★ KEYNOTE GRADE TABLE UI ★ --- */
   .table-card-container { background: var(--tbl-container-bg, #ffffff); padding: 24px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08); max-width: 90%; max-height: 90%; overflow: hidden; backdrop-filter: blur(30px) saturate(180%); -webkit-backdrop-filter: blur(30px) saturate(180%); border: 1px solid rgba(255,255,255,0.25); transition: box-shadow 0.2s; }
   .output-table { width: 100%; border-collapse: collapse; font-family: var(--tbl-font); font-size: var(--tbl-font-size); color: var(--tbl-color); }
   .output-table th, .output-table td { padding: var(--tbl-pad-y) var(--tbl-pad-x); text-align: left; border-bottom: 1px solid var(--tbl-border-color); }
   .output-table th { font-weight: 600; background: var(--tbl-header-bg); color: var(--tbl-header-color); border-bottom: var(--tbl-header-border); }
   .output-table.zebra-on tbody tr:nth-child(even) { background-color: var(--tbl-alt-bg); }
 
-  /* --- CODE WINDOW UI --- */
   .mac-window { background: #1e1e1e; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08); width: 100%; max-width: 800px; max-height: 100%; overflow: hidden; display: flex; flex-direction: column; border: 1px solid rgba(255,255,255,0.25); backdrop-filter: blur(30px) saturate(180%); -webkit-backdrop-filter: blur(30px) saturate(180%); }
   .mac-header { padding: 12px 16px; display: flex; gap: 8px; background: rgba(45, 45, 45, 0.8); align-items: center; }
   .mac-dot { width: 12px; height: 12px; border-radius: 50%; } .mac-dot.red { background: #ff5f56; } .mac-dot.yellow { background: #ffbd2e; } .mac-dot.green { background: #27c93f; }
   .code-container { padding: 24px; overflow-y: auto; background: transparent; } .code-container pre { margin: 0; } .code-container code { font-family: 'Fira Code', 'Courier New', Courier, monospace; font-size: var(--code-size, 16px); line-height: 1.5; background: transparent; padding: 0; border-radius: 0; white-space: pre-wrap; }
 
-  /* --- ANIMATION TOOL UI --- */
-  .anim-image-preview { max-width: 85%; max-height: 85%; object-fit: contain; border-radius: 20px; opacity: 1; backdrop-filter: blur(30px) saturate(180%); -webkit-backdrop-filter: blur(30px) saturate(180%); box-shadow: 0 20px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08); border: 1px solid rgba(255,255,255,0.25); }
-  
-  @keyframes applePopup { 
-    0% { opacity: 0; transform: scale(0.7) translateY(30px); } 
-    100% { opacity: 1; transform: scale(1) translateY(0); } 
-  }
-  
-  .play-popup { 
-    animation: applePopup 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
-  }
+  .anim-image-preview { max-width: 85%; max-height: 85%; object-fit: contain; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08); border: 1px solid rgba(255,255,255,0.25); opacity: 1; backdrop-filter: blur(30px) saturate(180%); -webkit-backdrop-filter: blur(30px) saturate(180%); }
+  .play-popup { animation: applePopup 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+  @keyframes applePopup { 0% { opacity: 0; transform: scale(0.7) translateY(30px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
 
-  /* --- Fixes for Backgrounds --- */
   .bg-mac-monterey { background: linear-gradient(135deg, #ff7b72 0%, #ff4b82 30%, #826bff 70%, #4da6ff 100%); }
   .bg-ipad-aurora { background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%); }
   .bg-dark-mesh { background: linear-gradient(135deg, #0f3460 0%, #16213e 50%, #1a1a2e 100%); }
 
   @media (max-width: 900px) { .tool-container { grid-template-columns: 1fr; } .right-panel { position: static; } .nav-center { display: none; } }
+
+  /* --- FOOTER UI --- */
+  footer { padding: 32px; text-align: center; border-top: 1px solid var(--border-color); background: var(--bg-main); margin-top: auto; }
+  footer a { color: var(--text-muted); text-decoration: none; margin: 0 16px; font-size: 13px; transition: color 0.2s; cursor: pointer; }
+  footer a:hover { color: var(--text-main); }
+  .footer-copyright { display: block; margin-top: 16px; color: var(--text-muted); font-size: 12px; }
 </style>
 </head>
 <body>
 
 <nav class="nav">
-  <div class="nav-left"><div class="nav-brand" onclick="App.switchView('home')"><div class="b-logo">B</div> <span data-i18n="nav_brand">BinTools</span></div></div>
+  <div class="nav-left"><a href="/" class="nav-brand" onclick="event.preventDefault(); App.switchView('home')"><div class="b-logo">B</div> BinTools</a></div>
   <div class="nav-center">
-    <div class="nav-item">
-      <span class="nav-link" data-i18n="nav_tools">精選工具</span>
-      <div class="nav-overlay"></div>
-      <div class="dropdown-menu">
-        <div class="dropdown-title" data-i18n="nav_tools_title">Featured Tools</div>
-        <a class="dropdown-link" onclick="App.switchView('excel2jpg')"><span style="font-size: 20px; margin-right: 12px;">📊</span> <span data-i18n="tool_table_title">表格海報生成器</span></a>
-        <a class="dropdown-link" onclick="App.switchView('code2jpg')" style="margin-top: 8px;"><span style="font-size: 20px; margin-right: 12px;">👨‍💻</span> <span data-i18n="tool_code_title">程式碼海報生成器</span></a>
-        <a class="dropdown-link" onclick="App.switchView('animator')" style="margin-top: 8px;"><span style="font-size: 20px; margin-right: 12px;">🎬</span> <span data-i18n="tool_anim_title">動態展演生成器</span></a>
-      </div>
-    </div>
+    <a href="/templates" class="nav-link" onclick="event.preventDefault(); App.switchView('templates')">模板</a>
+    <a href="/blog" class="nav-link" onclick="event.preventDefault(); App.switchView('blog')">教學</a>
+    <a href="/pricing" class="nav-link" onclick="event.preventDefault(); App.switchView('pricing')">價格</a>
+    <a href="/contact" class="nav-link" onclick="event.preventDefault(); App.switchView('contact')">聯絡我們</a>
   </div>
   <div class="nav-right">
-    <button class="lang-btn" onclick="App.toggleLanguage()" id="langToggle">EN / 中</button>
-    <button class="icon-btn" onclick="App.toggleTheme()" id="themeToggle" title="切換深淺色">
-      <svg id="icon-moon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-      <svg id="icon-sun" style="display:none;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-    </button>
+    <button class="lang-btn" onclick="App.toggleTheme()">深淺色切換</button>
+    <div id="authArea"><button class="btn-outline" onclick="window.MockAuth.login()">登入</button></div>
   </div>
 </nav>
 
-<!-- ================= HOME VIEW ================= -->
-<div id="view-home" class="view active">
-  <section class="hero"><h1 data-i18n="home_title">你的效率工具箱</h1><p data-i18n="home_subtitle">簡單、優雅、高效。為高質感的數據呈現而生。</p></section>
-  <div class="tools-grid">
-    <div class="tool-card" onclick="App.switchView('excel2jpg')"><div class="tool-icon">📊</div><h3 data-i18n="tool_table_title">表格海報生成器</h3><p data-i18n="tool_table_desc" style="color: var(--text-muted); margin-top: 8px; font-size: 14px;">將繁雜的數據化為 16:9 高畫質海報圖片。</p></div>
-    <div class="tool-card" onclick="App.switchView('code2jpg')"><div class="tool-icon code-icon">👨‍💻</div><h3 data-i18n="tool_code_title">程式碼海報生成器</h3><p data-i18n="tool_code_desc" style="color: var(--text-muted); margin-top: 8px; font-size: 14px;">為你的程式碼加上 macOS 視窗與美麗背景。</p></div>
-    <div class="tool-card" onclick="App.switchView('animator')"><div class="tool-icon anim-icon">🎬</div><h3 data-i18n="tool_anim_title">動態展演生成器</h3><p data-i18n="tool_anim_desc" style="color: var(--text-muted); margin-top: 8px; font-size: 14px;">上傳圖片，一鍵生成 Apple 風格 60fps 彈窗短影片。</p></div>
-  </div>
-</div>
-
-<!-- ================= TOOL 1: TABLE ================= -->
-<div id="view-excel2jpg" class="view">
-  <section class="hero" style="padding-bottom: 24px;"><h1 data-i18n="tool_table_title">表格海報生成器</h1></section>
-  <div class="tool-container">
-    <div class="left-panel">
-      <div class="card">
-        <div class="card-title" data-i18n="sec_import">1. 匯入資料</div>
-        <div class="segmented-control">
-          <div class="segment-slider" id="segmentSlider"></div>
-          <div class="segment-btn active" onclick="ToolTable.switchInput(0)" data-i18n="tab_text">文字貼上</div>
-          <div class="segment-btn" onclick="ToolTable.switchInput(1)" data-i18n="tab_file">上傳檔案</div>
-          <div class="segment-btn" onclick="ToolTable.switchInput(2)" data-i18n="tab_link">網址連結</div>
-        </div>
-        <div id="panel-0" class="input-panel active"><textarea id="textInput" class="form-textarea" placeholder="產品&#9;價格&#9;狀態&#10;iPhone&#9;$799&#9;現貨"></textarea></div>
-        <div id="panel-1" class="input-panel">
-          <div class="drop-zone" onclick="document.getElementById('fileInput').click()"><div style="font-size:14px; font-weight:500;" data-i18n="drop_file">點擊或拖曳上傳檔案</div><div style="font-size:12px; color:var(--text-muted); margin-top:4px;">.xlsx, .csv</div><input type="file" id="fileInput" accept=".xlsx, .xls, .csv" style="display:none" onchange="ToolTable.handleFile(event)"></div>
-          <p id="fileNameDisplay" style="font-size:12px; color:var(--apple-blue); margin-top:8px; text-align:center;"></p>
-        </div>
-        <div id="panel-2" class="input-panel"><input type="text" id="sheetInput" class="form-input" placeholder="Google Sheets Link..."></div>
-        <div style="display: flex; gap: 8px; margin-top: 16px;"><button class="btn-blue" onclick="ToolTable.process()" style="flex: 1;" data-i18n="btn_preview">匯入並預覽</button><button class="btn-outline" onclick="ToolTable.clear()" data-i18n="btn_clear">清空</button></div>
-      </div>
-
-      <div class="card">
-        <div class="card-title" data-i18n="sec_canvas">2. 16:9 背景設定</div>
-        <div class="settings-group" style="margin-bottom: 12px;">
-          <label class="settings-label" data-i18n="lbl_bg_style">畫布風格</label>
-          <select id="canvasBgSelect" class="form-select" onchange="App.applyCanvasBg('captureArea', this.value, 'customBgColorWrapper')">
-            <option value="solid-light" data-i18n="bg_solid_light">純色 (淺白)</option>
-            <option value="solid-dark" data-i18n="bg_solid_dark">純色 (深灰)</option>
-            <option value="mac-monterey" data-i18n="bg_mac">macOS 漸層</option>
-            <option value="ipad-aurora" data-i18n="bg_ipad">iPad 晨曦</option>
-            <option value="dark-mesh" data-i18n="bg_darkmesh">晶邃藍網格</option>
-            <option value="transparent" data-i18n="bg_transparent">透明背景 (去背用)</option>
-            <option value="custom" data-i18n="bg_custom">自定義純色</option>
-          </select>
-        </div>
-        <div class="settings-group" id="customBgColorWrapper" style="display:none;">
-          <label class="settings-label" data-i18n="lbl_custom_color">自訂顏色</label>
-          <input type="color" id="cfgCanvasColor" value="#e5e5ea" onchange="App.applyCanvasBg('captureArea', 'custom', 'customBgColorWrapper')">
-        </div>
-        <div class="settings-group" style="margin-top: 16px;">
-          <label class="settings-label" data-i18n="lbl_tbl_bg">表格底色</label>
-          <select id="tblBgSelect" class="form-select" onchange="ToolTable.applyStyle()">
-            <option value="rgba(255, 255, 255, 0.85)">毛玻璃 (白)</option>
-            <option value="rgba(28, 28, 30, 0.85)">毛玻璃 (黑)</option>
-            <option value="#ffffff">純白 (實心)</option>
-            <option value="transparent">透明</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title" data-i18n="sec_appearance">3. 表格排版</div>
-        <div class="settings-grid">
-          <div class="settings-group"><label class="settings-label" data-i18n="lbl_font">字體</label><select id="cfgFont" class="form-select" onchange="ToolTable.applyStyle()"><option value="'Inter', sans-serif">Apple Inter</option><option value="'Noto Serif TC', serif">Serif (襯線)</option></select></div>
-          <div class="settings-group"><label class="settings-label"><span data-i18n="lbl_size">字級</span>: <span id="valSize">15px</span></label><input type="range" id="cfgSize" min="10" max="32" value="15" oninput="App.updateLabel('cfgSize','valSize','px'); ToolTable.applyStyle()"></div>
-        </div>
-        <div class="settings-grid">
-          <div class="settings-group"><label class="settings-label" data-i18n="lbl_textcolor">文字</label><input type="color" id="cfgTextColor" value="#1d1d1f" onchange="ToolTable.applyStyle()"></div>
-          <div class="settings-group"><label class="settings-label" data-i18n="lbl_linecolor">格線</label><input type="color" id="cfgBorderColor" value="#d2d2d7" onchange="ToolTable.applyStyle()"></div>
-        </div>
-        <div class="settings-grid">
-          <div class="settings-group"><label class="settings-label"><span data-i18n="lbl_pady">行距</span>: <span id="valPadY">14px</span></label><input type="range" id="cfgPadY" min="4" max="32" value="14" oninput="App.updateLabel('cfgPadY','valPadY','px'); ToolTable.applyStyle()"></div>
-          <div class="settings-group"><label class="settings-label"><span data-i18n="lbl_padx">列寬</span>: <span id="valPadX">20px</span></label><input type="range" id="cfgPadX" min="4" max="48" value="20" oninput="App.updateLabel('cfgPadX','valPadX','px'); ToolTable.applyStyle()"></div>
-        </div>
-      </div>
+<div class="view-container">
+  <!-- ================= HOME VIEW ================= -->
+  <div id="view-home" class="view active">
+    <section class="hero"><h1>你的效率內容生成平台</h1><p>免費每日 3 次下載。升級 Pro 解鎖 1080p 60fps 無水印商用授權。</p></section>
+    <div class="tools-grid">
+      <div class="tool-card" onclick="App.switchView('excel2jpg')"><div class="tool-icon">📊</div><h3>表格海報生成器</h3><p class="text-muted">將繁雜數據轉化為高畫質海報。</p></div>
+      <div class="tool-card" onclick="App.switchView('code2jpg')"><div class="tool-icon code-icon">👨‍💻</div><h3>程式碼海報生成器</h3><p class="text-muted">macOS 視窗風格語法高亮。</p></div>
+      <div class="tool-card" onclick="App.switchView('animator')"><div class="tool-icon anim-icon">🎬</div><h3>動態展演生成器</h3><p class="text-muted">生成 60fps 彈窗特效短影片。</p></div>
     </div>
+    <div class="ad-container ad-horizontal ad-banner"><span>Google AdSense 版位</span></div>
+  </div>
 
-    <!-- Right Preview -->
-    <div class="right-panel card">
-      <div class="preview-toolbar">
-        <div style="font-weight: 600; font-size: 16px;" data-i18n="lbl_preview">圖片預覽 (16:9)</div>
-        <div style="display: flex; gap: 8px; align-items: center;">
-          <select id="exportFormat" class="form-select" style="width: 80px; padding: 6px;"><option value="png">PNG</option><option value="jpeg">JPG</option></select>
-          <button class="btn-blue" onclick="App.exportImage(this, 'captureArea', 'exportFormat', 'canvasBgSelect')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> <span data-i18n="btn_download">下載</span></button>
-        </div>
+  <!-- ================= PRICING VIEW ================= -->
+  <div id="view-pricing" class="view">
+    <section class="hero"><h1>升級 Pro 解鎖無限可能</h1><p>為專業創作者與企業打造的內容生產力方案。</p></section>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <div class="price-title">免費版 Free</div><div class="price-amount">$0 <span>/ 永久</span></div>
+        <ul class="price-list"><li>每日 3 次下載額度</li><li>最高 720p 30fps 畫質</li><li>帶有 BinTools 浮水印</li><li>顯示廣告</li></ul>
+        <button class="btn-outline" style="width: 100%;" onclick="window.MockAuth.login()">註冊免費帳號</button>
       </div>
-      <div id="captureArea" class="capture-area-wrapper">
-        <div class="table-card-container" id="tblContainer">
-          <table id="outputTable" class="output-table">
-            <thead><tr><th>名字/能力值</th><th>類型</th><th>位置</th></tr></thead>
-            <tbody><tr><td>Keston Hiura / 76</td><td>簽名</td><td>1B/2B</td></tr><tr><td>斐智桓(J. Bae) / 80</td><td>普卡</td><td>1B/LF</td></tr><tr><td>金慧成(H. Kim) / 72</td><td>普卡</td><td>2B/CF</td></tr></tbody>
-          </table>
-        </div>
+      <div class="price-card pro">
+        <div style="position:absolute; top:-15px; right:30px; background:#1d1d1f; color:#fff; padding:6px 12px; border-radius:20px; font-size:12px; font-weight:700;">最受歡迎</div>
+        <div class="price-title">專業版 Pro</div><div class="price-amount">$9.9 <span>/ 月</span></div>
+        <ul class="price-list">
+          <li style="color:#1d1d1f; font-weight:600;">無限制下載次數</li><li style="color:#1d1d1f; font-weight:600;">解鎖 1080p 60fps 頂級畫質</li>
+          <li style="color:#1d1d1f; font-weight:600;">完全去除浮水印</li><li style="color:#1d1d1f; font-weight:600;">無廣告純淨體驗</li>
+        </ul>
+        <button class="btn-subscribe" onclick="App.subscribe()">立即升級 Pro</button>
       </div>
     </div>
   </div>
-</div>
 
-<!-- ================= TOOL 2: CODE ================= -->
-<div id="view-code2jpg" class="view">
-  <section class="hero" style="padding-bottom: 24px;"><h1 data-i18n="tool_code_title">程式碼海報生成器</h1></section>
-  <div class="tool-container">
-    <div class="left-panel">
-      <div class="card">
-        <div class="card-title" data-i18n="sec_code_input">1. 貼上程式碼</div>
-        <textarea id="codeRawInput" class="form-textarea" placeholder="function helloWorld() {\n  console.log('Hello');\n}" oninput="ToolCode.update()" style="height: 250px;"></textarea>
-      </div>
-      <div class="card">
-        <div class="card-title" data-i18n="sec_appearance">2. 外觀設定</div>
-        <div class="settings-group" style="margin-bottom: 16px;">
-          <label class="settings-label" data-i18n="lbl_bg_style">畫布背景</label>
-          <select id="codeCanvasBgSelect" class="form-select" onchange="App.applyCanvasBg('captureAreaCode', this.value)">
-            <option value="mac-monterey" data-i18n="bg_mac">macOS 漸層</option>
-            <option value="ipad-aurora" data-i18n="bg_ipad">iPad 晨曦</option>
-            <option value="dark-mesh" data-i18n="bg_darkmesh">晶邃藍網格</option>
-            <option value="solid-light" data-i18n="bg_solid_light">純色 (淺白)</option>
-            <option value="solid-dark" data-i18n="bg_solid_dark">純色 (深灰)</option>
-            <option value="transparent" data-i18n="bg_transparent">透明背景 (去背用)</option>
-          </select>
+  <!-- ================= STATIC VIEWS ================= -->
+  <div id="view-templates" class="view"><section class="hero"><h1>精選模板</h1><p>即將推出...</p></section></div>
+  <div id="view-blog" class="view"><section class="hero"><h1>教學文章</h1><p>即將推出...</p></section></div>
+  <div id="view-contact" class="view"><section class="hero"><h1>聯絡我們</h1><p>Email: support@bintools.com</p></section></div>
+  <div id="view-privacy" class="view"><section class="hero"><h1>隱私權政策 (Privacy Policy)</h1><p>您的隱私權對我們很重要。本站不會將您的資料分享給第三方...</p></section></div>
+  <div id="view-terms" class="view"><section class="hero"><h1>服務條款 (Terms of Service)</h1><p>使用本服務即代表您同意本站的服務條款...</p></section></div>
+
+  <!-- ================= TOOL: TABLE ================= -->
+  <div id="view-excel2jpg" class="view">
+    <section class="hero" style="padding-bottom: 24px;"><h1>表格海報生成器</h1></section>
+    <div class="tool-container">
+      <div class="left-panel">
+        <div class="card">
+          <div class="card-title">1. 匯入資料</div>
+          <div class="segmented-control">
+            <div class="segment-slider" id="segmentSlider"></div>
+            <div class="segment-btn active" onclick="ToolTable.switchInput(0)">文字貼上</div>
+            <div class="segment-btn" onclick="ToolTable.switchInput(1)">上傳檔案</div>
+            <div class="segment-btn" onclick="ToolTable.switchInput(2)">網址連結</div>
+          </div>
+          <div id="panel-0" class="input-panel active"><textarea id="textInput" class="form-textarea" placeholder="產品&#9;價格&#9;狀態&#10;iPhone&#9;$799&#9;現貨"></textarea></div>
+          <div id="panel-1" class="input-panel">
+            <div class="drop-zone" onclick="document.getElementById('fileInput').click()"><div style="font-size:14px; font-weight:500;">點擊或拖曳上傳檔案</div><div style="font-size:12px; color:var(--text-muted); margin-top:4px;">.xlsx, .csv</div><input type="file" id="fileInput" accept=".xlsx, .xls, .csv" style="display:none" onchange="ToolTable.handleFile(event)"></div>
+            <p id="fileNameDisplay" style="font-size:12px; color:var(--apple-blue); margin-top:8px; text-align:center;"></p>
+          </div>
+          <div id="panel-2" class="input-panel"><input type="text" id="sheetInput" class="form-input" placeholder="Google Sheets Link..."></div>
+          <div style="display: flex; gap: 8px; margin-top: 16px;"><button class="btn-blue" onclick="ToolTable.process()" style="flex: 1;">匯入並預覽</button><button class="btn-outline" onclick="ToolTable.clear()">清空</button></div>
         </div>
-        <div class="settings-group">
-          <label class="settings-label"><span data-i18n="lbl_size">文字大小</span>: <span id="valCodeSize">16px</span></label>
-          <input type="range" id="cfgCodeSize" min="10" max="36" value="16" oninput="App.updateLabel('cfgCodeSize','valCodeSize','px'); ToolCode.updateStyle();">
+
+        <div class="card">
+          <div class="card-title">2. 16:9 背景設定</div>
+          <div class="settings-group" style="margin-bottom: 12px;">
+            <label class="settings-label">畫布風格</label>
+            <select id="canvasBgSelect" class="form-select" onchange="App.applyCanvasBg('captureArea', this.value, 'customBgColorWrapper')">
+              <option value="solid-light">純色 (淺白)</option><option value="solid-dark">純色 (深灰)</option>
+              <option value="mac-monterey">macOS 漸層</option><option value="ipad-aurora">iPad 晨曦</option>
+              <option value="dark-mesh">晶邃藍網格</option><option value="transparent">透明背景 (去背用)</option>
+              <option value="custom">自定義純色</option>
+            </select>
+          </div>
+          <div class="settings-group" id="customBgColorWrapper" style="display:none;">
+            <label class="settings-label">自訂顏色</label><input type="color" id="cfgCanvasColor" value="#e5e5ea" onchange="App.applyCanvasBg('captureArea', 'custom', 'customBgColorWrapper')">
+          </div>
+          <div class="settings-group" style="margin-top: 16px;">
+            <label class="settings-label">表格底色</label>
+            <select id="tblBgSelect" class="form-select" onchange="ToolTable.applyStyle()">
+              <option value="rgba(255, 255, 255, 0.85)">毛玻璃 (白)</option><option value="rgba(28, 28, 30, 0.85)">毛玻璃 (黑)</option>
+              <option value="#ffffff">純白 (實心)</option><option value="transparent">透明</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">3. 表格排版</div>
+          <div class="settings-grid">
+            <div class="settings-group"><label class="settings-label">字體</label><select id="cfgFont" class="form-select" onchange="ToolTable.applyStyle()"><option value="'Inter', sans-serif">Apple Inter</option><option value="'Noto Serif TC', serif">Serif (襯線)</option></select></div>
+            <div class="settings-group"><label class="settings-label">字級: <span id="valSize">15px</span></label><input type="range" id="cfgSize" min="10" max="32" value="15" oninput="App.updateLabel('cfgSize','valSize','px'); ToolTable.applyStyle()"></div>
+          </div>
+          <div class="settings-grid">
+            <div class="settings-group"><label class="settings-label">文字</label><input type="color" id="cfgTextColor" value="#1d1d1f" onchange="ToolTable.applyStyle()"></div>
+            <div class="settings-group"><label class="settings-label">格線</label><input type="color" id="cfgBorderColor" value="#d2d2d7" onchange="ToolTable.applyStyle()"></div>
+          </div>
+          <div class="settings-grid">
+            <div class="settings-group"><label class="settings-label">行距: <span id="valPadY">14px</span></label><input type="range" id="cfgPadY" min="4" max="32" value="14" oninput="App.updateLabel('cfgPadY','valPadY','px'); ToolTable.applyStyle()"></div>
+            <div class="settings-group"><label class="settings-label">列寬: <span id="valPadX">20px</span></label><input type="range" id="cfgPadX" min="4" max="48" value="20" oninput="App.updateLabel('cfgPadX','valPadX','px'); ToolTable.applyStyle()"></div>
+          </div>
+          <div class="settings-grid" style="border-top: 1px solid var(--border-color); padding-top: 16px; margin-top: 8px;">
+            <div class="settings-group">
+              <label class="settings-label">交替行色</label>
+              <div class="switch-row"><span style="font-size:13px; color:var(--text-muted);">啟用</span><label class="toggle-switch"><input type="checkbox" id="cfgZebraToggle" onchange="ToolTable.applyStyle()"><span class="slider-toggle"></span></label></div>
+            </div>
+            <div class="settings-group"><label class="settings-label">底色</label><input type="color" id="cfgAltBgColor" value="#f9f9fb" onchange="ToolTable.applyStyle()"></div>
+          </div>
+        </div>
+        <div class="ad-container ad-banner"><span>Google AdSense 版位</span></div>
+      </div>
+
+      <div class="right-panel card">
+        <div class="preview-toolbar">
+          <div style="font-weight: 600; font-size: 16px;">圖片預覽 (16:9)</div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <span id="usageTextTable" style="font-size:12px; color:var(--text-muted); margin-right:12px;">今日額度: -/3</span>
+            <select id="exportFormat" class="form-select" style="width: 80px; padding: 6px;"><option value="png">PNG</option><option value="jpeg">JPG</option></select>
+            <button class="btn-blue" onclick="App.exportMedia('api/render-image', 'captureArea', 'exportFormat')">雲端下載</button>
+          </div>
+        </div>
+        <div id="captureArea" class="capture-area-wrapper">
+          <div class="table-card-container" id="tblContainer">
+            <table id="outputTable" class="output-table">
+              <thead><tr><th>名字/能力值</th><th>類型</th><th>位置</th></tr></thead>
+              <tbody><tr><td>Keston Hiura / 76</td><td>簽名</td><td>1B/2B</td></tr><tr><td>斐智桓(J. Bae) / 80</td><td>普卡</td><td>1B/LF</td></tr><tr><td>金慧成(H. Kim) / 72</td><td>普卡</td><td>2B/CF</td></tr></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
-    <div class="right-panel card">
-      <div class="preview-toolbar">
-        <div style="font-weight: 600; font-size: 16px;" data-i18n="lbl_preview">圖片預覽 (16:9)</div>
-        <div style="display: flex; gap: 8px; align-items: center;">
-          <select id="exportFormatCode" class="form-select" style="width: 80px; padding: 6px;"><option value="png">PNG</option><option value="jpeg">JPG</option></select>
-          <button class="btn-blue" onclick="App.exportImage(this, 'captureAreaCode', 'exportFormatCode', 'codeCanvasBgSelect')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> <span data-i18n="btn_download">下載</span></button>
+  </div>
+
+  <!-- ================= TOOL: CODE ================= -->
+  <div id="view-code2jpg" class="view">
+    <section class="hero" style="padding-bottom: 24px;"><h1>程式碼海報生成器</h1></section>
+    <div class="tool-container">
+      <div class="left-panel">
+        <div class="card">
+          <div class="card-title">1. 貼上程式碼</div>
+          <textarea id="codeRawInput" class="form-textarea" placeholder="function helloWorld() {\n  console.log('Hello');\n}" oninput="ToolCode.update()" style="height: 250px;"></textarea>
         </div>
+        <div class="card">
+          <div class="card-title">2. 外觀設定</div>
+          <div class="settings-group" style="margin-bottom: 16px;">
+            <label class="settings-label">畫布背景</label>
+            <select id="codeCanvasBgSelect" class="form-select" onchange="App.applyCanvasBg('captureAreaCode', this.value)">
+              <option value="mac-monterey">macOS 漸層</option><option value="ipad-aurora">iPad 晨曦</option><option value="dark-mesh">晶邃藍網格</option>
+              <option value="solid-light">純色 (淺白)</option><option value="solid-dark">純色 (深灰)</option><option value="transparent">透明背景 (去背用)</option>
+            </select>
+          </div>
+          <div class="settings-group"><label class="settings-label">文字大小: <span id="valCodeSize">16px</span></label><input type="range" id="cfgCodeSize" min="10" max="36" value="16" oninput="App.updateLabel('cfgCodeSize','valCodeSize','px'); ToolCode.updateStyle();"></div>
+        </div>
+        <div class="ad-container ad-banner"><span>Google AdSense 版位</span></div>
       </div>
-      <div id="captureAreaCode" class="capture-area-wrapper bg-mac-monterey">
-        <div class="mac-window">
-          <div class="mac-header"><div class="mac-dot red"></div><div class="mac-dot yellow"></div><div class="mac-dot green"></div></div>
-          <div class="code-container"><pre><code id="codeRenderOutput" class="language-javascript">function getProductivity() {
+      <div class="right-panel card">
+        <div class="preview-toolbar">
+          <div style="font-weight: 600; font-size: 16px;">圖片預覽 (16:9)</div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <select id="exportFormatCode" class="form-select" style="width: 80px; padding: 6px;"><option value="png">PNG</option><option value="jpeg">JPG</option></select>
+            <button class="btn-blue" onclick="App.exportMedia('api/render-image', 'captureAreaCode', 'exportFormatCode')">雲端下載</button>
+          </div>
+        </div>
+        <div id="captureAreaCode" class="capture-area-wrapper bg-mac-monterey">
+          <div class="mac-window">
+            <div class="mac-header"><div class="mac-dot red"></div><div class="mac-dot yellow"></div><div class="mac-dot green"></div></div>
+            <div class="code-container"><pre><code id="codeRenderOutput" class="language-javascript">function getProductivity() {
   const tools = new BinTools();
   return tools.boost(100);
 }</code></pre></div>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
 
-<!-- ================= TOOL 3: ANIMATOR ================= -->
-<div id="view-animator" class="view">
-  <section class="hero" style="padding-bottom: 24px;"><h1 data-i18n="tool_anim_title">動態展演生成器</h1></section>
-  <div class="tool-container">
-    <div class="left-panel">
-      <div class="card">
-        <div class="card-title" data-i18n="sec_anim_upload">1. 上傳中心圖片</div>
-        <div class="drop-zone" onclick="document.getElementById('animFileInput').click()">
-          <div style="font-size:14px; font-weight:500;" data-i18n="drop_image">點擊或拖曳上傳圖片</div>
-          <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">推薦上傳前面工具匯出的透明 PNG 卡片</div>
-          <input type="file" id="animFileInput" accept="image/png, image/jpeg" style="display:none" onchange="ToolAnim.handleUpload(event)">
+  <!-- ================= TOOL: ANIMATOR ================= -->
+  <div id="view-animator" class="view">
+    <section class="hero" style="padding-bottom: 24px;"><h1>動態展演生成器</h1></section>
+    <div class="tool-container">
+      <div class="left-panel">
+        <div class="card">
+          <div class="card-title">1. 上傳中心圖片</div>
+          <div class="drop-zone" onclick="document.getElementById('animFileInput').click()">
+            <div style="font-size:14px; font-weight:500;">點擊或拖曳上傳圖片</div>
+            <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">推薦上傳前面工具匯出的透明 PNG 卡片</div>
+            <input type="file" id="animFileInput" accept="image/png, image/jpeg" style="display:none" onchange="ToolAnim.handleUpload(event)">
+          </div>
         </div>
+        <div class="card">
+          <div class="card-title">2. 影片匯出設定</div>
+          <div class="settings-group" style="margin-bottom: 12px;">
+            <label class="settings-label">影片背景</label>
+            <select id="animCanvasBgSelect" class="form-select" onchange="App.applyCanvasBg('captureAreaAnim', this.value)">
+              <option value="solid-light">純色 (淺白)</option><option value="solid-dark">純色 (深灰)</option>
+              <option value="mac-monterey">macOS 漸層</option><option value="ipad-aurora">iPad 晨曦</option>
+              <option value="dark-mesh">晶邃藍網格</option><option value="transparent">透明背景 (剪輯軟體去背用)</option>
+            </select>
+          </div>
+          <div class="settings-group" style="margin-bottom: 12px;">
+            <label class="settings-label">匯出格式</label>
+            <select id="animVideoFormat" class="form-select"><option value="mp4">MP4 (高相容)</option><option value="webm">WebM (支援透明)</option></select>
+          </div>
+        </div>
+        <div class="ad-container ad-banner"><span>Google AdSense 版位</span></div>
       </div>
-      <div class="card">
-        <div class="card-title" data-i18n="sec_anim_bg">2. 影片匯出設定</div>
-        <div class="settings-group" style="margin-bottom: 12px;">
-          <label class="settings-label" data-i18n="lbl_bg_style">影片背景</label>
-          <select id="animCanvasBgSelect" class="form-select" onchange="App.applyCanvasBg('captureAreaAnim', this.value)">
-            <option value="solid-light" data-i18n="bg_solid_light">純色 (淺白)</option>
-            <option value="solid-dark" data-i18n="bg_solid_dark">純色 (深灰)</option>
-            <option value="mac-monterey" data-i18n="bg_mac">macOS 漸層</option>
-            <option value="ipad-aurora" data-i18n="bg_ipad">iPad 晨曦</option>
-            <option value="dark-mesh" data-i18n="bg_darkmesh">晶邃藍網格</option>
-            <option value="transparent" data-i18n="bg_transparent">透明背景 (剪輯軟體去背用)</option>
-          </select>
+      <div class="right-panel card">
+        <div class="preview-toolbar">
+          <div style="font-weight: 600; font-size: 16px;">動畫預覽 (16:9)</div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <button class="btn-outline" onclick="ToolAnim.playPreview()">▶ 播放預覽</button>
+            <span id="usageTextAnim" style="font-size:12px; color:var(--text-muted);">今日額度: -/3</span>
+            <button class="btn-blue" onclick="App.exportMedia('api/render-video', 'captureAreaAnim', 'animVideoFormat')">雲端渲染影片</button>
+          </div>
         </div>
-        <div class="settings-group">
-          <label class="settings-label">匯出格式</label>
-          <select id="animVideoFormat" class="form-select">
-            <option value="mp4">MP4 (高相容，不支援透明)</option>
-            <option value="webm">WebM (支援透明去背，適合剪輯)</option>
-          </select>
+        <div id="captureAreaAnim" class="capture-area-wrapper">
+          <img id="animTargetImg" class="anim-image-preview" src="" style="display:none;" />
         </div>
-      </div>
-    </div>
-    <div class="right-panel card">
-      <div class="preview-toolbar">
-        <div style="font-weight: 600; font-size: 16px;" data-i18n="lbl_preview_anim">動畫預覽 (16:9)</div>
-        <div style="display: flex; gap: 8px; align-items: center;">
-          <button class="btn-outline" onclick="ToolAnim.playPreview()"><span data-i18n="btn_play_preview">▶ 播放預覽</span></button>
-          <button class="btn-blue" onclick="ToolAnim.exportVideo(this)" id="btnExportVideo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg> <span id="btnVideoText" data-i18n="btn_gen_video">生成影片</span></button>
-        </div>
-      </div>
-      <div id="captureAreaAnim" class="capture-area-wrapper">
-        <img id="animTargetImg" class="anim-image-preview" src="" style="display:none;" />
       </div>
     </div>
   </div>
-</div>
+</div> <!-- End view-container -->
+
+<!-- ★ FOOTER ★ -->
+<footer>
+  <a href="/privacy" onclick="event.preventDefault(); App.switchView('privacy')">Privacy Policy</a>
+  <a href="/terms" onclick="event.preventDefault(); App.switchView('terms')">Terms of Service</a>
+  <a href="/contact" onclick="event.preventDefault(); App.switchView('contact')">Contact</a>
+  <span class="footer-copyright">&copy; 2024 BinTools. All rights reserved.</span>
+</footer>
 
 <script>
-  // ==========================================
-  // APP 核心模組 (API Backend Integration)
-  // ==========================================
   const App = {
-    lang: 'zh',
-    i18n: {
-      zh: {
-        nav_brand: "BinTools", nav_tools: "工具", nav_tools_title: "精選工具", 
-        home_title: "你的效率工具箱", home_subtitle: "簡單、優雅、高效。為高質感的數據呈現而生。",
-        tool_table_title: "表格海報生成器", tool_table_desc: "將繁雜的數據化為 16:9 高畫質海報圖片。",
-        tool_code_title: "程式碼海報生成器", tool_code_desc: "為你的程式碼加上 macOS 視窗與美麗背景。",
-        tool_anim_title: "動態展演生成器", tool_anim_desc: "上傳圖片，一鍵生成 Apple 風格 60fps 彈窗短影片。",
-        sec_import: "1. 匯入資料", sec_code_input: "1. 貼上程式碼", sec_canvas: "2. 16:9 背景設定", sec_appearance: "3. 表格排版",
-        sec_anim_upload: "1. 上傳中心圖片", sec_anim_bg: "2. 影片匯出設定", drop_image: "點擊或拖曳上傳圖片",
-        tab_text: "文字貼上", tab_file: "上傳檔案", tab_link: "網址連結", placeholder_text: "產品\t價格\t狀態", 
-        drop_file: "點擊或拖曳上傳檔案", placeholder_link: "貼上 Google Sheets 連結...",
-        btn_preview: "匯入並預覽", btn_clear: "清空", 
-        lbl_bg_style: "畫布風格", bg_solid_light: "純色 (淺白)", bg_solid_dark: "純色 (深灰)", bg_mac: "macOS 漸層", bg_ipad: "iPad 晨曦", bg_darkmesh: "晶邃藍網格", bg_custom: "自定義純色", bg_transparent: "透明背景 (去背用)",
-        lbl_custom_color: "自訂顏色", lbl_tbl_bg: "表格卡片底色", 
-        lbl_font: "字體", lbl_size: "文字大小", lbl_textcolor: "文字色", lbl_linecolor: "格線色", lbl_pady: "行距", lbl_padx: "列寬", lbl_zebra: "交替行色", lbl_enable: "啟用", lbl_altbg: "底色",
-        lbl_preview: "圖片預覽 (16:9)", lbl_preview_anim: "動畫預覽 (16:9)", btn_download: "下載", btn_play_preview: "播放預覽", btn_gen_video: "生成影片", ad_placeholder: "廣告"
-      },
-      en: {
-        nav_brand: "BinTools", nav_tools: "Tools", nav_tools_title: "Featured Tools", 
-        home_title: "Productivity Toolkit", home_subtitle: "Simple, elegant, and efficient.",
-        tool_table_title: "Table Poster", tool_table_desc: "Convert messy data into 16:9 posters.",
-        tool_code_title: "Code to Image", tool_code_desc: "Wrap your code in a macOS window.",
-        tool_anim_title: "Popup Animator", tool_anim_desc: "Generate a 60fps Apple-style popup video.",
-        sec_import: "1. Import", sec_code_input: "1. Paste Code", sec_canvas: "2. Background", sec_appearance: "3. Styling",
-        sec_anim_upload: "1. Upload Image", sec_anim_bg: "2. Export Settings", drop_image: "Click or drag image",
-        tab_text: "Paste Text", tab_file: "Upload File", tab_link: "URL Link", placeholder_text: "Item\tPrice\tStatus", 
-        drop_file: "Click or drag to upload", placeholder_link: "Paste Google Sheets link...",
-        btn_preview: "Preview", btn_clear: "Clear", 
-        lbl_bg_style: "Background", bg_solid_light: "Solid (Light)", bg_solid_dark: "Solid (Dark)", bg_mac: "macOS Gradient", bg_ipad: "iPad Aurora", bg_darkmesh: "Deep Blue Mesh", bg_custom: "Custom Color", bg_transparent: "Transparent",
-        lbl_custom_color: "Pick Color", lbl_tbl_bg: "Table Bg", 
-        lbl_font: "Font", lbl_size: "Size", lbl_textcolor: "Text Color", lbl_linecolor: "Line Color", lbl_pady: "Row Pad", lbl_padx: "Col Pad", lbl_zebra: "Zebra Striping", lbl_enable: "Enable", lbl_altbg: "Alt Bg",
-        lbl_preview: "Preview (16:9)", lbl_preview_anim: "Anim Preview", btn_download: "Export", btn_play_preview: "Play", btn_gen_video: "Export Video", ad_placeholder: "Advertisement"
+    user: null, 
+    init: async function() {
+      // SPA 路由：根據網址自動切換頁面
+      const path = window.location.pathname.replace('/', '') || 'home';
+      this.switchView(path);
+      await this.fetchUserStatus();
+    },
+    fetchUserStatus: async function() {
+      const uid = window.MockAuth.currentUser ? window.MockAuth.currentUser.uid : 'guest';
+      try {
+        const res = await fetch(`/api/user-status`, { headers: { 'x-user-uid': uid } });
+        const data = await res.json();
+        this.user = { uid, ...data };
+        this.updateAuthUI();
+      } catch (e) { console.error(e); }
+    },
+    updateAuthUI: function() {
+      const authArea = document.getElementById('authArea');
+      const isPro = this.user && this.user.plan === 'pro';
+
+      if (window.MockAuth.currentUser) {
+        authArea.innerHTML = `
+          ${!isPro ? `<button class="btn-pro" onclick="App.switchView('pricing')">升級 Pro</button>` : `<span style="font-size:12px; font-weight:bold; color:#ff2d55; margin-right:12px;">PRO 用戶</span>`}
+          <img src="${window.MockAuth.currentUser.photoURL}" class="user-avatar" onclick="window.MockAuth.logout()">
+        `;
+      } else {
+        authArea.innerHTML = `<button class="btn-outline" onclick="window.MockAuth.login()">登入</button>`;
       }
+
+      const limitText = isPro ? '無限' : (this.user ? `${this.user.downloadsToday}/3` : '-/3');
+      document.getElementById('usageTextTable').innerText = `今日額度: ${limitText}`;
+      document.getElementById('usageTextAnim').innerText = `今日額度: ${limitText}`;
+
+      document.querySelectorAll('.ad-banner').forEach(el => { el.style.display = isPro ? 'none' : 'flex'; });
     },
-    toggleLanguage: function() {
-      this.lang = this.lang === 'zh' ? 'en' : 'zh';
-      document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.placeholder = this.i18n[this.lang][key] || key;
-        else el.innerText = this.i18n[this.lang][key] || key;
-      });
-    },
-    toggleTheme: function() {
-      const isDark = document.body.hasAttribute('data-theme');
-      const iconSun = document.getElementById('icon-sun'), iconMoon = document.getElementById('icon-moon');
-      if (isDark) { document.body.removeAttribute('data-theme'); iconSun.style.display = 'none'; iconMoon.style.display = 'block'; } 
-      else { document.body.setAttribute('data-theme', 'dark'); iconSun.style.display = 'block'; iconMoon.style.display = 'none'; }
+    subscribe: async function() {
+      if(!window.MockAuth.currentUser) return alert('請先登入！');
+      try {
+        const res = await fetch('/api/create-checkout', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uid: window.MockAuth.currentUser.uid })
+        });
+        const { url } = await res.json();
+        if(url) window.location.href = url;
+      } catch (e) { alert("無法建立訂閱連結"); }
     },
     switchView: function(viewId) {
       document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-      document.getElementById(`view-${viewId}`).classList.add('active');
+      const targetView = document.getElementById(`view-${viewId}`);
+      if(targetView) {
+        targetView.classList.add('active');
+        window.history.pushState(null, '', `/${viewId === 'home' ? '' : viewId}`);
+      }
       window.scrollTo(0,0);
     },
+    toggleTheme: function() {
+      document.body.hasAttribute('data-theme') ? document.body.removeAttribute('data-theme') : document.body.setAttribute('data-theme', 'dark');
+    },
     updateLabel: function(inId, lblId, sfx) { document.getElementById(lblId).innerText = document.getElementById(inId).value + sfx; },
-    
     applyCanvasBg: function(elementId, value, customWrapperId) {
       const canvas = document.getElementById(elementId);
       canvas.className = 'capture-area-wrapper'; canvas.style.background = ''; canvas.style.backgroundColor = '';
-      if(customWrapperId) {
-        const wrapper = document.getElementById(customWrapperId);
-        if(wrapper) wrapper.style.display = 'none';
-      }
+      if(customWrapperId) { const wrapper = document.getElementById(customWrapperId); if(wrapper) wrapper.style.display = 'none'; }
       if (value === 'solid-light') canvas.style.backgroundColor = '#f5f5f7';
       else if (value === 'solid-dark') canvas.style.backgroundColor = '#1c1c1e';
       else if (value === 'mac-monterey') canvas.classList.add('bg-mac-monterey');
@@ -455,98 +489,63 @@
         canvas.style.backgroundSize = '20px 20px'; canvas.style.backgroundPosition = '0 0, 0 10px, 10px -10px, -10px 0px';
       }
       else if (value === 'custom' && customWrapperId) { 
-        const wrapper = document.getElementById(customWrapperId);
-        if(wrapper) wrapper.style.display = 'flex'; 
+        const wrapper = document.getElementById(customWrapperId); if(wrapper) wrapper.style.display = 'flex'; 
         canvas.style.backgroundColor = document.getElementById('cfgCanvasColor').value; 
       }
     },
-
-    // 取得所有套用的 CSS 樣式，供後端 Puppeteer 渲染用
     getRenderPayload: function(targetId, isTransparent) {
       const targetEl = document.getElementById(targetId);
       const originalBgImage = targetEl.style.backgroundImage;
-      if (isTransparent) {
-          targetEl.style.backgroundImage = 'none';
-          targetEl.style.backgroundColor = 'transparent';
-      }
+      if (isTransparent) { targetEl.style.backgroundImage = 'none'; targetEl.style.backgroundColor = 'transparent'; }
       const clone = targetEl.cloneNode(true);
       if (isTransparent) targetEl.style.backgroundImage = originalBgImage;
-
       const styles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]')).map(el => el.outerHTML).join('\n');
-      
-      return `
-      <!DOCTYPE html>
-      <html lang="${this.lang}">
-      <head>
-          <meta charset="UTF-8">
-          ${styles}
-          <style>
-              body { margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; background: transparent; }
-              #${targetId} { width: 1920px !important; height: 1080px !important; transform: none !important; border-radius: 0 !important; border: none !important; }
-          </style>
-          <script>
-              window.addEventListener('load', () => { document.getAnimations().forEach(anim => { anim.pause(); anim.currentTime = 0; }); });
-          <\/script>
-      </head>
-      <body data-theme="${document.body.getAttribute('data-theme') || ''}">
-          ${clone.outerHTML}
-      </body>
-      </html>
-      `;
+      return `<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">${styles}
+        <style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:transparent;} #${targetId}{width:1920px!important;height:1080px!important;transform:none!important;border-radius:0!important;border:none!important;}</style>
+        <script>window.addEventListener('load', () => { document.getAnimations().forEach(anim => { anim.pause(); anim.currentTime = 0; }); });<\/script>
+        </head><body data-theme="${document.body.getAttribute('data-theme') || ''}">${clone.outerHTML}</body></html>`;
     },
+    exportMedia: async function(apiEndpoint, targetId, formatId) {
+      const format = document.getElementById(formatId).value;
+      const btn = event.currentTarget; const originHTML = btn.innerHTML;
+      
+      const isTransparentBg = targetId === 'captureAreaAnim' ? 
+        document.getElementById('animCanvasBgSelect').value === 'transparent' :
+        (targetId === 'captureArea' ? document.getElementById('canvasBgSelect').value === 'transparent' : document.getElementById('codeCanvasBgSelect').value === 'transparent');
 
-    // ★ 呼叫後端 API 下載圖片 ★
-    exportImage: async function(btn, captureElementId, formatSelectId, bgSelectId) {
-      const format = document.getElementById(formatSelectId).value;
-      const isTransparentBg = document.getElementById(bgSelectId).value === 'transparent';
+      let finalFormat = format;
+      if (isTransparentBg && format === 'jpeg') { finalFormat = 'png'; alert("JPG 不支援透明，自動轉為 PNG。"); }
+      if (isTransparentBg && format === 'mp4') { finalFormat = 'webm'; alert("MP4 不支援透明，自動轉為 WebM。"); }
 
-      if (isTransparentBg && format === 'jpeg') {
-        alert(this.lang === 'zh' ? "JPG 不支援透明背景，已自動轉為 PNG。" : "JPG doesn't support transparency. Exporting as PNG.");
-      }
-      const finalFormat = (isTransparentBg && format === 'jpeg') ? 'png' : format;
-
-      const originHTML = btn.innerHTML;
-      btn.innerHTML = this.lang === 'zh' ? "雲端生成中..." : "Processing..."; btn.disabled = true;
-
-      const payload = {
-        html: this.getRenderPayload(captureElementId, isTransparentBg),
-        format: finalFormat,
-        isTransparent: isTransparentBg,
-        targetId: captureElementId
-      };
+      btn.innerHTML = "雲端處理中..."; btn.disabled = true;
+      const uid = window.MockAuth.currentUser ? window.MockAuth.currentUser.uid : 'guest';
 
       try {
-        const response = await fetch('http://localhost:3000/render-image', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+        const response = await fetch(`/${apiEndpoint}`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json', 'x-user-uid': uid },
+          body: JSON.stringify({ html: this.getRenderPayload(targetId, isTransparentBg), format: finalFormat, targetId, isTransparent: isTransparentBg })
         });
-
+        if (response.status === 403) { alert((await response.json()).message); this.switchView('pricing'); return; }
         if (!response.ok) throw new Error("Server error");
         
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a'); a.href = url;
-        a.download = `BinTools_Poster_${new Date().getTime()}.${finalFormat === 'jpeg' ? 'jpg' : 'png'}`;
-        a.click();
-        window.URL.revokeObjectURL(url);
-      } catch(e) {
-        console.error(e);
-        alert(this.lang === 'zh' ? "圖片轉存失敗！請確認後端伺服器 (http://localhost:3000) 是否已啟動。" : "Export failed! Please check backend server.");
+        a.download = `BinTools_Export_${Date.now()}.${finalFormat}`;
+        a.click(); window.URL.revokeObjectURL(url);
+        await this.fetchUserStatus();
+      } catch (e) {
+        console.error(e); alert("後端伺服器未啟動或渲染失敗！");
       } finally {
         btn.innerHTML = originHTML; btn.disabled = false;
       }
     }
   };
 
-  // ==========================================
-  // TOOL 1: TABLE POSTER
-  // ==========================================
   const ToolTable = {
     method: 0, data: [],
     switchInput: function(index) {
-      this.method = index;
-      document.getElementById('segmentSlider').style.transform = `translateX(${index * 100}%)`;
+      this.method = index; document.getElementById('segmentSlider').style.transform = `translateX(${index * 100}%)`;
       document.querySelectorAll('#view-excel2jpg .segment-btn').forEach((btn, i) => btn.classList.toggle('active', i === index));
       document.querySelectorAll('#view-excel2jpg .input-panel').forEach((panel, i) => panel.classList.toggle('active', i === index));
     },
@@ -564,155 +563,62 @@
       let output = [];
       if (this.method === 0) {
         const text = document.getElementById('textInput').value.trim();
-        if (!text) return alert(App.lang === 'zh' ? '請輸入內容' : 'Please input data');
-        output = text.split('\n').map(row => row.split('\t'));
+        if (!text) return alert('請輸入內容'); output = text.split('\n').map(row => row.split('\t'));
       } else if (this.method === 1) {
-        if (this.data.length === 0) return alert(App.lang === 'zh' ? '請先上傳檔案' : 'Upload file first');
-        output = this.data;
-      } else if (this.method === 2) {
-        const url = document.getElementById('sheetInput').value.trim(); if (!url) return;
-        try {
-          const idMatch = url.match(/\/d\/([a-zA-Z0-9-_]+)/); if (!idMatch) throw new Error("Invalid URL");
-          const res = await fetch(`https://docs.google.com/spreadsheets/d/${idMatch[1]}/export?format=csv`);
-          output = (await res.text()).split('\n').map(row => row.split(','));
-        } catch (err) { return alert(err.message); }
+        if (this.data.length === 0) return alert('請先上傳檔案'); output = this.data;
       }
       this.render(output);
     },
     render: function(dataArray) {
       if (!dataArray || dataArray.length === 0) return;
-      let html = '<thead><tr>';
-      dataArray[0].forEach(cell => { html += `<th>${this.escape(String(cell || ''))}</th>`; });
-      html += '</tr></thead><tbody>';
+      let html = '<thead><tr>'; dataArray[0].forEach(cell => { html += `<th>${this.escape(String(cell || ''))}</th>`; }); html += '</tr></thead><tbody>';
       for (let i = 1; i < dataArray.length; i++) {
         if (dataArray[i].length === 0 || (dataArray[i].length === 1 && !dataArray[i][0])) continue; 
-        html += '<tr>';
-        dataArray[i].forEach(cell => { html += `<td>${this.escape(String(cell || ''))}</td>`; });
-        html += '</tr>';
+        html += '<tr>'; dataArray[i].forEach(cell => { html += `<td>${this.escape(String(cell || ''))}</td>`; }); html += '</tr>';
       }
       html += '</tbody>'; document.getElementById('outputTable').innerHTML = html;
     },
-    clear: function() {
-      document.getElementById('textInput').value = ''; document.getElementById('fileInput').value = '';
-      document.getElementById('sheetInput').value = ''; document.getElementById('fileNameDisplay').innerText = '';
-      this.data = [];
-    },
+    clear: function() { document.getElementById('textInput').value = ''; document.getElementById('fileInput').value = ''; document.getElementById('sheetInput').value = ''; document.getElementById('fileNameDisplay').innerText = ''; this.data = []; },
     escape: function(str) { return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)); },
     applyStyle: function() {
-      const root = document.getElementById('captureArea');
-      const valBg = document.getElementById('tblBgSelect').value;
-      const container = document.getElementById('tblContainer');
+      const root = document.getElementById('captureArea'); const valBg = document.getElementById('tblBgSelect').value; const container = document.getElementById('tblContainer');
       container.style.setProperty('--tbl-container-bg', valBg);
       if(valBg === 'transparent') { container.style.boxShadow = 'none'; container.style.border = 'none'; }
       else { container.style.boxShadow = '0 20px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08)'; container.style.border = '1px solid rgba(255,255,255,0.25)'; }
-
-      root.style.setProperty('--tbl-font', document.getElementById('cfgFont').value);
-      root.style.setProperty('--tbl-font-size', document.getElementById('cfgSize').value + 'px');
-      root.style.setProperty('--tbl-color', document.getElementById('cfgTextColor').value);
-      root.style.setProperty('--tbl-border-color', document.getElementById('cfgBorderColor').value);
-      root.style.setProperty('--tbl-pad-y', document.getElementById('cfgPadY').value + 'px');
-      root.style.setProperty('--tbl-pad-x', document.getElementById('cfgPadX').value + 'px');
+      root.style.setProperty('--tbl-font', document.getElementById('cfgFont').value); root.style.setProperty('--tbl-font-size', document.getElementById('cfgSize').value + 'px');
+      root.style.setProperty('--tbl-color', document.getElementById('cfgTextColor').value); root.style.setProperty('--tbl-border-color', document.getElementById('cfgBorderColor').value);
+      root.style.setProperty('--tbl-pad-y', document.getElementById('cfgPadY').value + 'px'); root.style.setProperty('--tbl-pad-x', document.getElementById('cfgPadX').value + 'px');
       root.style.setProperty('--tbl-alt-bg', document.getElementById('cfgAltBgColor').value);
       document.getElementById('outputTable').classList.toggle('zebra-on', document.getElementById('cfgZebraToggle').checked);
-      root.style.setProperty('--tbl-header-color', document.getElementById('cfgTextColor').value);
-      root.style.setProperty('--tbl-header-border', '2px solid ' + document.getElementById('cfgTextColor').value);
+      root.style.setProperty('--tbl-header-color', document.getElementById('cfgTextColor').value); root.style.setProperty('--tbl-header-border', '2px solid ' + document.getElementById('cfgTextColor').value);
     }
   };
 
-  // ==========================================
-  // TOOL 2: CODE TO JPG
-  // ==========================================
   const ToolCode = {
     update: function() {
-      const code = document.getElementById('codeRawInput').value;
-      const outputEl = document.getElementById('codeRenderOutput');
-      outputEl.textContent = code || "// Paste your code here...";
-      outputEl.removeAttribute('data-highlighted');
-      hljs.highlightElement(outputEl);
+      const code = document.getElementById('codeRawInput').value; const outputEl = document.getElementById('codeRenderOutput');
+      outputEl.textContent = code || "// Paste your code here..."; outputEl.removeAttribute('data-highlighted'); hljs.highlightElement(outputEl);
     },
-    updateStyle: function() {
-      const size = document.getElementById('cfgCodeSize').value;
-      document.getElementById('codeRenderOutput').style.setProperty('--code-size', size + 'px');
-    }
+    updateStyle: function() { document.getElementById('codeRenderOutput').style.setProperty('--code-size', document.getElementById('cfgCodeSize').value + 'px'); }
   };
 
-  // ==========================================
-  // TOOL 3: ANIMATOR (API Backend Integration)
-  // ==========================================
   const ToolAnim = {
-    image: null,
     handleUpload: function(e) {
-      const file = e.target.files[0]; if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        this.image = new Image();
-        this.image.onload = () => {
-          const imgEl = document.getElementById('animTargetImg');
-          imgEl.src = e.target.result; imgEl.style.display = 'block';
-          this.playPreview();
-        };
-        this.image.src = e.target.result;
+      const file = e.target.files[0]; if(!file) return; const reader = new FileReader();
+      reader.onload = (e) => { 
+        const img = document.getElementById('animTargetImg'); img.src = e.target.result; img.style.display = 'block'; this.playPreview();
       };
       reader.readAsDataURL(file);
     },
     playPreview: function() {
-      const imgEl = document.getElementById('animTargetImg');
-      if (!imgEl.src || imgEl.style.display === 'none') return alert(App.lang === 'zh' ? "請先上傳圖片！" : "Please upload an image first!");
-      imgEl.classList.remove('play-popup'); void imgEl.offsetWidth; imgEl.classList.add('play-popup');
-    },
-    
-    // ★ 呼叫後端 API 下載影片 ★
-    exportVideo: async function(btn) {
-      if (!this.image) return alert(App.lang === 'zh' ? "請先上傳圖片！" : "Please upload an image first!");
-      
-      const targetFormat = document.getElementById('animVideoFormat').value; 
-      const bgType = document.getElementById('animCanvasBgSelect').value;
-      const isTransparentBg = (bgType === 'transparent');
-
-      if (isTransparentBg && targetFormat === 'mp4') {
-        alert(App.lang === 'zh' ? "注意：MP4 不支援透明背景，系統自動改為 WebM。" : "MP4 doesn't support transparency. Switched to WebM.");
-        document.getElementById('animVideoFormat').value = 'webm';
-      }
-      const finalFormat = document.getElementById('animVideoFormat').value;
-
-      const textSpan = document.getElementById('btnVideoText');
-      const originHTML = textSpan.innerHTML;
-      textSpan.innerHTML = App.lang === 'zh' ? "雲端渲染中..." : "Rendering..."; 
-      btn.disabled = true;
-
-      const payload = {
-        html: App.getRenderPayload('captureAreaAnim', isTransparentBg),
-        format: finalFormat,
-        isTransparent: isTransparentBg,
-        targetId: 'captureAreaAnim'
-      };
-
-      try {
-        const response = await fetch('http://localhost:3000/render-video', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) throw new Error("Server error");
-
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.href = url;
-        a.download = `BinTools_60FPS_${new Date().getTime()}.${finalFormat}`;
-        a.click();
-        window.URL.revokeObjectURL(url);
-      } catch (e) {
-        console.error(e);
-        alert(App.lang === 'zh' ? "影片生成失敗！請確認後端伺服器 (http://localhost:3000) 是否已啟動且已安裝 FFmpeg。" : "Video render failed! Check backend server and FFmpeg.");
-      } finally {
-        textSpan.innerHTML = originHTML; btn.disabled = false;
-      }
+      const img = document.getElementById('animTargetImg');
+      if (!img.src || img.style.display === 'none') return alert("請先上傳圖片！");
+      img.classList.remove('play-popup'); void img.offsetWidth; img.classList.add('play-popup');
     }
   };
 
-  // ================= INITIALIZATION =================
   window.onload = () => { 
+    App.init();
     App.applyCanvasBg('captureArea', 'solid-light'); ToolTable.applyStyle();
     App.applyCanvasBg('captureAreaCode', 'mac-monterey'); hljs.highlightAll();
     App.applyCanvasBg('captureAreaAnim', 'solid-light');

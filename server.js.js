@@ -1,151 +1,162 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const puppeteer = require('puppeteer');
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder');
 
 const app = express();
-
-// ==========================================
-// 基礎設定 (Middlewares & Static Files)
-// ==========================================
 app.use(cors());
-// 提高 payload 限制，因為前端傳來的 HTML 與圖片 base64 可能非常大
-app.use(express.json({ limit: '100mb' }));
-
-// 讓 Express 提供靜態檔案服務 (CSS / JS / 圖片 等，如果有的話)
+app.use('/webhook', express.raw({ type: 'application/json' }));
+app.use(express.json({ limit: '200mb' }));
 app.use(express.static(__dirname));
 
-// ==========================================
-// ⭐ 首頁路由 (非常關鍵，讓 Render 能顯示畫面)
-// ==========================================
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+// --- 簡易資料庫 (商轉請改用 Firestore/PostgreSQL) ---
+const usersDb = new Map();
+function getUserData(uid) {
+  const today = new Date().toISOString().split('T')[0];
+  if (!usersDb.has(uid)) usersDb.set(uid, { plan: 'free', downloadsToday: 0, lastReset: today });
+  const user = usersDb.get(uid);
+  if (user.lastReset !== today) { user.downloadsToday = 0; user.lastReset = today; }
+  return user;
+}
+
+// --- 權限校驗 Middleware ---
+function checkUsageLimit(req, res, next) {
+  const uid = req.headers['x-user-uid'] || 'guest_' + req.ip; 
+  const user = getUserData(uid);
+  if (user.plan === 'free' && user.downloadsToday >= 3) {
+    return res.status(403).json({ error: 'LIMIT_REACHED', message: '今日免費下載額度 (3次) 已用盡，請升級 Pro 解鎖無限次數！' });
+  }
+  req.user = { uid, plan: user.plan };
+  next();
+}
+
+// --- API: 使用者狀態 ---
+app.get('/api/user-status', (req, res) => {
+  const uid = req.headers['x-user-uid'] || 'guest_' + req.ip;
+  res.json(getUserData(uid));
 });
 
-// ==========================================
-// 1. 圖片渲染 API (/render-image)
-// ==========================================
-app.post('/render-image', async (req, res) => {
-  const { html, format, isTransparent, targetId } = req.body;
+// --- API: Stripe 建立結帳 ---
+app.post('/api/create-checkout', async (req, res) => {
+  const { uid } = req.body;
+  try {
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'], mode: 'subscription',
+      line_items: [{ price: process.env.STRIPE_PRICE_ID || 'price_placeholder', quantity: 1 }],
+      client_reference_id: uid,
+      success_url: `${req.headers.origin}/?upgrade=success`,
+      cancel_url: `${req.headers.origin}/?upgrade=canceled`,
+    });
+    res.json({ url: session.url });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// --- API: 圖片渲染 ---
+app.post('/api/render-image', checkUsageLimit, async (req, res) => {
+  let { html, format, isTransparent, targetId } = req.body;
+  const isPro = req.user.plan === 'pro';
+
+  // 浮水印注入
+  if (!isPro) {
+    const watermark = `<div style="position:absolute; bottom:20px; right:30px; font-family:sans-serif; font-size:24px; font-weight:bold; color:rgba(255,255,255,0.7); z-index:9999; text-shadow:0 2px 10px rgba(0,0,0,0.5);">BinTools</div>`;
+    html = html.replace('</body>', watermark + '</body>');
+  }
 
   let browser;
   try {
-    // 產品級 Puppeteer 啟動參數 (雲端環境必備)
-    browser = await puppeteer.launch({
-      headless: 'new',
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-    
+    browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
     const page = await browser.newPage();
-    // deviceScaleFactor: 2 保證輸出超高畫質
-    await page.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 2 });
+    
+    // 畫質控制 (Pro: 1080p, Free: 720p)
+    const scale = isPro ? 2 : 1.5;
+    const width = isPro ? 1920 : 1280;
+    const height = isPro ? 1080 : 720;
+    
+    await page.setViewport({ width, height, deviceScaleFactor: scale });
     await page.setContent(html, { waitUntil: 'networkidle0' });
 
     const element = await page.$(`#${targetId}`);
-    if (!element) throw new Error(`Element #${targetId} not found`);
+    const buffer = await element.screenshot({ type: format === 'jpeg' ? 'jpeg' : 'png', omitBackground: isTransparent });
 
-    const buffer = await element.screenshot({
-      type: format === 'jpeg' ? 'jpeg' : 'png',
-      omitBackground: isTransparent
-    });
-
+    if (!isPro) getUserData(req.user.uid).downloadsToday += 1;
     res.set('Content-Type', format === 'jpeg' ? 'image/jpeg' : 'image/png');
     res.send(buffer);
   } catch (err) {
-    console.error('[Render Image Error]:', err);
-    res.status(500).send('Render failed');
+    console.error('[Image Render Error]:', err); res.status(500).send('Render failed');
   } finally {
     if (browser) await browser.close();
   }
 });
 
-// ==========================================
-// 2. 影片渲染 API (/render-video)
-// ==========================================
-app.post('/render-video', async (req, res) => {
-  const { html, format, isTransparent, targetId } = req.body;
+// --- API: 影片渲染 ---
+app.post('/api/render-video', checkUsageLimit, async (req, res) => {
+  let { html, format, isTransparent, targetId } = req.body;
+  const isPro = req.user.plan === 'pro';
   const reqId = Date.now();
-  
-  // 建立當次請求專屬的暫存資料夾與輸出路徑，避免多人同時使用時檔案錯亂
   const framesDir = path.join(__dirname, `frames_${reqId}`);
   const outFile = path.join(__dirname, `output_${reqId}.${format}`);
 
+  if (!isPro) {
+    const watermark = `<div style="position:absolute; bottom:20px; right:30px; font-family:sans-serif; font-size:24px; font-weight:bold; color:rgba(255,255,255,0.7); z-index:9999; text-shadow:0 2px 10px rgba(0,0,0,0.5);">BinTools</div>`;
+    html = html.replace('</body>', watermark + '</body>');
+  }
+
   let browser;
   try {
-    // 安全建立 frames 資料夾
     if (fs.existsSync(framesDir)) fs.rmSync(framesDir, { recursive: true, force: true });
     fs.mkdirSync(framesDir);
     if (fs.existsSync(outFile)) fs.unlinkSync(outFile);
 
-    // 啟動瀏覽器
-    browser = await puppeteer.launch({
-      headless: 'new',
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
+    browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
     const page = await browser.newPage();
-    await page.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 2 });
-    await page.setContent(html, { waitUntil: 'networkidle0' });
-
-    const element = await page.$(`#${targetId}`);
-    if (!element) throw new Error(`Element #${targetId} not found`);
-
-    const fps = 60;
+    
+    // 畫質與幀數控制
+    const scale = isPro ? 2 : 1;
+    const width = isPro ? 1920 : 1280;
+    const height = isPro ? 1080 : 720;
+    const fps = isPro ? 60 : 30; 
     const duration = 2.5;
     const totalFrames = fps * duration;
 
-    // 逐幀透過 Web Animations API 操作時間軸並截圖
-    for (let i = 0; i < totalFrames; i++) {
-      await page.evaluate((timeMs) => {
-        document.getAnimations().forEach(anim => {
-          anim.currentTime = timeMs;
-        });
-      }, i * (1000 / fps));
+    await page.setViewport({ width, height, deviceScaleFactor: scale });
+    await page.setContent(html, { waitUntil: 'networkidle0' });
+    const element = await page.$(`#${targetId}`);
 
+    for (let i = 0; i < totalFrames; i++) {
+      await page.evaluate((timeMs) => { document.getAnimations().forEach(anim => anim.currentTime = timeMs); }, i * (1000 / fps));
       const framePath = path.join(framesDir, `frame_${String(i).padStart(3, '0')}.png`);
       await element.screenshot({ path: framePath, omitBackground: isTransparent });
     }
 
-    // 關閉瀏覽器釋放雲端伺服器記憶體
-    await browser.close();
-    browser = null;
+    await browser.close(); browser = null;
 
-    // FFmpeg 執行影片合成
-    let ffmpegCmd = '';
-    if (format === 'mp4') {
-      ffmpegCmd = `ffmpeg -y -framerate ${fps} -i "${framesDir}/frame_%03d.png" -c:v libx264 -pix_fmt yuv420p "${outFile}"`;
-    } else { // WebM (支援透明背景)
-      ffmpegCmd = `ffmpeg -y -framerate ${fps} -i "${framesDir}/frame_%03d.png" -c:v libvpx-vp9 -pix_fmt yuva420p "${outFile}"`;
-    }
+    const ffmpegCmd = format === 'mp4' 
+      ? `ffmpeg -y -framerate ${fps} -i "${framesDir}/frame_%03d.png" -c:v libx264 -pix_fmt yuv420p "${outFile}"`
+      : `ffmpeg -y -framerate ${fps} -i "${framesDir}/frame_%03d.png" -c:v libvpx-vp9 -pix_fmt yuva420p "${outFile}"`;
+    
     execSync(ffmpegCmd);
+    
+    if (!isPro) getUserData(req.user.uid).downloadsToday += 1;
 
-    // 回傳生成的影片檔給前端
-    res.download(outFile, (err) => {
-      // 下載完成後徹底清理暫存檔，防止伺服器硬碟爆滿
-      try {
-        fs.rmSync(framesDir, { recursive: true, force: true });
-        if (fs.existsSync(outFile)) fs.unlinkSync(outFile);
-      } catch(e) { console.error("Cleanup error:", e); }
+    res.download(outFile, () => {
+      try { fs.rmSync(framesDir, { recursive: true, force: true }); if (fs.existsSync(outFile)) fs.unlinkSync(outFile); } catch(e) {}
     });
-
   } catch (err) {
-    console.error('[Render Video Error]:', err);
-    res.status(500).send('Render failed');
-    // 發生錯誤也必須清理暫存檔
-    try {
-      if (fs.existsSync(framesDir)) fs.rmSync(framesDir, { recursive: true, force: true });
-      if (fs.existsSync(outFile)) fs.unlinkSync(outFile);
-    } catch(e) {}
+    console.error('[Video Render Error]:', err); res.status(500).send('Render failed');
+    try { fs.rmSync(framesDir, { recursive: true, force: true }); if (fs.existsSync(outFile)) fs.unlinkSync(outFile); } catch(e) {}
   } finally {
     if (browser) await browser.close();
   }
 });
 
-// ==========================================
-// 伺服器啟動 (Render 動態 PORT 支援)
-// ==========================================
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`[BinTools Backend] Server is running on port ${PORT}`);
+// --- SPA 路由 (支援 Footer 連結重新整理不 404) ---
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`[BinTools SaaS Backend] Running on port ${PORT}`));
