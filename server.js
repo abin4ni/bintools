@@ -5,35 +5,30 @@ const puppeteer = require('puppeteer');
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder');
 
 const app = express();
 app.use(cors());
-app.use('/webhook', express.raw({ type: 'application/json' }));
+// 提高接收前端 HTML 檔案大小的限制
 app.use(express.json({ limit: '200mb' }));
 
-// 確保靜態檔案可以正常載入 (如 CSS, JS, 圖片)
+// 【任務 2】確保包含靜態檔案伺服器
 app.use(express.static(__dirname));
 
-// 首頁 (Landing Page)
+// ==========================================
+// ★ 頁面路由分離 (Landing Page vs App) ★
+// ==========================================
+// 首頁 (展示與行銷)
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/index.html');
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// 實際工具頁 (獨立為 /app)
+// 工具頁 (實際應用區)
 app.get('/app', (req, res) => {
-  res.sendFile(__dirname + '/app.html');
+  res.sendFile(path.join(__dirname, 'app.html'));
 });
-
-// 3. 捕捉舊版路由，全部導向首頁，保護 SEO
-app.get('/pricing', (req, res) => res.redirect('/#pricing'));
-app.get('/privacy', (req, res) => res.redirect('/#privacy'));
-app.get('/terms', (req, res) => res.redirect('/#terms'));
-app.get('/contact', (req, res) => res.redirect('/#contact'));
-
 
 // ==========================================
-// 簡易資料庫與權限管控
+// 簡易權限管控 (每日免費 3 次)
 // ==========================================
 const usersDb = new Map();
 function getUserData(uid) {
@@ -54,43 +49,38 @@ function checkUsageLimit(req, res, next) {
   next();
 }
 
-// ==========================================
-// API 路由 (渲染與金流)
-// ==========================================
 app.get('/api/user-status', (req, res) => {
   const uid = req.headers['x-user-uid'] || 'guest_' + req.ip;
   res.json(getUserData(uid));
 });
 
-app.post('/api/create-checkout', async (req, res) => {
-  const { uid } = req.body;
-  try {
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'], mode: 'subscription',
-      line_items: [{ price: process.env.STRIPE_PRICE_ID || 'price_placeholder', quantity: 1 }],
-      client_reference_id: uid,
-      success_url: `${req.headers.origin}/app?upgrade=success`,
-      cancel_url: `${req.headers.origin}/app?upgrade=canceled`,
-    });
-    res.json({ url: session.url });
-  } catch (e) { res.status(500).json({ error: e.message }); }
-});
+// ==========================================
+// 後端渲染引擎 API (確保畫質與毛玻璃完美)
+// ==========================================
 
 // --- API: 圖片渲染 ---
 app.post('/api/render-image', checkUsageLimit, async (req, res) => {
   let { html, format, isTransparent, targetId } = req.body;
   const isPro = req.user.plan === 'pro';
 
+  // 【任務 5】免費版自動加上文字浮水印
   if (!isPro) {
-    const watermark = `<div style="position:absolute; bottom:20px; right:30px; font-family:sans-serif; font-size:24px; font-weight:bold; color:rgba(255,255,255,0.7); z-index:9999; text-shadow:0 2px 10px rgba(0,0,0,0.5);">BinTools</div>`;
+    const watermark = `<div style="position:absolute; bottom:20px; right:30px; font-family:sans-serif; font-size:24px; font-weight:bold; color:rgba(255,255,255,0.7); z-index:9999; text-shadow:0 2px 10px rgba(0,0,0,0.5);">BinTools Free</div>`;
     html = html.replace('</body>', watermark + '</body>');
   }
 
   let browser;
   try {
-    browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    // 【任務 3】Puppeteer 穩定性優化
+    browser = await puppeteer.launch({ 
+      headless: "new", 
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      timeout: 60000 
+    });
+    
     const page = await browser.newPage();
     
+    // 【權限控制】Pro: 1080p (scale:2), Free: 720p (scale:1.5)
     const scale = isPro ? 2 : 1.5;
     const width = isPro ? 1920 : 1280;
     const height = isPro ? 1080 : 720;
@@ -99,9 +89,12 @@ app.post('/api/render-image', checkUsageLimit, async (req, res) => {
     await page.setContent(html, { waitUntil: 'networkidle0' });
 
     const element = await page.$(`#${targetId}`);
+    if (!element) throw new Error("Target element not found");
     const buffer = await element.screenshot({ type: format === 'jpeg' ? 'jpeg' : 'png', omitBackground: isTransparent });
 
+    // 扣除免費額度
     if (!isPro) getUserData(req.user.uid).downloadsToday += 1;
+    
     res.set('Content-Type', format === 'jpeg' ? 'image/jpeg' : 'image/png');
     res.send(buffer);
   } catch (err) {
@@ -115,12 +108,15 @@ app.post('/api/render-image', checkUsageLimit, async (req, res) => {
 app.post('/api/render-video', checkUsageLimit, async (req, res) => {
   let { html, format, isTransparent, targetId } = req.body;
   const isPro = req.user.plan === 'pro';
+  
+  // 建立當次專屬暫存區，防止檔案覆蓋錯亂
   const reqId = Date.now();
   const framesDir = path.join(__dirname, `frames_${reqId}`);
   const outFile = path.join(__dirname, `output_${reqId}.${format}`);
 
+  // 【任務 5】免費版自動加上文字浮水印
   if (!isPro) {
-    const watermark = `<div style="position:absolute; bottom:20px; right:30px; font-family:sans-serif; font-size:24px; font-weight:bold; color:rgba(255,255,255,0.7); z-index:9999; text-shadow:0 2px 10px rgba(0,0,0,0.5);">BinTools</div>`;
+    const watermark = `<div style="position:absolute; bottom:20px; right:30px; font-family:sans-serif; font-size:24px; font-weight:bold; color:rgba(255,255,255,0.7); z-index:9999; text-shadow:0 2px 10px rgba(0,0,0,0.5);">BinTools Free</div>`;
     html = html.replace('</body>', watermark + '</body>');
   }
 
@@ -130,9 +126,16 @@ app.post('/api/render-video', checkUsageLimit, async (req, res) => {
     fs.mkdirSync(framesDir);
     if (fs.existsSync(outFile)) fs.unlinkSync(outFile);
 
-    browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    // 【任務 3】Puppeteer 穩定性優化
+    browser = await puppeteer.launch({ 
+      headless: "new", 
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      timeout: 60000
+    });
+    
     const page = await browser.newPage();
     
+    // 【權限控制】Pro: 1080p 60fps, Free: 720p 30fps
     const scale = isPro ? 2 : 1;
     const width = isPro ? 1920 : 1280;
     const height = isPro ? 1080 : 720;
@@ -143,7 +146,9 @@ app.post('/api/render-video', checkUsageLimit, async (req, res) => {
     await page.setViewport({ width, height, deviceScaleFactor: scale });
     await page.setContent(html, { waitUntil: 'networkidle0' });
     const element = await page.$(`#${targetId}`);
+    if (!element) throw new Error("Target element not found");
 
+    // 逐格截圖
     for (let i = 0; i < totalFrames; i++) {
       await page.evaluate((timeMs) => { document.getAnimations().forEach(anim => anim.currentTime = timeMs); }, i * (1000 / fps));
       const framePath = path.join(framesDir, `frame_${String(i).padStart(3, '0')}.png`);
@@ -152,14 +157,18 @@ app.post('/api/render-video', checkUsageLimit, async (req, res) => {
 
     await browser.close(); browser = null;
 
+    // FFmpeg 影片合成
     let ffmpegCmd = format === 'mp4' 
       ? `ffmpeg -y -framerate ${fps} -i "${framesDir}/frame_%03d.png" -c:v libx264 -pix_fmt yuv420p "${outFile}"`
       : `ffmpeg -y -framerate ${fps} -i "${framesDir}/frame_%03d.png" -c:v libvpx-vp9 -pix_fmt yuva420p "${outFile}"`;
     
     execSync(ffmpegCmd);
+    
+    // 扣除免費額度
     if (!isPro) getUserData(req.user.uid).downloadsToday += 1;
 
     res.download(outFile, () => {
+      // 確保傳輸完畢後刪除暫存檔
       try { fs.rmSync(framesDir, { recursive: true, force: true }); if (fs.existsSync(outFile)) fs.unlinkSync(outFile); } catch(e) {}
     });
 
