@@ -216,7 +216,7 @@
             <span id="usageTextTable" style="font-size:12px; color:var(--text-muted); margin-right:12px;">今日額度: -/3</span>
             <span class="pro-upsell" style="font-size:12px; color:var(--apple-blue); margin-right:12px; font-weight:500;">Upgrade to Pro for 1080p & no watermark</span>
             <select id="exportFormat" class="form-select" style="width: auto; display:inline-block; padding:6px;"><option value="png">PNG</option><option value="jpeg">JPG</option></select>
-            <button class="btn-blue" onclick="App.exportMedia('./api/render-image', 'captureArea', 'exportFormat')">雲端下載</button>
+            <button class="btn-blue" onclick="App.exportMedia(event, './api/render-image', 'captureArea', 'exportFormat')">雲端下載</button>
           </div>
         </div>
         <div id="captureArea" class="capture-area-wrapper">
@@ -258,7 +258,7 @@
           <div style="display: flex; gap: 8px; align-items: center;">
             <span class="pro-upsell" style="font-size:12px; color:var(--apple-blue); margin-right:12px; font-weight:500;">Upgrade to Pro for 1080p & no watermark</span>
             <select id="exportFormatCode" class="form-select" style="width: 80px; padding: 6px;"><option value="png">PNG</option></select>
-            <button class="btn-blue" onclick="App.exportMedia('./api/render-image', 'captureAreaCode', 'exportFormatCode')">雲端下載</button>
+            <button class="btn-blue" onclick="App.exportMedia(event, './api/render-image', 'captureAreaCode', 'exportFormatCode')">雲端下載</button>
           </div>
         </div>
         <div id="captureAreaCode" class="capture-area-wrapper bg-mac-monterey">
@@ -303,7 +303,7 @@
             <button class="btn-outline" onclick="ToolAnim.playPreview()">▶ 預覽</button>
             <span id="usageTextAnim" style="font-size:12px; color:var(--text-muted); margin: 0 12px;">今日額度: -/3</span>
             <span class="pro-upsell" style="font-size:12px; color:var(--apple-blue); margin-right:12px; font-weight:500;">Upgrade to Pro for 60fps & no watermark</span>
-            <button class="btn-blue" onclick="App.exportMedia('./api/render-video', 'captureAreaAnim', 'animVideoFormat')">生成影片</button>
+            <button class="btn-blue" onclick="App.exportMedia(event, './api/render-video', 'captureAreaAnim', 'animVideoFormat')">生成影片</button>
           </div>
         </div>
         <div id="captureAreaAnim" class="capture-area-wrapper">
@@ -331,194 +331,458 @@
 
 <script>
   const App = {
-    user: null, 
+    user: null,
+    showFriendlyMessage: function(message) {
+      alert(message || "生成失敗，請重試。");
+    },
+    setButtonLoading: function(btn, isLoading, loadingText, defaultText) {
+      if (!btn) return;
+      btn.disabled = !!isLoading;
+      btn.innerHTML = isLoading ? (loadingText || "處理中...") : defaultText;
+    },
     init: async function() {
-      this.switchView('excel2jpg');
-      await this.fetchUserStatus();
+      try {
+        this.switchView("excel2jpg");
+        await this.fetchUserStatus();
+      } catch (_) {
+        this.user = { plan: "free", downloadsToday: 0 };
+        this.updateAuthUI();
+      }
     },
     fetchUserStatus: async function() {
-      const uid = window.MockAuth.currentUser ? window.MockAuth.currentUser.uid : 'guest';
+      const uid = window.MockAuth.currentUser ? window.MockAuth.currentUser.uid : "guest";
       try {
-        const res = await fetch(`./api/user-status`, { headers: { 'x-user-uid': uid } });
-        const data = await res.json();
-        this.user = { uid, ...data };
-        this.updateAuthUI();
-      } catch (e) { console.error(e); }
-    },
-    updateAuthUI: function() {
-      const authArea = document.getElementById('authArea');
-      const isPro = this.user && this.user.plan === 'pro';
+        const res = await fetch("./api/user-status", { headers: { "x-user-uid": uid } });
+        if (!res.ok) throw new Error("user-status-failed");
 
-      if (window.MockAuth.currentUser) {
-        authArea.innerHTML = `${!isPro ? `<button class="btn-pro" onclick="window.location.href='./#pricing'">升級 Pro</button>` : `<span style="font-size:12px; font-weight:bold; color:#ff2d55; margin-right:12px;">PRO 用戶</span>`}<img src="${window.MockAuth.currentUser.photoURL}" class="user-avatar" onclick="window.MockAuth.logout()">`;
-      } else {
-        authArea.innerHTML = `<button class="btn-outline" onclick="window.MockAuth.login()">登入</button>`;
+        const data = await res.json();
+        this.user = {
+          uid: uid,
+          plan: data && data.plan ? data.plan : "free",
+          downloadsToday: data && Number.isFinite(Number(data.downloadsToday)) ? Number(data.downloadsToday) : 0
+        };
+      } catch (_) {
+        this.user = { uid: uid, plan: "free", downloadsToday: 0 };
       }
 
-      const limitText = isPro ? '無限' : (this.user ? `${this.user.downloadsToday}/3` : '-/3');
-      document.getElementById('usageTextTable').innerText = `今日額度: ${limitText}`;
-      document.getElementById('usageTextAnim').innerText = `今日額度: ${limitText}`;
+      this.updateAuthUI();
+    },
+    updateAuthUI: function() {
+      const authArea = document.getElementById("authArea");
+      const isPro = this.user && this.user.plan === "pro";
 
-      document.querySelectorAll('.ad-banner').forEach(el => { el.style.display = isPro ? 'none' : 'flex'; });
-      document.querySelectorAll('.pro-upsell').forEach(el => { el.style.display = isPro ? 'none' : 'inline-block'; });
+      if (authArea) {
+        if (window.MockAuth.currentUser) {
+          const proHtml = !isPro
+            ? "<button class=\"btn-pro\" onclick=\"window.location.href='./#pricing'\">升級 Pro</button>"
+            : "<span style=\"font-size:12px; font-weight:bold; color:#ff2d55; margin-right:12px;\">PRO</span>";
+
+          authArea.innerHTML = proHtml + "<img src=\"" + window.MockAuth.currentUser.photoURL + "\" class=\"user-avatar\" onclick=\"window.MockAuth.logout()\">";
+        } else {
+          authArea.innerHTML = "<button class=\"btn-outline\" onclick=\"window.MockAuth.login()\">登入</button>";
+        }
+      }
+
+      const limitText = isPro ? "無限" : (this.user ? (this.user.downloadsToday + "/3") : "-/3");
+      const usageTable = document.getElementById("usageTextTable");
+      const usageAnim = document.getElementById("usageTextAnim");
+
+      if (usageTable) usageTable.innerText = "今日額度: " + limitText;
+      if (usageAnim) usageAnim.innerText = "今日額度: " + limitText;
+
+      document.querySelectorAll(".ad-banner").forEach(function(el) {
+        el.style.display = isPro ? "none" : "flex";
+      });
+
+      document.querySelectorAll(".pro-upsell").forEach(function(el) {
+        el.style.display = isPro ? "none" : "inline-block";
+      });
     },
     switchView: function(viewId) {
-      document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-      document.getElementById(`view-${viewId}`).classList.add('active');
-      window.scrollTo(0,0);
+      document.querySelectorAll(".view").forEach(function(el) {
+        el.classList.remove("active");
+      });
+
+      const target = document.getElementById("view-" + viewId);
+      if (target) target.classList.add("active");
+
+      window.scrollTo(0, 0);
     },
-    toggleTheme: function() { document.body.hasAttribute('data-theme') ? document.body.removeAttribute('data-theme') : document.body.setAttribute('data-theme', 'dark'); },
-    updateLabel: function(inId, lblId, sfx) { document.getElementById(lblId).innerText = document.getElementById(inId).value + sfx; },
+    toggleTheme: function() {
+      if (document.body.hasAttribute("data-theme")) {
+        document.body.removeAttribute("data-theme");
+      } else {
+        document.body.setAttribute("data-theme", "dark");
+      }
+    },
+    updateLabel: function(inId, lblId, sfx) {
+      const input = document.getElementById(inId);
+      const label = document.getElementById(lblId);
+      if (!input || !label) return;
+      label.innerText = input.value + sfx;
+    },
     applyCanvasBg: function(elementId, value) {
       const canvas = document.getElementById(elementId);
-      canvas.className = 'capture-area-wrapper'; canvas.style.background = ''; canvas.style.backgroundColor = '';
-      if (value === 'solid-light') canvas.style.backgroundColor = '#f5f5f7';
-      else if (value === 'solid-dark') canvas.style.backgroundColor = '#1c1c1e';
-      else if (value === 'mac-monterey') canvas.classList.add('bg-mac-monterey');
-      else if (value === 'ipad-aurora') canvas.classList.add('bg-ipad-aurora');
-      else if (value === 'dark-mesh') canvas.classList.add('bg-dark-mesh');
-      else if (value === 'transparent') { canvas.style.background = 'repeating-linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc), repeating-linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc)'; canvas.style.backgroundSize = '20px 20px'; canvas.style.backgroundPosition = '0 0, 10px 10px'; }
+      if (!canvas) return;
+
+      canvas.className = "capture-area-wrapper";
+      canvas.style.background = "";
+      canvas.style.backgroundColor = "";
+
+      if (value === "solid-light") canvas.style.backgroundColor = "#f5f5f7";
+      else if (value === "solid-dark") canvas.style.backgroundColor = "#1c1c1e";
+      else if (value === "mac-monterey") canvas.classList.add("bg-mac-monterey");
+      else if (value === "ipad-aurora") canvas.classList.add("bg-ipad-aurora");
+      else if (value === "dark-mesh") canvas.classList.add("bg-dark-mesh");
+      else if (value === "transparent") {
+        canvas.style.background = "repeating-linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc), repeating-linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%, #ccc)";
+        canvas.style.backgroundSize = "20px 20px";
+        canvas.style.backgroundPosition = "0 0, 10px 10px";
+      }
     },
     getRenderPayload: function(targetId, isTransparent) {
       const targetEl = document.getElementById(targetId);
-      const originalBgImage = targetEl.style.backgroundImage;
-      if (isTransparent) { targetEl.style.backgroundImage = 'none'; targetEl.style.backgroundColor = 'transparent'; }
-      const clone = targetEl.cloneNode(true);
-      if (isTransparent) targetEl.style.backgroundImage = originalBgImage;
-      const styles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]')).map(el => el.outerHTML).join('\n');
-      return `<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">${styles}<style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:transparent;} #${targetId}{width:1920px!important;height:1080px!important;transform:none!important;border-radius:0!important;border:none!important;}</style><script>window.addEventListener('load', () => { document.getAnimations().forEach(anim => { anim.pause(); anim.currentTime = 0; }); });<\/script></head><body data-theme="${document.body.getAttribute('data-theme') || ''}">${clone.outerHTML}</body></html>`;
-    },
+      if (!targetEl) return "";
 
-    // ★ 核心下載 API 邏輯 (包含 UX 優化) ★
-    exportMedia: async function(apiEndpoint, targetId, formatId) {
-      const format = document.getElementById(formatId).value;
-      const btn = event.currentTarget; 
+      const originalBgImage = targetEl.style.backgroundImage;
+      const originalBgColor = targetEl.style.backgroundColor;
+
+      if (isTransparent) {
+        targetEl.style.backgroundImage = "none";
+        targetEl.style.backgroundColor = "transparent";
+      }
+
+      const clone = targetEl.cloneNode(true);
+
+      if (isTransparent) {
+        targetEl.style.backgroundImage = originalBgImage;
+        targetEl.style.backgroundColor = originalBgColor;
+      }
+
+      const styles = Array.from(document.querySelectorAll("style, link[rel='stylesheet']"))
+        .map(function(el) { return el.outerHTML; })
+        .join("\n");
+
+      const freezeAnimScript = "<script>window.addEventListener('load', function(){ document.getAnimations().forEach(function(anim){ anim.pause(); anim.currentTime = 0; }); });<\\/script>";
+
+      return "<!DOCTYPE html><html lang='zh'><head><meta charset='UTF-8'>" +
+        styles +
+        "<style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:transparent;} #" + targetId + "{width:1920px!important;height:1080px!important;transform:none!important;border-radius:0!important;border:none!important;}</style>" +
+        freezeAnimScript +
+        "</head><body data-theme='" + (document.body.getAttribute("data-theme") || "") + "'>" +
+        clone.outerHTML +
+        "</body></html>";
+    },
+    exportMedia: async function(evt, apiEndpoint, targetId, formatId) {
+      const formatSelect = document.getElementById(formatId);
+      const btn = evt && evt.currentTarget ? evt.currentTarget : null;
+      if (!formatSelect || !btn) return;
+
       const originHTML = btn.innerHTML;
-      
-      const bgSelectId = targetId === 'captureAreaAnim' ? 'animCanvasBgSelect' : (targetId === 'captureArea' ? 'canvasBgSelect' : 'codeCanvasBgSelect');
-      const isTransparentBg = document.getElementById(bgSelectId).value === 'transparent';
+      const format = formatSelect.value;
+      const bgSelectId = targetId === "captureAreaAnim" ? "animCanvasBgSelect" : (targetId === "captureArea" ? "canvasBgSelect" : "codeCanvasBgSelect");
+      const bgSelect = document.getElementById(bgSelectId);
+      const isTransparentBg = bgSelect ? bgSelect.value === "transparent" : false;
 
       let finalFormat = format;
-      if (isTransparentBg && format === 'jpeg') { finalFormat = 'png'; alert("JPG 不支援透明，自動轉為 PNG。"); }
-      if (isTransparentBg && format === 'mp4') { finalFormat = 'webm'; alert("MP4 不支援透明，自動轉為 WebM。"); }
+      if (isTransparentBg && format === "jpeg") {
+        finalFormat = "png";
+        this.showFriendlyMessage("JPG 不支援透明背景，已改為 PNG。");
+      }
+      if (isTransparentBg && format === "mp4") {
+        finalFormat = "webm";
+        this.showFriendlyMessage("MP4 不支援透明背景，已改為 WebM。");
+      }
 
-      btn.innerHTML = "Rendering..."; 
-      btn.disabled = true;
-      const uid = window.MockAuth.currentUser ? window.MockAuth.currentUser.uid : 'guest';
+      const uid = window.MockAuth.currentUser ? window.MockAuth.currentUser.uid : "guest";
+      let keepSuccessState = false;
+
+      this.setButtonLoading(btn, true, "生成中...", originHTML);
 
       try {
-        const response = await fetch(`./${apiEndpoint}`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json', 'x-user-uid': uid },
-          body: JSON.stringify({ html: this.getRenderPayload(targetId, isTransparentBg), format: finalFormat, targetId, isTransparent: isTransparentBg })
-        });
-        
-        if (response.status === 403) { 
-          alert((await response.json()).message); 
-          window.location.href='./#pricing'; 
-          btn.innerHTML = originHTML; btn.disabled = false; 
-          return; 
+        const payloadHtml = this.getRenderPayload(targetId, isTransparentBg);
+        if (!payloadHtml) {
+          this.showFriendlyMessage("生成失敗，請重試。");
+          return;
         }
-        if (!response.ok) throw new Error("Server error");
-        
+
+        const response = await fetch(apiEndpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-user-uid": uid
+          },
+          body: JSON.stringify({
+            html: payloadHtml,
+            format: finalFormat,
+            targetId: targetId,
+            isTransparent: isTransparentBg
+          })
+        });
+
+        if (response.status === 403) {
+          this.showFriendlyMessage("今日免費額度已用完，請稍後再試。");
+          window.location.href = "./#pricing";
+          return;
+        }
+
+        if (!response.ok) {
+          this.showFriendlyMessage("生成失敗，請重試。");
+          return;
+        }
+
         const blob = await response.blob();
+        if (!blob || blob.size === 0) {
+          this.showFriendlyMessage("生成失敗，請重試。");
+          return;
+        }
+
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.href = url;
-        a.download = `BinTools_Export_${Date.now()}.${finalFormat}`;
-        a.click(); 
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "BinTools_Export_" + Date.now() + "." + finalFormat;
+        a.click();
         window.URL.revokeObjectURL(url);
-        
+
         await this.fetchUserStatus();
 
-        btn.innerHTML = `✔ Download Ready`;
-        setTimeout(() => {
-          btn.innerHTML = originHTML;
-          btn.disabled = false;
-        }, 2500);
-
-      } catch (e) {
-        console.error(e); alert("後端伺服器未啟動或渲染失敗！");
-        btn.innerHTML = originHTML; btn.disabled = false;
+        keepSuccessState = true;
+        btn.innerHTML = "下載完成";
+        setTimeout(function() {
+          App.setButtonLoading(btn, false, "", originHTML);
+        }, 2000);
+      } catch (_) {
+        this.showFriendlyMessage("生成失敗，請重試。");
+      } finally {
+        if (!keepSuccessState) {
+          this.setButtonLoading(btn, false, "", originHTML);
+        }
       }
     }
   };
 
   const ToolTable = {
-    method: 0, data: [],
+    method: 0,
+    data: [],
     switchInput: function(index) {
-      this.method = index; document.getElementById('segmentSlider').style.transform = `translateX(${index * 100}%)`;
-      document.querySelectorAll('#view-excel2jpg .segment-btn').forEach((btn, i) => btn.classList.toggle('active', i === index));
-      document.querySelectorAll('#view-excel2jpg .input-panel').forEach((panel, i) => panel.classList.toggle('active', i === index));
+      this.method = index;
+      document.getElementById("segmentSlider").style.transform = "translateX(" + (index * 100) + "%)";
+      document.querySelectorAll("#view-excel2jpg .segment-btn").forEach(function(btn, i) {
+        btn.classList.toggle("active", i === index);
+      });
+      document.querySelectorAll("#view-excel2jpg .input-panel").forEach(function(panel, i) {
+        panel.classList.toggle("active", i === index);
+      });
     },
     handleFile: function(e) {
-      const file = e.target.files[0]; if (!file) return;
-      document.getElementById('fileNameDisplay').innerText = file.name;
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const fileNameDisplay = document.getElementById("fileNameDisplay");
+      if (fileNameDisplay) fileNameDisplay.innerText = file.name;
+
       const reader = new FileReader();
-      reader.onload = (e) => {
-        const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
-        this.data = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
+      reader.onerror = function() {
+        App.showFriendlyMessage("檔案讀取失敗，請重試。");
+      };
+      reader.onload = (ev) => {
+        try {
+          const workbook = XLSX.read(new Uint8Array(ev.target.result), { type: "array" });
+          ToolTable.data = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
+        } catch (_) {
+          App.showFriendlyMessage("檔案內容無法解析。");
+        }
       };
       reader.readAsArrayBuffer(file);
     },
     process: async function() {
-      let output = [];
-      if (this.method === 0) {
-        const text = document.getElementById('textInput').value.trim();
-        if (!text) return alert('請輸入內容'); output = text.split('\n').map(row => row.split('\t'));
-      } else if (this.method === 1) {
-        if (this.data.length === 0) return alert('請先上傳檔案'); output = this.data;
+      try {
+        let output = [];
+
+        if (this.method === 0) {
+          const textInput = document.getElementById("textInput");
+          const text = textInput ? textInput.value.trim() : "";
+          if (!text) {
+            App.showFriendlyMessage("請先輸入內容。");
+            return;
+          }
+          output = text.split("\n").map(function(row) { return row.split("\t"); });
+        } else if (this.method === 1) {
+          if (!Array.isArray(this.data) || this.data.length === 0) {
+            App.showFriendlyMessage("請先上傳檔案。");
+            return;
+          }
+          output = this.data;
+        }
+
+        this.render(output);
+      } catch (_) {
+        App.showFriendlyMessage("資料處理失敗，請重試。");
       }
-      this.render(output);
     },
     render: function(dataArray) {
       if (!dataArray || dataArray.length === 0) return;
-      let html = '<thead><tr>'; dataArray[0].forEach(cell => { html += `<th>${this.escape(String(cell || ''))}</th>`; }); html += '</tr></thead><tbody>';
-      for (let i = 1; i < dataArray.length; i++) {
-        if (dataArray[i].length === 0 || (dataArray[i].length === 1 && !dataArray[i][0])) continue; 
-        html += '<tr>'; dataArray[i].forEach(cell => { html += `<td>${this.escape(String(cell || ''))}</td>`; }); html += '</tr>';
+
+      let html = "<thead><tr>";
+      dataArray[0].forEach((cell) => {
+        html += "<th>" + this.escape(String(cell || "")) + "</th>";
+      });
+      html += "</tr></thead><tbody>";
+
+      for (let i = 1; i < dataArray.length; i += 1) {
+        if (dataArray[i].length === 0 || (dataArray[i].length === 1 && !dataArray[i][0])) continue;
+        html += "<tr>";
+        dataArray[i].forEach((cell) => {
+          html += "<td>" + this.escape(String(cell || "")) + "</td>";
+        });
+        html += "</tr>";
       }
-      html += '</tbody>'; document.getElementById('outputTable').innerHTML = html;
+
+      html += "</tbody>";
+      const table = document.getElementById("outputTable");
+      if (table) table.innerHTML = html;
     },
-    clear: function() { document.getElementById('textInput').value = ''; document.getElementById('fileInput').value = ''; document.getElementById('fileNameDisplay').innerText = ''; this.data = []; },
-    escape: function(str) { return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)); },
+    clear: function() {
+      const textInput = document.getElementById("textInput");
+      const fileInput = document.getElementById("fileInput");
+      const fileNameDisplay = document.getElementById("fileNameDisplay");
+
+      if (textInput) textInput.value = "";
+      if (fileInput) fileInput.value = "";
+      if (fileNameDisplay) fileNameDisplay.innerText = "";
+      this.data = [];
+    },
+    escape: function(str) {
+      return str.replace(/[&<>'"]/g, function(tag) {
+        return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[tag] || tag);
+      });
+    },
     applyStyle: function() {
-      const root = document.getElementById('captureArea'); const valBg = document.getElementById('tblBgSelect').value; const container = document.getElementById('tblContainer');
-      container.style.setProperty('--tbl-container-bg', valBg);
-      if(valBg === 'transparent') { container.style.boxShadow = 'none'; container.style.border = 'none'; }
-      else { container.style.boxShadow = '0 20px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08)'; container.style.border = '1px solid rgba(255,255,255,0.25)'; }
-      root.style.setProperty('--tbl-font', document.getElementById('cfgFont').value); root.style.setProperty('--tbl-font-size', document.getElementById('cfgSize').value + 'px');
-      root.style.setProperty('--tbl-color', document.getElementById('cfgTextColor').value); root.style.setProperty('--tbl-border-color', document.getElementById('cfgBorderColor').value);
-      root.style.setProperty('--tbl-pad-y', document.getElementById('cfgPadY').value + 'px'); root.style.setProperty('--tbl-pad-x', document.getElementById('cfgPadX').value + 'px');
-      document.getElementById('outputTable').classList.toggle('zebra-on', document.getElementById('cfgZebraToggle').checked);
-      root.style.setProperty('--tbl-header-color', document.getElementById('cfgTextColor').value); root.style.setProperty('--tbl-header-border', '2px solid ' + document.getElementById('cfgTextColor').value);
+      const root = document.getElementById("captureArea");
+      const container = document.getElementById("tblContainer");
+      const tblBgSelect = document.getElementById("tblBgSelect");
+
+      if (!root || !container || !tblBgSelect) return;
+
+      const valBg = tblBgSelect.value;
+      container.style.setProperty("--tbl-container-bg", valBg);
+
+      if (valBg === "transparent") {
+        container.style.boxShadow = "none";
+        container.style.border = "none";
+      } else {
+        container.style.boxShadow = "0 20px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08)";
+        container.style.border = "1px solid rgba(255,255,255,0.25)";
+      }
+
+      const cfgSize = document.getElementById("cfgSize");
+      const cfgFont = document.getElementById("cfgFont");
+      const cfgTextColor = document.getElementById("cfgTextColor");
+      const cfgBorderColor = document.getElementById("cfgBorderColor");
+      const cfgPadY = document.getElementById("cfgPadY");
+      const cfgPadX = document.getElementById("cfgPadX");
+      const cfgZebraToggle = document.getElementById("cfgZebraToggle");
+
+      const fontValue = cfgFont ? cfgFont.value : "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
+      const fontSize = cfgSize ? cfgSize.value : "15";
+      const textColor = cfgTextColor ? cfgTextColor.value : "#1d1d1f";
+      const borderColor = cfgBorderColor ? cfgBorderColor.value : "rgba(0,0,0,0.1)";
+      const padY = cfgPadY ? cfgPadY.value : "10";
+      const padX = cfgPadX ? cfgPadX.value : "12";
+
+      root.style.setProperty("--tbl-font", fontValue);
+      root.style.setProperty("--tbl-font-size", fontSize + "px");
+      root.style.setProperty("--tbl-color", textColor);
+      root.style.setProperty("--tbl-border-color", borderColor);
+      root.style.setProperty("--tbl-pad-y", padY + "px");
+      root.style.setProperty("--tbl-pad-x", padX + "px");
+      root.style.setProperty("--tbl-header-color", textColor);
+      root.style.setProperty("--tbl-header-border", "2px solid " + textColor);
+
+      const table = document.getElementById("outputTable");
+      if (table && cfgZebraToggle) {
+        table.classList.toggle("zebra-on", cfgZebraToggle.checked);
+      }
     }
   };
 
   const ToolCode = {
     update: function() {
-      const code = document.getElementById('codeRawInput').value; const outputEl = document.getElementById('codeRenderOutput');
-      outputEl.textContent = code || "// Paste your code here..."; outputEl.removeAttribute('data-highlighted'); hljs.highlightElement(outputEl);
+      try {
+        const codeInput = document.getElementById("codeRawInput");
+        const outputEl = document.getElementById("codeRenderOutput");
+        if (!outputEl) return;
+
+        const code = codeInput ? codeInput.value : "";
+        outputEl.textContent = code || "// Paste your code here...";
+        outputEl.removeAttribute("data-highlighted");
+
+        if (window.hljs && typeof hljs.highlightElement === "function") {
+          hljs.highlightElement(outputEl);
+        }
+      } catch (_) {
+        App.showFriendlyMessage("程式碼預覽失敗，請重試。");
+      }
     },
-    updateStyle: function() { document.getElementById('codeRenderOutput').style.setProperty('--code-size', document.getElementById('cfgCodeSize').value + 'px'); }
+    updateStyle: function() {
+      const codeRenderOutput = document.getElementById("codeRenderOutput");
+      const cfgCodeSize = document.getElementById("cfgCodeSize");
+      if (!codeRenderOutput || !cfgCodeSize) return;
+      codeRenderOutput.style.setProperty("--code-size", cfgCodeSize.value + "px");
+    }
   };
 
   const ToolAnim = {
     handleUpload: function(e) {
-      const file = e.target.files[0]; if(!file) return; const reader = new FileReader();
-      reader.onload = (e) => { const img = document.getElementById('animTargetImg'); img.src = e.target.result; img.style.display = 'block'; this.playPreview(); };
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onerror = function() {
+        App.showFriendlyMessage("圖片讀取失敗，請重試。");
+      };
+      reader.onload = function(ev) {
+        try {
+          const img = document.getElementById("animTargetImg");
+          if (!img) return;
+          img.src = ev.target.result;
+          img.style.display = "block";
+          ToolAnim.playPreview();
+        } catch (_) {
+          App.showFriendlyMessage("圖片預覽失敗，請重試。");
+        }
+      };
       reader.readAsDataURL(file);
     },
     playPreview: function() {
-      const img = document.getElementById('animTargetImg');
-      if (!img.src || img.style.display === 'none') return alert("請先上傳圖片！");
-      img.classList.remove('play-popup'); void img.offsetWidth; img.classList.add('play-popup');
+      const img = document.getElementById("animTargetImg");
+      if (!img || !img.src || img.style.display === "none") {
+        App.showFriendlyMessage("請先上傳圖片。");
+        return;
+      }
+      img.classList.remove("play-popup");
+      void img.offsetWidth;
+      img.classList.add("play-popup");
     }
   };
 
-  window.onload = () => { 
-    App.init();
-    App.applyCanvasBg('captureArea', 'solid-light'); ToolTable.applyStyle();
-    App.applyCanvasBg('captureAreaCode', 'mac-monterey'); hljs.highlightAll();
-    App.applyCanvasBg('captureAreaAnim', 'solid-light');
+  window.addEventListener("unhandledrejection", function(event) {
+    event.preventDefault();
+  });
+
+  window.onload = function() {
+    try {
+      App.init();
+      App.applyCanvasBg("captureArea", "solid-light");
+      ToolTable.applyStyle();
+      App.applyCanvasBg("captureAreaCode", "mac-monterey");
+      if (window.hljs && typeof hljs.highlightAll === "function") {
+        hljs.highlightAll();
+      }
+      App.applyCanvasBg("captureAreaAnim", "solid-light");
+    } catch (_) {
+      App.showFriendlyMessage("初始化失敗，請重新整理後再試。");
+    }
   };
 </script>
 </body>
