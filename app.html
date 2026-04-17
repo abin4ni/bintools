@@ -86,7 +86,7 @@
   .segmented-control { display: flex; position: relative; background: var(--button-active); border-radius: 9px; padding: 3px; margin-bottom: 16px; }
   .segment-btn { flex: 1; text-align: center; padding: 6px 12px; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; position: relative; z-index: 1; transition: color 0.3s; }
   .segment-btn.active { color: var(--text-main); }
-  .segment-slider { position: absolute; top: 3px; bottom: 3px; left: 3px; width: calc(33.333% - 2px); background: var(--bg-card); border-radius: 7px; box-shadow: var(--shadow-sm); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 0; }
+  .segment-slider { position: absolute; top: 3px; bottom: 3px; left: 3px; width: calc(50% - 2px); background: var(--bg-card); border-radius: 7px; box-shadow: var(--shadow-sm); transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); z-index: 0; }
   
   .input-panel { display: none; animation: fadeIn 0.3s ease; } .input-panel.active { display: block; }
   .form-textarea, .form-input, .form-select { width: 100%; background: var(--bg-filter); border: 1px solid var(--border-color); color: var(--text-main); padding: 10px 12px; border-radius: 10px; outline: none; font-family: var(--font-text); margin-bottom: 12px; font-size: 14px;}
@@ -210,11 +210,13 @@
       </div>
 
       <div class="right-panel card">
-        <div class="preview-toolbar">
-          <div style="font-weight: 600;">圖片預覽</div>
+        <div class="preview-toolbar" style="flex-wrap: wrap; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <span style="font-weight: 600;">圖片預覽</span>
+            <span id="usageTextTable" style="font-size:12px; color:var(--text-muted);">今日額度: -/3</span>
+            <a class="pro-upsell" href="./#pricing" style="font-size:12px; color:var(--apple-blue); font-weight:500; text-decoration:none; white-space:nowrap;">⬆ 升級 Pro (1080p / 無浮水印)</a>
+          </div>
           <div style="display: flex; gap: 8px; align-items: center;">
-            <span id="usageTextTable" style="font-size:12px; color:var(--text-muted); margin-right:12px;">今日額度: -/3</span>
-            <span class="pro-upsell" style="font-size:12px; color:var(--apple-blue); margin-right:12px; font-weight:500;">Upgrade to Pro for 1080p & no watermark</span>
             <select id="exportFormat" class="form-select" style="width: auto; display:inline-block; padding:6px;"><option value="png">PNG</option><option value="jpeg">JPG</option></select>
             <button class="btn-blue" onclick="App.exportMedia(event, './api/render-image', 'captureArea', 'exportFormat')">雲端下載</button>
           </div>
@@ -253,10 +255,12 @@
         <div class="ad-container ad-banner"><span>Google AdSense 版位</span></div>
       </div>
       <div class="right-panel card">
-        <div class="preview-toolbar">
-          <div style="font-weight: 600;">圖片預覽</div>
+        <div class="preview-toolbar" style="flex-wrap: wrap; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <span style="font-weight: 600;">圖片預覽</span>
+            <a class="pro-upsell" href="./#pricing" style="font-size:12px; color:var(--apple-blue); font-weight:500; text-decoration:none; white-space:nowrap;">⬆ 升級 Pro (1080p / 無浮水印)</a>
+          </div>
           <div style="display: flex; gap: 8px; align-items: center;">
-            <span class="pro-upsell" style="font-size:12px; color:var(--apple-blue); margin-right:12px; font-weight:500;">Upgrade to Pro for 1080p & no watermark</span>
             <select id="exportFormatCode" class="form-select" style="width: 80px; padding: 6px;"><option value="png">PNG</option></select>
             <button class="btn-blue" onclick="App.exportMedia(event, './api/render-image', 'captureAreaCode', 'exportFormatCode')">雲端下載</button>
           </div>
@@ -278,7 +282,11 @@
       <div class="left-panel">
         <div class="card">
           <div class="card-title">1. 上傳圖片</div>
-          <input type="file" onchange="ToolAnim.handleUpload(event)" class="form-input" accept="image/png, image/jpeg">
+          <div class="drop-zone" onclick="document.getElementById('animFileInput').click()">
+            <div style="font-size:14px; font-weight:500;">點擊或拖曳上傳要動畫化的圖片</div>
+            <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">推薦透明 PNG，或是原本下載的卡片圖</div>
+            <input type="file" id="animFileInput" accept="image/png, image/jpeg" style="display:none" onchange="ToolAnim.handleUpload(event)">
+          </div>
         </div>
         <div class="card">
           <div class="card-title">2. 影片匯出設定</div>
@@ -297,12 +305,14 @@
         <div class="ad-container ad-banner"><span>Google AdSense 版位</span></div>
       </div>
       <div class="right-panel card">
-        <div class="preview-toolbar">
-          <div style="font-weight: 600;">動畫預覽</div>
+        <div class="preview-toolbar" style="flex-wrap: wrap; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <span style="font-weight: 600;">動畫預覽</span>
+            <span id="usageTextAnim" style="font-size:12px; color:var(--text-muted);">今日額度: -/3</span>
+            <a class="pro-upsell" href="./#pricing" style="font-size:12px; color:var(--apple-blue); font-weight:500; text-decoration:none; white-space:nowrap;">⬆ 升級 Pro (60fps / 無浮水印)</a>
+          </div>
           <div style="display: flex; gap: 8px; align-items: center;">
             <button class="btn-outline" onclick="ToolAnim.playPreview()">▶ 預覽</button>
-            <span id="usageTextAnim" style="font-size:12px; color:var(--text-muted); margin: 0 12px;">今日額度: -/3</span>
-            <span class="pro-upsell" style="font-size:12px; color:var(--apple-blue); margin-right:12px; font-weight:500;">Upgrade to Pro for 60fps & no watermark</span>
             <button class="btn-blue" onclick="App.exportMedia(event, './api/render-video', 'captureAreaAnim', 'animVideoFormat')">生成影片</button>
           </div>
         </div>
@@ -333,12 +343,21 @@
   const App = {
     user: null,
     showFriendlyMessage: function(message) {
-      alert(message || "生成失敗，請重試。");
+      alert(message || "生成失敗，請稍後再試");
     },
     setButtonLoading: function(btn, isLoading, loadingText, defaultText) {
       if (!btn) return;
       btn.disabled = !!isLoading;
-      btn.innerHTML = isLoading ? (loadingText || "處理中...") : defaultText;
+      btn.innerHTML = isLoading ? (loadingText || "生成中...") : defaultText;
+    },
+    base64ToBlob: function(base64, mimeType) {
+      const binary = atob(base64);
+      const len = binary.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i += 1) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return new Blob([bytes], { type: mimeType || 'application/octet-stream' });
     },
     init: async function() {
       try {
@@ -355,7 +374,9 @@
         const res = await fetch("./api/user-status", { headers: { "x-user-uid": uid } });
         if (!res.ok) throw new Error("user-status-failed");
 
-        const data = await res.json();
+        const payload = await res.json();
+        const data = payload && payload.success ? (payload.data || {}) : (payload || {});
+
         this.user = {
           uid: uid,
           plan: data && data.plan ? data.plan : "free",
@@ -487,11 +508,9 @@
       let finalFormat = format;
       if (isTransparentBg && format === "jpeg") {
         finalFormat = "png";
-        this.showFriendlyMessage("JPG 不支援透明背景，已改為 PNG。");
       }
       if (isTransparentBg && format === "mp4") {
         finalFormat = "webm";
-        this.showFriendlyMessage("MP4 不支援透明背景，已改為 WebM。");
       }
 
       const uid = window.MockAuth.currentUser ? window.MockAuth.currentUser.uid : "guest";
@@ -502,7 +521,7 @@
       try {
         const payloadHtml = this.getRenderPayload(targetId, isTransparentBg);
         if (!payloadHtml) {
-          this.showFriendlyMessage("生成失敗，請重試。");
+          this.showFriendlyMessage("生成失敗，請稍後再試");
           return;
         }
 
@@ -520,27 +539,24 @@
           })
         });
 
-        if (response.status === 403) {
-          this.showFriendlyMessage("今日免費額度已用完，請稍後再試。");
-          window.location.href = "./#pricing";
+        const payload = await response.json().catch(function() { return null; });
+
+        if (!response.ok || !payload || !payload.success || !payload.data || !payload.data.base64) {
+          this.showFriendlyMessage("生成失敗，請稍後再試");
           return;
         }
 
-        if (!response.ok) {
-          this.showFriendlyMessage("生成失敗，請重試。");
-          return;
-        }
-
-        const blob = await response.blob();
+        const blob = this.base64ToBlob(payload.data.base64, payload.data.mimeType);
         if (!blob || blob.size === 0) {
-          this.showFriendlyMessage("生成失敗，請重試。");
+          this.showFriendlyMessage("生成失敗，請稍後再試");
           return;
         }
 
+        const ext = payload.data.extension || finalFormat;
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = "BinTools_Export_" + Date.now() + "." + finalFormat;
+        a.download = "BinTools_Export_" + Date.now() + "." + ext;
         a.click();
         window.URL.revokeObjectURL(url);
 
@@ -552,7 +568,7 @@
           App.setButtonLoading(btn, false, "", originHTML);
         }, 2000);
       } catch (_) {
-        this.showFriendlyMessage("生成失敗，請重試。");
+        this.showFriendlyMessage("生成失敗，請稍後再試");
       } finally {
         if (!keepSuccessState) {
           this.setButtonLoading(btn, false, "", originHTML);
@@ -603,21 +619,35 @@
           const textInput = document.getElementById("textInput");
           const text = textInput ? textInput.value.trim() : "";
           if (!text) {
-            App.showFriendlyMessage("請先輸入內容。");
+            App.showFriendlyMessage("請先輸入內容");
             return;
           }
           output = text.split("\n").map(function(row) { return row.split("\t"); });
         } else if (this.method === 1) {
           if (!Array.isArray(this.data) || this.data.length === 0) {
-            App.showFriendlyMessage("請先上傳檔案。");
+            App.showFriendlyMessage("請先上傳檔案");
             return;
           }
           output = this.data;
         }
 
+        try {
+          const response = await fetch("./api/generate-table", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ rows: output })
+          });
+          const payload = await response.json().catch(function() { return null; });
+          if (response.ok && payload && payload.success && payload.data && Array.isArray(payload.data.rows) && payload.data.rows.length) {
+            output = payload.data.rows;
+          }
+        } catch (_) {
+          // fallback: keep local preview
+        }
+
         this.render(output);
       } catch (_) {
-        App.showFriendlyMessage("資料處理失敗，請重試。");
+        App.showFriendlyMessage("生成失敗，請稍後再試");
       }
     },
     render: function(dataArray) {
