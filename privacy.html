@@ -1,49 +1,146 @@
-# Privacy Policy
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>隱私權政策 - BinTools 專業內容生成平台</title>
+<meta name="description" content="BinTools 隱私權政策。了解我們如何收集、使用與保護您的個人資料。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-main: #000000; --text-main: #f5f5f7; --text-muted: rgba(255,255,255,0.6);
+    --glass-bg: rgba(255,255,255,0.05); --glass-border: rgba(255,255,255,0.1);
+    --apple-blue: #0A84FF; --apple-blue-hover: #0071e3;
+    --font-display: 'Inter', sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg-main); color: var(--text-main); font-family: var(--font-display); line-height: 1.5; overflow-x: hidden; display: flex; flex-direction: column; min-height: 100vh; }
 
-Last updated: 2026/4/14
+  /* Navbar */
+  .nav { position: fixed; top: 0; width: 100%; z-index: 100; display: flex; justify-content: space-between; align-items: center; padding: 0 40px; height: 60px; background: rgba(0,0,0,0.7); backdrop-filter: blur(20px); border-bottom: 1px solid var(--glass-border); }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; color: #fff; text-decoration: none; }
+  .b-logo { width: 30px; height: 30px; background: #fff; color: #000; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; }
+  .nav-links { display: flex; gap: 24px; }
+  .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.3s; }
+  .nav-links a:hover { color: #fff; }
+  .btn-primary { background: var(--apple-blue); color: #fff; text-decoration: none; padding: 8px 20px; border-radius: 20px; font-size: 14px; font-weight: 600; transition: 0.3s; }
+  .btn-primary:hover { background: var(--apple-blue-hover); transform: scale(1.05); }
 
-Welcome to our website. We respect your privacy and are committed to protecting your personal information.
+  /* Hero */
+  .hero { text-align: center; padding: 140px 20px 48px; }
+  .hero h1 { font-size: 48px; font-weight: 700; letter-spacing: -1px; margin-bottom: 16px; background: linear-gradient(135deg, #fff 0%, #a5a5a5 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero p { font-size: 16px; color: var(--text-muted); }
 
-## 1. Information We Collect
+  /* Content */
+  .page-container { max-width: 780px; margin: 0 auto; padding: 0 32px 100px; flex: 1; }
+  .policy-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 24px; padding: 48px; backdrop-filter: blur(20px); }
 
-We may collect:
+  .policy-card h2 { font-size: 20px; font-weight: 700; color: #fff; margin: 36px 0 12px; padding-bottom: 10px; border-bottom: 1px solid var(--glass-border); }
+  .policy-card h2:first-child { margin-top: 0; }
+  .policy-card p { color: var(--text-muted); font-size: 15px; line-height: 1.85; margin-bottom: 12px; }
+  .policy-card ul { color: var(--text-muted); font-size: 15px; line-height: 1.85; padding-left: 20px; margin-bottom: 12px; }
+  .policy-card ul li { margin-bottom: 6px; }
+  .policy-card a { color: var(--apple-blue); text-decoration: none; }
+  .policy-card a:hover { text-decoration: underline; }
+  .last-updated { display: inline-block; font-size: 13px; color: var(--text-muted); background: rgba(255,255,255,0.06); border: 1px solid var(--glass-border); border-radius: 20px; padding: 4px 14px; margin-bottom: 32px; }
 
-* Personal information (such as email when you log in)
-* Usage data (pages visited, actions taken)
-* Cookies and tracking data
+  /* Footer */
+  footer { border-top: 1px solid var(--glass-border); padding: 40px 20px; text-align: center; margin-top: auto; }
+  .f-links { display: flex; justify-content: center; gap: 24px; margin-bottom: 20px; flex-wrap: wrap; }
+  .f-links a { color: var(--text-muted); text-decoration: none; font-size: 14px; transition: 0.2s; }
+  .f-links a:hover { color: #fff; }
+  .copyright { color: rgba(255,255,255,0.3); font-size: 12px; }
 
-## 2. How We Use Information
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .hero h1 { font-size: 32px; }
+    .policy-card { padding: 28px; }
+  }
+</style>
+</head>
+<body>
 
-We use your data to:
+<nav class="nav">
+  <a href="/" class="brand"><div class="b-logo">B</div> BinTools</a>
+  <div class="nav-links">
+    <a href="/#features">功能介紹</a>
+    <a href="/#pricing">方案價格</a>
+    <a href="/blog">教學文章</a>
+  </div>
+  <a href="/app" class="btn-primary">進入工具區</a>
+</nav>
 
-* Provide and improve our services
-* Personalize user experience
-* Show relevant advertisements
+<header class="hero">
+  <h1>隱私權政策</h1>
+  <p>我們重視您的隱私，並承諾保護您的個人資料。</p>
+</header>
 
-## 3. Google AdSense
+<main class="page-container">
+  <div class="policy-card">
+    <span class="last-updated">最後更新：2026 年 4 月 14 日</span>
 
-We use Google AdSense to display ads. Google may use cookies to serve ads based on your previous visits.
+    <h2>1. 我們收集的資訊</h2>
+    <p>當您使用 BinTools 時，我們可能收集以下資訊：</p>
+    <ul>
+      <li>個人資訊（例如您登入時提供的電子郵件地址）</li>
+      <li>使用資料（造訪的頁面、執行的操作、工具使用頻率）</li>
+      <li>Cookie 及追蹤技術所產生的資料</li>
+      <li>您上傳至工具的圖片或表格內容（僅於處理期間暫存，不會永久儲存）</li>
+    </ul>
 
-You can learn more here:
-https://policies.google.com/technologies/ads
+    <h2>2. 資訊的使用方式</h2>
+    <p>我們使用所收集的資料用於以下目的：</p>
+    <ul>
+      <li>提供並持續改善我們的服務</li>
+      <li>個人化您的使用體驗</li>
+      <li>分析網站流量與功能使用情況</li>
+      <li>顯示相關廣告內容（透過 Google AdSense）</li>
+    </ul>
 
-## 4. Data Security
+    <h2>3. Google AdSense 廣告服務</h2>
+    <p>本網站使用 Google AdSense 顯示廣告。Google 可能根據您過去對本網站及其他網站的造訪記錄，使用 Cookie 提供個人化廣告。</p>
+    <p>您可以透過以下連結了解更多，或選擇退出個人化廣告：<br>
+    <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener">Google 廣告隱私權說明</a></p>
 
-We take reasonable measures to protect your data but cannot guarantee absolute security.
+    <h2>4. Cookie 政策</h2>
+    <p>本網站使用 Cookie 以改善使用者體驗。Cookie 是儲存在您裝置上的小型文字檔案。您可以在瀏覽器設定中隨時停用 Cookie，但這可能影響部分功能的正常運作。</p>
 
-## 5. Third-party Services
+    <h2>5. 資料安全</h2>
+    <p>我們採取合理的技術與管理措施保護您的個人資料，防止未經授權的存取、揭露或竄改。然而，網際網路的傳輸本質上無法保證絕對安全，請您知悉此風險。</p>
 
-We may use services such as:
+    <h2>6. 第三方服務</h2>
+    <p>本網站可能整合以下第三方服務，各服務均有其獨立的隱私權政策：</p>
+    <ul>
+      <li><a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Google Analytics</a> — 流量分析</li>
+      <li><a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">Firebase</a> — 身份驗證與資料庫</li>
+      <li><a href="https://stripe.com/privacy" target="_blank" rel="noopener">Stripe</a> — 付款處理</li>
+    </ul>
 
-* Google Analytics
-* Firebase
-* Stripe
+    <h2>7. 未成年人保護</h2>
+    <p>本服務不針對 13 歲以下兒童，我們不會主動收集兒童的個人資料。若您發現有兒童在未獲得監護人同意的情況下提供個人資料，請透過下方聯絡方式通知我們。</p>
 
-## 6. Your Consent
+    <h2>8. 政策變更</h2>
+    <p>我們保留隨時更新本隱私權政策的權利。重大變更時，我們將於本頁面頂部更新「最後更新日期」。建議您定期查閱本頁面以了解最新資訊。</p>
 
-By using our website, you consent to our Privacy Policy.
+    <h2>9. 聯絡我們</h2>
+    <p>若您對本隱私權政策有任何疑問，歡迎透過以下方式聯絡：</p>
+    <p><a href="mailto:kino2ho@gmail.com">kino2ho@gmail.com</a></p>
+  </div>
+</main>
 
-## 7. Contact Us
+<footer>
+  <div class="f-links">
+    <a href="/#features">功能介紹</a>
+    <a href="/#pricing">方案價格</a>
+    <a href="/blog">教學文章</a>
+    <a href="/privacy" style="color:#fff;">Privacy Policy</a>
+    <a href="/terms">Terms of Service</a>
+    <a href="/contact">Contact</a>
+  </div>
+  <div class="copyright">&copy; 2024 BinTools. All rights reserved. Designed for Productivity.</div>
+</footer>
 
-If you have questions, contact us at:
-kino2ho@gmail.com
+</body>
+</html>

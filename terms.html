@@ -1,46 +1,141 @@
-# Terms of Service
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>服務條款 - BinTools 專業內容生成平台</title>
+<meta name="description" content="BinTools 服務條款。使用本平台前，請詳閱以下條款內容。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-main: #000000; --text-main: #f5f5f7; --text-muted: rgba(255,255,255,0.6);
+    --glass-bg: rgba(255,255,255,0.05); --glass-border: rgba(255,255,255,0.1);
+    --apple-blue: #0A84FF; --apple-blue-hover: #0071e3;
+    --font-display: 'Inter', sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg-main); color: var(--text-main); font-family: var(--font-display); line-height: 1.5; overflow-x: hidden; display: flex; flex-direction: column; min-height: 100vh; }
 
-Last updated: 2026/4/14
-By using this website, you agree to the following terms:
+  .nav { position: fixed; top: 0; width: 100%; z-index: 100; display: flex; justify-content: space-between; align-items: center; padding: 0 40px; height: 60px; background: rgba(0,0,0,0.7); backdrop-filter: blur(20px); border-bottom: 1px solid var(--glass-border); }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; color: #fff; text-decoration: none; }
+  .b-logo { width: 30px; height: 30px; background: #fff; color: #000; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; }
+  .nav-links { display: flex; gap: 24px; }
+  .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.3s; }
+  .nav-links a:hover { color: #fff; }
+  .btn-primary { background: var(--apple-blue); color: #fff; text-decoration: none; padding: 8px 20px; border-radius: 20px; font-size: 14px; font-weight: 600; transition: 0.3s; }
+  .btn-primary:hover { background: var(--apple-blue-hover); transform: scale(1.05); }
 
-## 1. Use of Service
+  .hero { text-align: center; padding: 140px 20px 48px; }
+  .hero h1 { font-size: 48px; font-weight: 700; letter-spacing: -1px; margin-bottom: 16px; background: linear-gradient(135deg, #fff 0%, #a5a5a5 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero p { font-size: 16px; color: var(--text-muted); }
 
-You may use this tool for personal or commercial purposes, but you may not:
+  .page-container { max-width: 780px; margin: 0 auto; padding: 0 32px 100px; flex: 1; }
+  .policy-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 24px; padding: 48px; backdrop-filter: blur(20px); }
+  .policy-card h2 { font-size: 20px; font-weight: 700; color: #fff; margin: 36px 0 12px; padding-bottom: 10px; border-bottom: 1px solid var(--glass-border); }
+  .policy-card h2:first-child { margin-top: 0; }
+  .policy-card p { color: var(--text-muted); font-size: 15px; line-height: 1.85; margin-bottom: 12px; }
+  .policy-card ul { color: var(--text-muted); font-size: 15px; line-height: 1.85; padding-left: 20px; margin-bottom: 12px; }
+  .policy-card ul li { margin-bottom: 6px; }
+  .policy-card a { color: var(--apple-blue); text-decoration: none; }
+  .policy-card a:hover { text-decoration: underline; }
+  .last-updated { display: inline-block; font-size: 13px; color: var(--text-muted); background: rgba(255,255,255,0.06); border: 1px solid var(--glass-border); border-radius: 20px; padding: 4px 14px; margin-bottom: 32px; }
 
-* Copy or resell the service
-* Abuse or overload the system
+  footer { border-top: 1px solid var(--glass-border); padding: 40px 20px; text-align: center; margin-top: auto; }
+  .f-links { display: flex; justify-content: center; gap: 24px; margin-bottom: 20px; flex-wrap: wrap; }
+  .f-links a { color: var(--text-muted); text-decoration: none; font-size: 14px; transition: 0.2s; }
+  .f-links a:hover { color: #fff; }
+  .copyright { color: rgba(255,255,255,0.3); font-size: 12px; }
 
-## 2. User Accounts
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .hero h1 { font-size: 32px; }
+    .policy-card { padding: 28px; }
+  }
+</style>
+</head>
+<body>
 
-If you create an account, you are responsible for maintaining its security.
+<nav class="nav">
+  <a href="/" class="brand"><div class="b-logo">B</div> BinTools</a>
+  <div class="nav-links">
+    <a href="/#features">功能介紹</a>
+    <a href="/#pricing">方案價格</a>
+    <a href="/blog">教學文章</a>
+  </div>
+  <a href="/app" class="btn-primary">進入工具區</a>
+</nav>
 
-## 3. Content
+<header class="hero">
+  <h1>服務條款</h1>
+  <p>使用 BinTools 即表示您同意以下條款，請詳閱後再行使用。</p>
+</header>
 
-You are responsible for the content you generate using this tool.
+<main class="page-container">
+  <div class="policy-card">
+    <span class="last-updated">最後更新：2026 年 4 月 14 日</span>
 
-We are not liable for:
+    <h2>1. 服務說明</h2>
+    <p>BinTools 提供一系列線上內容生成工具，包含表格海報生成器、程式碼海報生成器及動態展演生成器。本服務提供免費方案與付費 Pro 方案，功能範圍依方案而有所不同。</p>
 
-* Copyright issues
-* Misuse of generated content
+    <h2>2. 使用規範</h2>
+    <p>您可將本工具用於個人或商業用途，但嚴格禁止以下行為：</p>
+    <ul>
+      <li>複製、重新販售或以任何形式轉售本服務</li>
+      <li>以自動化程式（Bot）大量發送請求，造成伺服器過載</li>
+      <li>嘗試破解、繞過或干擾本平台的安全機制</li>
+      <li>利用本服務生成違法、侵權或具傷害性的內容</li>
+    </ul>
 
-## 4. Limitation of Liability
+    <h2>3. 使用者帳號</h2>
+    <p>若您建立帳號，您需自行負責帳號的安全性，包含妥善保管密碼。請勿將帳號分享給他人使用。若發現帳號遭到未授權使用，請立即聯絡我們。</p>
 
-We provide this service "as is" without warranties of any kind.
+    <h2>4. 內容責任</h2>
+    <p>您對透過本工具生成的所有內容負完全責任。BinTools 不對以下情況負責：</p>
+    <ul>
+      <li>您生成內容涉及的著作權或智慧財產權爭議</li>
+      <li>您將生成內容用於任何違法或不當用途</li>
+      <li>您上傳至平台的素材所引發的任何法律責任</li>
+    </ul>
 
-We are not responsible for:
+    <h2>5. 智慧財產權</h2>
+    <p>BinTools 平台本身的設計、程式碼與品牌元素均為本公司所有，未經授權不得複製或使用。您使用工具所生成的圖片與影片，其著作權歸屬您本人，BinTools 不主張任何所有權。</p>
 
-* Data loss
-* Service interruptions
+    <h2>6. 免費方案限制</h2>
+    <p>免費方案每日下載次數有限（目前為 3 次），且生成的圖片將包含 BinTools 浮水印。升級至 Pro 方案可解除限制並移除浮水印。BinTools 保留隨時調整免費方案限制的權利。</p>
 
-## 5. Modifications
+    <h2>7. 服務中斷與資料遺失</h2>
+    <p>本服務「按現狀」提供，不附任何明示或默示的保證。BinTools 不對以下情況負責：</p>
+    <ul>
+      <li>服務中斷、暫停或終止</li>
+      <li>任何形式的資料遺失</li>
+      <li>因使用本服務所產生的間接損失</li>
+    </ul>
 
-We may update these terms at any time.
+    <h2>8. 條款修改</h2>
+    <p>BinTools 保留隨時修改本服務條款的權利。修改後的條款將於本頁面公告，並更新頁面頂部的日期。繼續使用本服務即視為您同意修改後的條款。</p>
 
-## 6. Termination
+    <h2>9. 帳號終止</h2>
+    <p>若您違反本條款，BinTools 有權在不事先通知的情況下，暫停或終止您的帳號及使用資格。</p>
 
-We reserve the right to suspend users who violate these terms.
+    <h2>10. 聯絡我們</h2>
+    <p>對本服務條款有任何疑問，歡迎聯絡：</p>
+    <p><a href="mailto:kino2ho@gmail.com">kino2ho@gmail.com</a></p>
+  </div>
+</main>
 
-## 7. Contact
+<footer>
+  <div class="f-links">
+    <a href="/#features">功能介紹</a>
+    <a href="/#pricing">方案價格</a>
+    <a href="/blog">教學文章</a>
+    <a href="/privacy">Privacy Policy</a>
+    <a href="/terms" style="color:#fff;">Terms of Service</a>
+    <a href="/contact">Contact</a>
+  </div>
+  <div class="copyright">&copy; 2024 BinTools. All rights reserved. Designed for Productivity.</div>
+</footer>
 
-For questions, contact:
-kino2ho@gmail.com
+</body>
+</html>

@@ -1,17 +1,140 @@
-# Contact Us
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>聯絡我們 - BinTools 專業內容生成平台</title>
+<meta name="description" content="有任何問題、合作邀約或功能建議？歡迎透過以下方式聯絡 BinTools 團隊。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-main: #000000; --text-main: #f5f5f7; --text-muted: rgba(255,255,255,0.6);
+    --glass-bg: rgba(255,255,255,0.05); --glass-border: rgba(255,255,255,0.1);
+    --apple-blue: #0A84FF; --apple-blue-hover: #0071e3;
+    --font-display: 'Inter', sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg-main); color: var(--text-main); font-family: var(--font-display); line-height: 1.5; overflow-x: hidden; display: flex; flex-direction: column; min-height: 100vh; }
 
-If you have any questions, feedback, or business inquiries, feel free to contact us.
+  .nav { position: fixed; top: 0; width: 100%; z-index: 100; display: flex; justify-content: space-between; align-items: center; padding: 0 40px; height: 60px; background: rgba(0,0,0,0.7); backdrop-filter: blur(20px); border-bottom: 1px solid var(--glass-border); }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; color: #fff; text-decoration: none; }
+  .b-logo { width: 30px; height: 30px; background: #fff; color: #000; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; }
+  .nav-links { display: flex; gap: 24px; }
+  .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.3s; }
+  .nav-links a:hover { color: #fff; }
+  .btn-primary { background: var(--apple-blue); color: #fff; text-decoration: none; padding: 8px 20px; border-radius: 20px; font-size: 14px; font-weight: 600; transition: 0.3s; }
+  .btn-primary:hover { background: var(--apple-blue-hover); transform: scale(1.05); }
 
-## Email
+  .hero { text-align: center; padding: 140px 20px 48px; }
+  .hero h1 { font-size: 48px; font-weight: 700; letter-spacing: -1px; margin-bottom: 16px; background: linear-gradient(135deg, #fff 0%, #a5a5a5 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero p { font-size: 16px; color: var(--text-muted); }
 
-kino2ho@gmail.com
+  .page-container { max-width: 780px; margin: 0 auto; padding: 0 32px 100px; flex: 1; }
 
-## Response Time
+  /* Contact cards grid */
+  .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+  .contact-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 20px; padding: 32px; backdrop-filter: blur(20px); text-align: center; transition: border-color 0.3s; }
+  .contact-card:hover { border-color: rgba(10, 132, 255, 0.4); }
+  .contact-icon { font-size: 36px; margin-bottom: 16px; }
+  .contact-card h3 { font-size: 16px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+  .contact-card p { color: var(--text-muted); font-size: 14px; line-height: 1.7; margin-bottom: 16px; }
+  .contact-card a { color: var(--apple-blue); text-decoration: none; font-size: 15px; font-weight: 600; word-break: break-all; }
+  .contact-card a:hover { text-decoration: underline; }
 
-We typically respond within 24-48 hours.
+  /* Info card */
+  .info-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 20px; padding: 36px; backdrop-filter: blur(20px); }
+  .info-card h2 { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 20px; }
+  .info-row { display: flex; align-items: flex-start; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--glass-border); }
+  .info-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .info-label { font-size: 13px; font-weight: 600; color: var(--apple-blue); min-width: 80px; padding-top: 2px; }
+  .info-value { font-size: 14px; color: var(--text-muted); line-height: 1.7; }
 
-## Business Inquiries
+  footer { border-top: 1px solid var(--glass-border); padding: 40px 20px; text-align: center; margin-top: auto; }
+  .f-links { display: flex; justify-content: center; gap: 24px; margin-bottom: 20px; flex-wrap: wrap; }
+  .f-links a { color: var(--text-muted); text-decoration: none; font-size: 14px; transition: 0.2s; }
+  .f-links a:hover { color: #fff; }
+  .copyright { color: rgba(255,255,255,0.3); font-size: 12px; }
 
-For partnerships or collaborations, please include detailed information in your message.
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .hero h1 { font-size: 32px; }
+    .contact-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
 
-Thank you for using our service!
+<nav class="nav">
+  <a href="/" class="brand"><div class="b-logo">B</div> BinTools</a>
+  <div class="nav-links">
+    <a href="/#features">功能介紹</a>
+    <a href="/#pricing">方案價格</a>
+    <a href="/blog">教學文章</a>
+  </div>
+  <a href="/app" class="btn-primary">進入工具區</a>
+</nav>
+
+<header class="hero">
+  <h1>聯絡我們</h1>
+  <p>有任何問題或建議，我們很樂意聆聽。</p>
+</header>
+
+<main class="page-container">
+
+  <div class="contact-grid">
+    <div class="contact-card">
+      <div class="contact-icon">✉️</div>
+      <h3>電子郵件</h3>
+      <p>一般問題、功能回饋或帳號相關事項</p>
+      <a href="mailto:kino2ho@gmail.com">kino2ho@gmail.com</a>
+    </div>
+    <div class="contact-card">
+      <div class="contact-icon">🤝</div>
+      <h3>商業合作</h3>
+      <p>品牌合作、贊助或聯名企劃邀約</p>
+      <a href="mailto:kino2ho@gmail.com">kino2ho@gmail.com</a>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <h2>常見問題</h2>
+
+    <div class="info-row">
+      <span class="info-label">回覆時間</span>
+      <span class="info-value">我們通常在 24～48 小時內回覆。週末或假日可能稍有延遲，感謝您的耐心等候。</span>
+    </div>
+
+    <div class="info-row">
+      <span class="info-label">技術問題</span>
+      <span class="info-value">遇到工具無法使用或下載失敗時，請在信件中描述您的瀏覽器版本、操作步驟，以及螢幕截圖（如有），有助我們更快速排查問題。</span>
+    </div>
+
+    <div class="info-row">
+      <span class="info-label">帳號與付款</span>
+      <span class="info-value">Pro 方案訂閱、帳單問題或退款申請，請來信並附上您的帳號電子郵件，我們將優先處理。</span>
+    </div>
+
+    <div class="info-row">
+      <span class="info-label">功能建議</span>
+      <span class="info-value">我們非常歡迎使用者提出新功能建議！請在信件主旨加上「[功能建議]」，讓我們更好地分類與追蹤您的意見。</span>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <div class="f-links">
+    <a href="/#features">功能介紹</a>
+    <a href="/#pricing">方案價格</a>
+    <a href="/blog">教學文章</a>
+    <a href="/privacy">Privacy Policy</a>
+    <a href="/terms">Terms of Service</a>
+    <a href="/contact" style="color:#fff;">Contact</a>
+  </div>
+  <div class="copyright">&copy; 2024 BinTools. All rights reserved. Designed for Productivity.</div>
+</footer>
+
+</body>
+</html>
