@@ -185,7 +185,30 @@
   .seo-about { max-width: 1000px; margin: 40px auto; padding: 32px; color: var(--text-muted); font-size: 14px; line-height: 1.6; background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border-color); }
   .seo-about h2 { font-size: 18px; color: var(--text-main); margin-bottom: 12px; }
 
-  @media (max-width: 900px) { .tool-container { grid-template-columns: 1fr; } .right-panel { position: static; } }
+  /* --- SPINNER --- */
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.35); border-radius: 50%; border-top-color: #fff; animation: spin 0.7s linear infinite; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* --- TEMPLATE BUTTONS --- */
+  .template-row { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+  .template-btn { flex: 1; min-width: 0; background: var(--bg-filter); border: 1px solid var(--border-color); color: var(--text-main); padding: 6px 8px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer; text-align: center; transition: border-color 0.2s, background 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .template-btn:hover { border-color: var(--apple-blue); background: rgba(0,113,227,0.06); }
+
+  /* --- MOBILE TAB BAR --- */
+  .mobile-tab-bar { display: none; }
+  @media (max-width: 768px) {
+    .nav-center { display: none; }
+    .mobile-tab-bar { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-nav); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-top: 1px solid var(--border-color); z-index: 98; height: 56px; }
+    .mobile-tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 10px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: color 0.2s; padding: 4px 0; }
+    .mobile-tab.active { color: var(--apple-blue); }
+    .mobile-tab-icon { font-size: 20px; line-height: 1; }
+    body { padding-bottom: 56px; }
+    .tool-container { padding: 0 16px; gap: 16px; }
+    .hero { padding: 24px 16px 16px; }
+    .hero h1 { font-size: 24px; }
+    .nav { padding: 0 16px; }
+    .nav-left .nav-brand span { display: none; }
+  }
   
   /* --- FOOTER UI --- */
   footer { padding: 32px; text-align: center; border-top: 1px solid var(--border-color); background: var(--bg-main); margin-top: auto; }
@@ -235,7 +258,14 @@
             <div class="segment-btn active" onclick="ToolTable.switchInput(0)">文字貼上</div>
             <div class="segment-btn" onclick="ToolTable.switchInput(1)">上傳檔案</div>
           </div>
-          <div id="panel-0" class="input-panel active"><textarea id="textInput" class="form-textarea" placeholder="產品&#9;價格&#10;iPhone&#9;$799"></textarea></div>
+          <div id="panel-0" class="input-panel active">
+            <div class="template-row">
+              <button class="template-btn" onclick="ToolTable.loadTemplate('pricing')">💰 定價比較</button>
+              <button class="template-btn" onclick="ToolTable.loadTemplate('ranking')">🏆 排行榜</button>
+              <button class="template-btn" onclick="ToolTable.loadTemplate('schedule')">📅 時間表</button>
+            </div>
+            <textarea id="textInput" class="form-textarea" placeholder="產品&#9;價格&#10;iPhone&#9;$799"></textarea>
+          </div>
           <div id="panel-1" class="input-panel">
             <div class="drop-zone" onclick="document.getElementById('fileInput').click()"><div style="font-size:14px; font-weight:500;">點擊上傳 Excel/CSV</div><input type="file" id="fileInput" accept=".xlsx, .csv" style="display:none" onchange="ToolTable.handleFile(event)"></div>
             <p id="fileNameDisplay" style="font-size:12px; color:var(--apple-blue); margin-top:8px;"></p>
@@ -269,9 +299,32 @@
               <option value="#ffffff">純白 (實心)</option>
             </select>
           </div>
-          <div class="settings-group">
+          <div class="settings-group" style="margin-bottom: 12px;">
+            <label class="settings-label">字型</label>
+            <select id="cfgFont" class="form-select" onchange="ToolTable.applyStyle()">
+              <option value="'Inter', -apple-system, BlinkMacSystemFont, sans-serif">Inter（系統預設）</option>
+              <option value="'Noto Serif TC', serif">Noto Serif TC（明體）</option>
+              <option value="'Fira Code', monospace">Fira Code（等寬）</option>
+              <option value="Georgia, serif">Georgia（英文明體）</option>
+            </select>
+          </div>
+          <div class="settings-grid">
+            <div class="settings-group">
+              <label class="settings-label">文字顏色</label>
+              <input type="color" id="cfgTextColor" value="#1d1d1f" onchange="ToolTable.applyStyle()">
+            </div>
+            <div class="settings-group">
+              <label class="settings-label">分隔線顏色</label>
+              <input type="color" id="cfgBorderColor" value="#e0e0e5" onchange="ToolTable.applyStyle()">
+            </div>
+          </div>
+          <div class="settings-group" style="margin-bottom: 12px;">
             <label class="settings-label">字級: <span id="valSize">15px</span></label>
             <input type="range" id="cfgSize" min="10" max="32" value="15" oninput="App.updateLabel('cfgSize','valSize','px'); ToolTable.applyStyle()">
+          </div>
+          <div class="switch-row">
+            <span style="font-size:13px; font-weight:500;">斑馬紋（隔列底色）</span>
+            <label class="toggle-switch"><input type="checkbox" id="cfgZebraToggle" onchange="ToolTable.applyStyle()"><span class="slider-toggle"></span></label>
           </div>
         </div>
         <div class="ad-container ad-banner"><span>Google AdSense 版位</span></div>
@@ -437,6 +490,19 @@
 
 </div> <!-- End view-container -->
 
+<!-- 手機版底部 Tab Bar -->
+<div class="mobile-tab-bar">
+  <div class="mobile-tab active" id="mTab-excel2jpg" onclick="App.switchView('excel2jpg'); App.setMobileTab('excel2jpg')">
+    <span class="mobile-tab-icon">📊</span>表格
+  </div>
+  <div class="mobile-tab" id="mTab-code2jpg" onclick="App.switchView('code2jpg'); App.setMobileTab('code2jpg')">
+    <span class="mobile-tab-icon">💻</span>程式碼
+  </div>
+  <div class="mobile-tab" id="mTab-animator" onclick="App.switchView('animator'); App.setMobileTab('animator')">
+    <span class="mobile-tab-icon">🎬</span>動畫
+  </div>
+</div>
+
 <!-- ★ FOOTER ★ -->
 <footer>
   <a href="./">回到首頁</a>
@@ -466,7 +532,16 @@
     setButtonLoading: function(btn, isLoading, loadingText, defaultText) {
       if (!btn) return;
       btn.disabled = !!isLoading;
-      btn.innerHTML = isLoading ? (loadingText || "生成中...") : defaultText;
+      btn.innerHTML = isLoading
+        ? '<span class="spinner"></span> ' + (loadingText || "生成中...")
+        : defaultText;
+    },
+    setMobileTab: function(viewId) {
+      document.querySelectorAll(".mobile-tab").forEach(function(tab) {
+        tab.classList.remove("active");
+      });
+      var active = document.getElementById("mTab-" + viewId);
+      if (active) active.classList.add("active");
     },
     base64ToBlob: function(base64, mimeType) {
       const binary = atob(base64);
@@ -547,10 +622,9 @@
       document.querySelectorAll(".view").forEach(function(el) {
         el.classList.remove("active");
       });
-
-      const target = document.getElementById("view-" + viewId);
+      var target = document.getElementById("view-" + viewId);
       if (target) target.classList.add("active");
-
+      this.setMobileTab(viewId);
       window.scrollTo(0, 0);
     },
     toggleTheme: function() {
@@ -704,8 +778,20 @@
   };
 
   const ToolTable = {
-    method: 0,
-    data: [],
+    loadTemplate: function(type) {
+      var templates = {
+        pricing: "方案\t免費版\tPro 版\t企業版\n月費\t$0\t$9.9\t$49\n儲存空間\t1 GB\t100 GB\t無限\n匯出品質\t720p\t1080p\t4K\n浮水印\t有\t無\t無\n商業授權\t否\t是\t是",
+        ranking: "排名\t名稱\t分數\t較上週\n🥇 1\t王大明\t9,850\t↑ 2\n🥈 2\t林小美\t9,200\t↓ 1\n🥉 3\t陳志偉\t8,750\t↑ 5\n4\t張雅婷\t8,100\t→\n5\tJohn Wu\t7,600\t↑ 1",
+        schedule: "時間\t週一\t週三\t週五\n09:00\t團隊會議\t程式碼審查\t週計畫\n11:00\t功能開發\t客戶簡報\t測試\n14:00\t個人任務\t設計討論\t部署\n16:00\t Code Review\t文件整理\t週報"
+      };
+      var text = templates[type];
+      if (!text) return;
+      var textInput = document.getElementById("textInput");
+      if (textInput) textInput.value = text;
+      ToolTable.switchInput(0);
+      ToolTable.process();
+      App.showFriendlyMessage("範本已載入！");
+    },
     switchInput: function(index) {
       this.method = index;
       document.getElementById("segmentSlider").style.transform = "translateX(" + (index * 100) + "%)";
