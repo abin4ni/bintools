@@ -17,13 +17,47 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
   import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
-  
-  // 模擬登入系統 (方便測試)
-  window.MockAuth = {
-    currentUser: null,
-    login: function() { this.currentUser = { uid: 'user_123', displayName: '王大明', photoURL: 'https://ui-avatars.com/api/?name=王' }; App.fetchUserStatus(); },
-    logout: function() { this.currentUser = null; App.fetchUserStatus(); }
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyB1VjckIhF2sEzLBIUh8Dh-K7oNc_xAqNA",
+    authDomain: "bintools-33fd9.firebaseapp.com",
+    projectId: "bintools-33fd9",
+    storageBucket: "bintools-33fd9.firebasestorage.app",
+    messagingSenderId: "559899034826",
+    appId: "1:559899034826:web:833ea45e63d442c5596033",
+    measurementId: "G-WWB6GS1TTT"
   };
+
+  const firebaseApp = initializeApp(firebaseConfig);
+  const auth = getAuth(firebaseApp);
+  const provider = new GoogleAuthProvider();
+
+  // 掛到 window 讓 onclick handler 可以呼叫
+  window.FirebaseAuth = {
+    currentUser: null,
+    login: async function() {
+      try {
+        await signInWithPopup(auth, provider);
+      } catch (err) {
+        if (err.code !== 'auth/popup-closed-by-user') {
+          if (window.App && App.showFriendlyMessage) App.showFriendlyMessage('登入失敗，請再試一次', 'error');
+        }
+      }
+    },
+    logout: async function() {
+      try {
+        await signOut(auth);
+      } catch (_) {}
+    }
+  };
+
+  // 登入狀態變動時自動更新 UI
+  onAuthStateChanged(auth, function(user) {
+    window.FirebaseAuth.currentUser = user || null;
+    if (window.App && typeof App.fetchUserStatus === 'function') {
+      App.fetchUserStatus();
+    }
+  });
 </script>
 
 <style>
@@ -125,10 +159,23 @@
   .mac-header { padding: 12px 16px; display: flex; gap: 8px; background: rgba(45, 45, 45, 0.8); }
   .mac-dot { width: 12px; height: 12px; border-radius: 50%; } .mac-dot.red { background: #ff5f56; } .mac-dot.yellow { background: #ffbd2e; } .mac-dot.green { background: #27c93f; }
   .code-container { padding: 24px; overflow-y: auto; background: transparent; } .code-container pre { margin: 0; } .code-container code { font-family: 'Fira Code', monospace; line-height: 1.5; background: transparent; padding: 0; }
+  /* 行號樣式 */
+  .line-numbers-on .hljs-ln-numbers { user-select: none; text-align: right; color: rgba(255,255,255,0.3); border-right: 1px solid rgba(255,255,255,0.15); padding-right: 12px; margin-right: 12px; min-width: 28px; font-size: 0.85em; vertical-align: top; }
+  .line-numbers-on .hljs-ln-code { padding-left: 0; }
 
   .anim-image-preview { max-width: 85%; max-height: 85%; object-fit: contain; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08); border: 1px solid rgba(255,255,255,0.25); opacity: 1; backdrop-filter: blur(30px) saturate(180%); -webkit-backdrop-filter: blur(30px) saturate(180%); }
-  .play-popup { animation: applePopup 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-  @keyframes applePopup { 0% { opacity: 0; transform: scale(0.7) translateY(30px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
+  .play-popup     { animation: applePopup  0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+  .play-fadein    { animation: animFadeIn  0.7s ease forwards; }
+  .play-slideup   { animation: animSlideUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  .play-rotatein  { animation: animRotateIn 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+  .play-flipin    { animation: animFlipIn  0.7s ease forwards; }
+  .play-slideleft { animation: animSlideLeft 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes applePopup  { 0% { opacity:0; transform:scale(0.7) translateY(30px); } 100% { opacity:1; transform:scale(1) translateY(0); } }
+  @keyframes animFadeIn  { 0% { opacity:0; } 100% { opacity:1; } }
+  @keyframes animSlideUp { 0% { opacity:0; transform:translateY(60px); } 100% { opacity:1; transform:translateY(0); } }
+  @keyframes animRotateIn { 0% { opacity:0; transform:scale(0.5) rotate(-15deg); } 100% { opacity:1; transform:scale(1) rotate(0deg); } }
+  @keyframes animFlipIn  { 0% { opacity:0; transform:perspective(600px) rotateX(60deg) scale(0.85); } 100% { opacity:1; transform:perspective(600px) rotateX(0deg) scale(1); } }
+  @keyframes animSlideLeft { 0% { opacity:0; transform:translateX(-80px); } 100% { opacity:1; transform:translateX(0); } }
 
   .bg-mac-monterey { background: linear-gradient(135deg, #ff7b72 0%, #ff4b82 30%, #826bff 70%, #4da6ff 100%); }
   .bg-ipad-aurora { background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%); }
@@ -145,6 +192,18 @@
   footer a { color: var(--text-muted); text-decoration: none; margin: 0 16px; font-size: 13px; transition: color 0.2s; cursor: pointer; }
   footer a:hover { color: var(--text-main); }
   .footer-copyright { display: block; margin-top: 16px; color: var(--text-muted); font-size: 12px; }
+
+  /* --- TOAST NOTIFICATION --- */
+  .toast-container { position: fixed; bottom: 36px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; }
+  .toast { background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color); padding: 12px 24px; border-radius: 980px; font-size: 14px; font-weight: 500; box-shadow: 0 8px 28px rgba(0,0,0,0.18); white-space: nowrap; opacity: 0; animation: toastIn 0.28s ease forwards; }
+  .toast.removing { animation: toastOut 0.28s ease forwards; }
+  .toast.is-error { border-color: #ff3b30; color: #ff3b30; }
+  .toast.is-success { border-color: #34c759; color: #34c759; }
+  @keyframes toastIn  { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes toastOut { from { opacity:1; transform:translateY(0); } to { opacity:0; transform:translateY(10px); } }
+
+  /* --- DRAG-OVER HIGHLIGHT --- */
+  .drop-zone.drag-over { border-color: var(--apple-blue); background: rgba(0,113,227,0.05); }
 </style>
 </head>
 <body>
@@ -158,7 +217,7 @@
   </div>
   <div class="nav-right">
     <button class="lang-btn" onclick="App.toggleTheme()">深淺色</button>
-    <div id="authArea"><button class="btn-outline" onclick="window.MockAuth.login()">登入</button></div>
+    <div id="authArea"><button class="btn-outline" onclick="window.FirebaseAuth && window.FirebaseAuth.login()">登入 Google</button></div>
   </div>
 </nav>
 
@@ -182,6 +241,15 @@
             <p id="fileNameDisplay" style="font-size:12px; color:var(--apple-blue); margin-top:8px;"></p>
           </div>
           <button class="btn-blue" onclick="ToolTable.process()" style="width:100%; margin-top:16px;">匯入並預覽</button>
+        </div>
+
+        <!-- 列管理面板：匯入後顯示 -->
+        <div id="rowManagerCard" class="card" style="display:none;">
+          <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+            <span>已匯入資料 <span id="rowCountBadge" style="font-size:12px; font-weight:400; color:var(--text-muted);"></span></span>
+            <button onclick="ToolTable.clearAll()" style="background:transparent; border:none; font-size:12px; color:var(--text-muted); cursor:pointer; padding:0;">清除全部</button>
+          </div>
+          <div id="rowManagerList" style="max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:4px;"></div>
         </div>
 
         <div class="card">
@@ -245,11 +313,39 @@
         <div class="card">
           <div class="card-title">2. 外觀設定</div>
           <div class="settings-group" style="margin-bottom: 16px;">
+            <label class="settings-label">程式語言</label>
+            <select id="codeLanguage" class="form-select" onchange="ToolCode.update()">
+              <option value="auto">自動偵測</option>
+              <option value="javascript">JavaScript</option>
+              <option value="typescript">TypeScript</option>
+              <option value="python">Python</option>
+              <option value="java">Java</option>
+              <option value="cpp">C / C++</option>
+              <option value="csharp">C#</option>
+              <option value="go">Go</option>
+              <option value="rust">Rust</option>
+              <option value="php">PHP</option>
+              <option value="swift">Swift</option>
+              <option value="kotlin">Kotlin</option>
+              <option value="sql">SQL</option>
+              <option value="html">HTML</option>
+              <option value="css">CSS</option>
+              <option value="bash">Bash / Shell</option>
+              <option value="json">JSON</option>
+              <option value="yaml">YAML</option>
+              <option value="markdown">Markdown</option>
+            </select>
+          </div>
+          <div class="settings-group" style="margin-bottom: 16px;">
             <label class="settings-label">畫布背景</label>
             <select id="codeCanvasBgSelect" class="form-select" onchange="App.applyCanvasBg('captureAreaCode', this.value)">
               <option value="mac-monterey">macOS 漸層</option><option value="solid-dark">純色 (深灰)</option>
               <option value="transparent">透明背景</option>
             </select>
+          </div>
+          <div class="switch-row">
+            <span style="font-size:13px; font-weight:500;">顯示行號</span>
+            <label class="toggle-switch"><input type="checkbox" id="codeLineNumbers" onchange="ToolCode.update()"><span class="slider-toggle"></span></label>
           </div>
         </div>
         <div class="ad-container ad-banner"><span>Google AdSense 版位</span></div>
@@ -290,6 +386,17 @@
         </div>
         <div class="card">
           <div class="card-title">2. 影片匯出設定</div>
+          <div class="settings-group" style="margin-bottom: 12px;">
+            <label class="settings-label">動畫特效</label>
+            <select id="animEffect" class="form-select" onchange="ToolAnim.playPreview()">
+              <option value="play-popup">🍎 Apple 彈跳出現</option>
+              <option value="play-fadein">✨ 淡入</option>
+              <option value="play-slideup">⬆ 從下滑入</option>
+              <option value="play-rotatein">🔄 旋轉進入</option>
+              <option value="play-flipin">🎴 翻轉進入</option>
+              <option value="play-slideleft">⬅ 從左滑入</option>
+            </select>
+          </div>
           <div class="settings-group" style="margin-bottom: 12px;">
             <label class="settings-label">影片背景</label>
             <select id="animCanvasBgSelect" class="form-select" onchange="App.applyCanvasBg('captureAreaAnim', this.value)">
@@ -332,18 +439,29 @@
 
 <!-- ★ FOOTER ★ -->
 <footer>
-  <a href="./" onclick="window.location.href='./'">回到首頁</a>
-  <a href="#" onclick="event.preventDefault(); window.location.href='./#privacy'">Privacy Policy</a>
-  <a href="#" onclick="event.preventDefault(); window.location.href='./#terms'">Terms of Service</a>
-  <a href="#" onclick="event.preventDefault(); window.location.href='./#contact'">Contact</a>
+  <a href="./">回到首頁</a>
+  <a href="/privacy">Privacy Policy</a>
+  <a href="/terms">Terms of Service</a>
+  <a href="/contact">Contact</a>
   <span class="footer-copyright">&copy; 2024 BinTools. All rights reserved.</span>
 </footer>
+
+<div id="toastContainer" class="toast-container"></div>
 
 <script>
   const App = {
     user: null,
-    showFriendlyMessage: function(message) {
-      alert(message || "生成失敗，請稍後再試");
+    showFriendlyMessage: function(message, type) {
+      const container = document.getElementById("toastContainer");
+      if (!container) return;
+      const toast = document.createElement("div");
+      toast.className = "toast" + (type === "success" ? " is-success" : type === "error" ? " is-error" : "");
+      toast.textContent = message || "生成失敗，請稍後再試";
+      container.appendChild(toast);
+      setTimeout(function() {
+        toast.classList.add("removing");
+        setTimeout(function() { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
+      }, 2700);
     },
     setButtonLoading: function(btn, isLoading, loadingText, defaultText) {
       if (!btn) return;
@@ -369,7 +487,8 @@
       }
     },
     fetchUserStatus: async function() {
-      const uid = window.MockAuth.currentUser ? window.MockAuth.currentUser.uid : "guest";
+      const fbUser = window.FirebaseAuth ? window.FirebaseAuth.currentUser : null;
+      const uid = fbUser ? fbUser.uid : "guest";
       try {
         const res = await fetch("./api/user-status", { headers: { "x-user-uid": uid } });
         if (!res.ok) throw new Error("user-status-failed");
@@ -391,16 +510,21 @@
     updateAuthUI: function() {
       const authArea = document.getElementById("authArea");
       const isPro = this.user && this.user.plan === "pro";
+      const fbUser = window.FirebaseAuth ? window.FirebaseAuth.currentUser : null;
 
       if (authArea) {
-        if (window.MockAuth.currentUser) {
+        if (fbUser) {
           const proHtml = !isPro
             ? "<button class=\"btn-pro\" onclick=\"window.location.href='./#pricing'\">升級 Pro</button>"
             : "<span style=\"font-size:12px; font-weight:bold; color:#ff2d55; margin-right:12px;\">PRO</span>";
 
-          authArea.innerHTML = proHtml + "<img src=\"" + window.MockAuth.currentUser.photoURL + "\" class=\"user-avatar\" onclick=\"window.MockAuth.logout()\">";
+          const avatar = fbUser.photoURL
+            ? "<img src=\"" + fbUser.photoURL + "\" class=\"user-avatar\" onclick=\"window.FirebaseAuth && window.FirebaseAuth.logout()\" title=\"點擊登出\">"
+            : "<div class=\"user-avatar\" style=\"background:var(--apple-blue);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;cursor:pointer;\" onclick=\"window.FirebaseAuth && window.FirebaseAuth.logout()\" title=\"點擊登出\">" + (fbUser.displayName ? fbUser.displayName[0] : "U") + "</div>";
+
+          authArea.innerHTML = proHtml + avatar;
         } else {
-          authArea.innerHTML = "<button class=\"btn-outline\" onclick=\"window.MockAuth.login()\">登入</button>";
+          authArea.innerHTML = "<button class=\"btn-outline\" onclick=\"window.FirebaseAuth && window.FirebaseAuth.login()\">登入 Google</button>";
         }
       }
 
@@ -513,7 +637,8 @@
         finalFormat = "webm";
       }
 
-      const uid = window.MockAuth.currentUser ? window.MockAuth.currentUser.uid : "guest";
+      const fbUser = window.FirebaseAuth ? window.FirebaseAuth.currentUser : null;
+      const uid = fbUser ? fbUser.uid : "guest";
       let keepSuccessState = false;
 
       this.setButtonLoading(btn, true, "生成中...", originHTML);
@@ -563,7 +688,8 @@
         await this.fetchUserStatus();
 
         keepSuccessState = true;
-        btn.innerHTML = "下載完成";
+        btn.innerHTML = "下載完成 ✓";
+        App.showFriendlyMessage("下載完成！", "success");
         setTimeout(function() {
           App.setButtonLoading(btn, false, "", originHTML);
         }, 2000);
@@ -653,6 +779,9 @@
     render: function(dataArray) {
       if (!dataArray || dataArray.length === 0) return;
 
+      // 儲存當前資料供列管理使用
+      this._rows = dataArray.map(function(row) { return row.slice(); });
+
       let html = "<thead><tr>";
       dataArray[0].forEach((cell) => {
         html += "<th>" + this.escape(String(cell || "")) + "</th>";
@@ -671,6 +800,35 @@
       html += "</tbody>";
       const table = document.getElementById("outputTable");
       if (table) table.innerHTML = html;
+
+      // 更新列管理面板
+      this.updateRowManager();
+    },
+    updateRowManager: function() {
+      const card = document.getElementById("rowManagerCard");
+      const list = document.getElementById("rowManagerList");
+      const badge = document.getElementById("rowCountBadge");
+      if (!card || !list || !this._rows) return;
+
+      const rows = this._rows;
+      card.style.display = rows.length > 0 ? "block" : "none";
+      if (badge) badge.textContent = "共 " + rows.length + " 列";
+
+      list.innerHTML = rows.map(function(row, i) {
+        const preview = row.join(" | ").substring(0, 40) + (row.join(" | ").length > 40 ? "…" : "");
+        const isHeader = i === 0;
+        return "<div style='display:flex; align-items:center; justify-content:space-between; padding:6px 8px; border-radius:8px; background:var(--bg-filter); font-size:12px;'>" +
+          "<span style='color:" + (isHeader ? "var(--apple-blue)" : "var(--text-main)") + "; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;'>" +
+          (isHeader ? "🏷 " : "") + ToolTable.escape(preview) + "</span>" +
+          (isHeader ? "" :
+            "<button onclick='ToolTable.deleteRow(" + i + ")' style='margin-left:8px; background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:14px; line-height:1; flex-shrink:0;' title='刪除此列'>✕</button>") +
+          "</div>";
+      }).join("");
+    },
+    deleteRow: function(index) {
+      if (!this._rows || index < 1 || index >= this._rows.length) return;
+      this._rows.splice(index, 1);
+      this.render(this._rows);
     },
     clear: function() {
       const textInput = document.getElementById("textInput");
@@ -681,6 +839,14 @@
       if (fileInput) fileInput.value = "";
       if (fileNameDisplay) fileNameDisplay.innerText = "";
       this.data = [];
+      this._rows = [];
+    },
+    clearAll: function() {
+      this.clear();
+      const card = document.getElementById("rowManagerCard");
+      if (card) card.style.display = "none";
+      const table = document.getElementById("outputTable");
+      if (table) table.innerHTML = "<thead><tr><th>名字/能力值</th><th>類型</th></tr></thead><tbody><tr><td>Keston Hiura / 76</td><td>簽名</td></tr></tbody>";
     },
     escape: function(str) {
       return str.replace(/[&<>'"]/g, function(tag) {
@@ -744,11 +910,35 @@
         if (!outputEl) return;
 
         const code = codeInput ? codeInput.value : "";
+        const langSelect = document.getElementById("codeLanguage");
+        const lang = langSelect ? langSelect.value : "auto";
+        const showLineNums = document.getElementById("codeLineNumbers") ? document.getElementById("codeLineNumbers").checked : false;
+
         outputEl.textContent = code || "// Paste your code here...";
         outputEl.removeAttribute("data-highlighted");
 
+        // 設定語言 class
+        if (lang === "auto") {
+          outputEl.removeAttribute("class");
+        } else {
+          outputEl.className = "language-" + lang;
+        }
+
         if (window.hljs && typeof hljs.highlightElement === "function") {
           hljs.highlightElement(outputEl);
+        }
+
+        // 行號處理：手動插入行號 td
+        if (showLineNums && code) {
+          const lines = outputEl.innerHTML.split("\n");
+          const numbered = lines.map(function(line, i) {
+            return "<tr><td class='hljs-ln-numbers'>" + (i + 1) + "</td><td class='hljs-ln-code'>" + line + "</td></tr>";
+          }).join("");
+          outputEl.innerHTML = "<table class='hljs-ln'><tbody>" + numbered + "</tbody></table>";
+          outputEl.closest("pre") && outputEl.closest("pre").classList.add("line-numbers-on");
+        } else {
+          const pre = outputEl.closest ? outputEl.closest("pre") : null;
+          if (pre) pre.classList.remove("line-numbers-on");
         }
       } catch (_) {
         App.showFriendlyMessage("程式碼預覽失敗，請重試。");
@@ -763,6 +953,7 @@
   };
 
   const ToolAnim = {
+    allEffects: ["play-popup","play-fadein","play-slideup","play-rotatein","play-flipin","play-slideleft"],
     handleUpload: function(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -790,9 +981,13 @@
         App.showFriendlyMessage("請先上傳圖片。");
         return;
       }
-      img.classList.remove("play-popup");
-      void img.offsetWidth;
-      img.classList.add("play-popup");
+      const effectSelect = document.getElementById("animEffect");
+      const effect = effectSelect ? effectSelect.value : "play-popup";
+
+      // 移除所有特效 class 後重新套用以觸發動畫
+      this.allEffects.forEach(function(cls) { img.classList.remove(cls); });
+      void img.offsetWidth; // 強制 reflow
+      img.classList.add(effect);
     }
   };
 
@@ -810,8 +1005,45 @@
         hljs.highlightAll();
       }
       App.applyCanvasBg("captureAreaAnim", "solid-light");
+
+      // --- 拖曳上傳：動畫工具 ---
+      (function() {
+        var animZone = document.querySelector("#view-animator .drop-zone");
+        if (!animZone) return;
+        animZone.addEventListener("dragover", function(e) { e.preventDefault(); animZone.classList.add("drag-over"); });
+        animZone.addEventListener("dragleave", function() { animZone.classList.remove("drag-over"); });
+        animZone.addEventListener("drop", function(e) {
+          e.preventDefault();
+          animZone.classList.remove("drag-over");
+          var file = e.dataTransfer.files[0];
+          if (!file) return;
+          if (!file.type.startsWith("image/")) { App.showFriendlyMessage("請上傳圖片檔案（PNG / JPG）", "error"); return; }
+          var fakeEvt = { target: { files: [file] } };
+          ToolAnim.handleUpload(fakeEvt);
+        });
+      })();
+
+      // --- 拖曳上傳：表格工具 ---
+      (function() {
+        var tableZone = document.querySelector("#view-excel2jpg .drop-zone");
+        if (!tableZone) return;
+        tableZone.addEventListener("dragover", function(e) { e.preventDefault(); tableZone.classList.add("drag-over"); });
+        tableZone.addEventListener("dragleave", function() { tableZone.classList.remove("drag-over"); });
+        tableZone.addEventListener("drop", function(e) {
+          e.preventDefault();
+          tableZone.classList.remove("drag-over");
+          var file = e.dataTransfer.files[0];
+          if (!file) return;
+          var ext = file.name.split(".").pop().toLowerCase();
+          if (ext !== "xlsx" && ext !== "csv") { App.showFriendlyMessage("請上傳 Excel 或 CSV 檔案", "error"); return; }
+          var fakeEvt = { target: { files: [file] } };
+          ToolTable.handleFile(fakeEvt);
+          App.showFriendlyMessage("檔案已載入，請點擊「匯入並預覽」");
+        });
+      })();
+
     } catch (_) {
-      App.showFriendlyMessage("初始化失敗，請重新整理後再試。");
+      App.showFriendlyMessage("初始化失敗，請重新整理後再試。", "error");
     }
   };
 </script>
