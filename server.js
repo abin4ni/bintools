@@ -10,30 +10,21 @@ const { spawnSync } = require('child_process');
 const app = express();
 
 app.use(cors());
-app.use(express.json({ limit: '25mb' }));
+app.use(express.json({ limit: '35mb' }));
 app.use(express.static(__dirname));
 
 const usersDb = new Map();
 
-function getTodayKey() {
-  return new Date().toISOString().split('T')[0];
+function apiOk(data = null) {
+  return { success: true, data, error: null };
 }
 
-function getUserData(uid) {
-  const today = getTodayKey();
+function apiFail(error, data = null) {
+  return { success: false, data, error: error || '生成失敗，請稍後再試' };
+}
 
-  if (!usersDb.has(uid)) {
-    usersDb.set(uid, { plan: 'free', downloadsToday: 0, lastReset: today });
-  }
-
-  const user = usersDb.get(uid);
-
-  if (user.lastReset !== today) {
-    user.downloadsToday = 0;
-    user.lastReset = today;
-  }
-
-  return user;
+function getTodayKey() {
+  return new Date().toISOString().split('T')[0];
 }
 
 function buildUid(req) {
@@ -44,14 +35,32 @@ function buildUid(req) {
   return 'guest_' + req.ip;
 }
 
+function getUserData(uid) {
+  const today = getTodayKey();
+
+  if (!usersDb.has(uid)) {
+    usersDb.set(uid, {
+      plan: 'free',
+      downloadsToday: 0,
+      lastReset: today
+    });
+  }
+
+  const user = usersDb.get(uid);
+  if (user.lastReset !== today) {
+    user.lastReset = today;
+    user.downloadsToday = 0;
+  }
+
+  return user;
+}
+
 function checkUsageLimit(req, res, next) {
   const uid = buildUid(req);
   const user = getUserData(uid);
 
   if (user.plan === 'free' && user.downloadsToday >= 3) {
-    return res.status(403).json({
-      message: '今日免費額度已用完，請稍後再試。'
-    });
+    return res.status(403).json(apiFail('今日免費額度已用完，請稍後再試'));
   }
 
   req.user = { uid, plan: user.plan };
@@ -66,11 +75,19 @@ function sanitizeVideoFormat(format) {
   return format === 'mp4' ? 'mp4' : 'webm';
 }
 
+function sanitizeRows(rows) {
+  if (!Array.isArray(rows)) return [];
+  return rows
+    .filter((row) => Array.isArray(row))
+    .map((row) => row.map((cell) => String(cell ?? '')));
+}
+
 function applyFreeWatermark(html) {
-  const watermark =
-    '<div style="position:absolute;bottom:20px;right:30px;font-family:sans-serif;font-size:24px;font-weight:bold;color:rgba(255,255,255,0.72);z-index:9999;text-shadow:0 2px 10px rgba(0,0,0,0.5);">BinTools</div>';
+  const watermark = '<div style="position:absolute;bottom:20px;right:30px;font-family:sans-serif;font-size:24px;font-weight:bold;color:rgba(255,255,255,0.72);z-index:9999;text-shadow:0 2px 10px rgba(0,0,0,0.5);">BinTools</div>';
   if (typeof html !== 'string') return '';
-  if (html.includes('</body>')) return html.replace('</body>', watermark + '</body>');
+  if (html.includes('</body>')) {
+    return html.replace('</body>', watermark + '</body>');
+  }
   return html + watermark;
 }
 
@@ -87,14 +104,18 @@ async function safeRemove(filePath) {
   if (!filePath) return;
   try {
     await fs.promises.unlink(filePath);
-  } catch (_) {}
+  } catch (_) {
+    // ignore
+  }
 }
 
 async function safeRemoveDir(dirPath) {
   if (!dirPath) return;
   try {
     await fs.promises.rm(dirPath, { recursive: true, force: true });
-  } catch (_) {}
+  } catch (_) {
+    // ignore
+  }
 }
 
 function hasFfmpeg() {
@@ -136,13 +157,17 @@ async function getTargetOrBody(page, targetId) {
     element = handle.asElement();
   }
 
-  if (!element) element = await page.$('body');
-  if (!element) throw new Error('Render target not found');
+  if (!element) {
+    element = await page.$('body');
+  }
+
+  if (!element) {
+    throw new Error('Render target not found');
+  }
 
   return element;
 }
 
-// 必要三路由
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -157,18 +182,38 @@ app.get('/blog', (req, res) => {
 
 app.get('/api/user-status', (req, res) => {
   const uid = buildUid(req);
-  return res.json(getUserData(uid));
+  return res.json(apiOk(getUserData(uid)));
+});
+
+app.post('/api/generate-table', async (req, res) => {
+  try {
+    const rows = sanitizeRows(req.body && req.body.rows);
+    if (!rows.length) {
+      return res.status(400).json(apiFail('請提供有效表格資料'));
+    }
+
+    return res.json(
+      apiOk({
+        rows,
+        columns: rows[0].length,
+        rowCount: rows.length
+      })
+    );
+  } catch (err) {
+    console.error('[generate-table] failed:', err.message);
+    return res.status(500).json(apiFail('生成失敗，請稍後再試'));
+  }
 });
 
 app.post('/api/render-image', checkUsageLimit, async (req, res) => {
-  const htmlInput = typeof req.body.html === 'string' ? req.body.html : '';
-  const targetId = typeof req.body.targetId === 'string' ? req.body.targetId : 'captureArea';
-  const format = sanitizeImageFormat(req.body.format);
-  const isTransparent = Boolean(req.body.isTransparent);
+  const htmlInput = typeof req.body?.html === 'string' ? req.body.html : '';
+  const targetId = typeof req.body?.targetId === 'string' ? req.body.targetId : 'captureArea';
+  const format = sanitizeImageFormat(req.body?.format);
+  const isTransparent = Boolean(req.body?.isTransparent);
   const isPro = req.user.plan === 'pro';
 
   if (!htmlInput.trim()) {
-    return res.status(400).json({ message: '生成失敗，請重試。' });
+    return res.status(400).json(apiFail('生成失敗，請稍後再試'));
   }
 
   const html = isPro ? htmlInput : applyFreeWatermark(htmlInput);
@@ -200,18 +245,27 @@ app.post('/api/render-image', checkUsageLimit, async (req, res) => {
       });
     }
 
-    if (!isPro) getUserData(req.user.uid).downloadsToday += 1;
+    if (!isPro) {
+      getUserData(req.user.uid).downloadsToday += 1;
+    }
 
-    res.setHeader('Content-Type', format === 'jpeg' ? 'image/jpeg' : 'image/png');
-    return res.send(buffer);
+    return res.json(
+      apiOk({
+        mimeType: format === 'jpeg' ? 'image/jpeg' : 'image/png',
+        extension: format,
+        base64: buffer.toString('base64')
+      })
+    );
   } catch (err) {
     console.error('[render-image] failed:', err.message);
-    return res.status(500).json({ message: '生成失敗，請重試。' });
+    return res.status(500).json(apiFail('生成失敗，請稍後再試'));
   } finally {
     if (browser) {
       try {
         await browser.close();
-      } catch (_) {}
+      } catch (_) {
+        // ignore
+      }
     }
     await safeRemove(tempHtmlPath);
   }
@@ -219,17 +273,17 @@ app.post('/api/render-image', checkUsageLimit, async (req, res) => {
 
 app.post('/api/render-video', checkUsageLimit, async (req, res) => {
   if (!hasFfmpeg()) {
-    return res.status(503).json({ message: '影片服務暫時忙碌，請稍後再試。' });
+    return res.status(503).json(apiFail('影片服務暫時無法使用，請稍後再試'));
   }
 
-  const htmlInput = typeof req.body.html === 'string' ? req.body.html : '';
-  const targetId = typeof req.body.targetId === 'string' ? req.body.targetId : 'captureAreaAnim';
-  const format = sanitizeVideoFormat(req.body.format);
-  const isTransparent = Boolean(req.body.isTransparent);
+  const htmlInput = typeof req.body?.html === 'string' ? req.body.html : '';
+  const targetId = typeof req.body?.targetId === 'string' ? req.body.targetId : 'captureAreaAnim';
+  const format = sanitizeVideoFormat(req.body?.format);
+  const isTransparent = Boolean(req.body?.isTransparent);
   const isPro = req.user.plan === 'pro';
 
   if (!htmlInput.trim()) {
-    return res.status(400).json({ message: '生成失敗，請重試。' });
+    return res.status(400).json(apiFail('生成失敗，請稍後再試'));
   }
 
   const html = isPro ? htmlInput : applyFreeWatermark(htmlInput);
@@ -288,29 +342,49 @@ app.post('/api/render-video', checkUsageLimit, async (req, res) => {
 
     const videoBuffer = await fs.promises.readFile(outFile);
 
-    if (!isPro) getUserData(req.user.uid).downloadsToday += 1;
+    if (!isPro) {
+      getUserData(req.user.uid).downloadsToday += 1;
+    }
 
-    res.setHeader('Content-Type', format === 'mp4' ? 'video/mp4' : 'video/webm');
-    res.setHeader('Content-Disposition', 'attachment; filename="BinTools_Export_' + Date.now() + '.' + format + '"');
-    return res.send(videoBuffer);
+    return res.json(
+      apiOk({
+        mimeType: format === 'mp4' ? 'video/mp4' : 'video/webm',
+        extension: format,
+        base64: videoBuffer.toString('base64')
+      })
+    );
   } catch (err) {
     console.error('[render-video] failed:', err.message);
-    return res.status(500).json({ message: '影片生成失敗，請重試。' });
+    return res.status(500).json(apiFail('生成失敗，請稍後再試'));
   } finally {
     if (browser) {
       try {
         await browser.close();
-      } catch (_) {}
+      } catch (_) {
+        // ignore
+      }
     }
     await safeRemove(tempHtmlPath);
     await safeRemoveDir(workDir);
   }
 });
 
+app.get('/privacy', (req, res) => {
+  res.sendFile(path.join(__dirname, 'privacy.html'));
+});
+
+app.get('/terms', (req, res) => {
+  res.sendFile(path.join(__dirname, 'terms.html'));
+});
+
+app.get('/contact', (req, res) => {
+  res.sendFile(path.join(__dirname, 'contact.html'));
+});
+
 app.use((err, req, res, next) => {
   console.error('[server] unhandled:', err && err.message ? err.message : err);
   if (res.headersSent) return next(err);
-  return res.status(500).json({ message: '系統暫時忙碌，請稍後再試。' });
+  return res.status(500).json(apiFail('系統暫時忙碌，請稍後再試'));
 });
 
 app.get('*', (req, res) => {
