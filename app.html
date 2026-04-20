@@ -10,6 +10,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 
@@ -194,21 +195,69 @@
   .template-btn { flex: 1; min-width: 0; background: var(--bg-filter); border: 1px solid var(--border-color); color: var(--text-main); padding: 6px 8px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer; text-align: center; transition: border-color 0.2s, background 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .template-btn:hover { border-color: var(--apple-blue); background: rgba(0,113,227,0.06); }
 
-  /* --- MOBILE TAB BAR --- */
-  .mobile-tab-bar { display: none; }
+  /* --- HAMBURGER MENU --- */
+  .hamburger-btn { display: none; background: transparent; border: none; color: var(--text-main); font-size: 22px; cursor: pointer; padding: 4px 8px; border-radius: 8px; line-height: 1; transition: background 0.2s; }
+  .hamburger-btn:hover { background: var(--button-active); }
+  .mobile-drawer { display: none; position: fixed; top: 56px; left: 0; right: 0; background: var(--bg-nav); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid var(--border-color); z-index: 97; flex-direction: column; padding: 8px 0; }
+  .mobile-drawer.open { display: flex; }
+  .drawer-item { display: flex; align-items: center; gap: 14px; padding: 14px 24px; color: var(--text-main); font-size: 15px; font-weight: 500; cursor: pointer; transition: background 0.15s; border: none; background: transparent; width: 100%; text-align: left; }
+  .drawer-item:hover { background: var(--button-active); }
+  .drawer-item.active { color: var(--apple-blue); }
+  .drawer-item-icon { font-size: 20px; width: 28px; text-align: center; }
+  .drawer-divider { height: 1px; background: var(--border-color); margin: 4px 0; }
+
+  @media (max-width: 900px) { .tool-container { grid-template-columns: 1fr; } .right-panel { position: static; } }
   @media (max-width: 768px) {
     .nav-center { display: none; }
-    .mobile-tab-bar { display: flex; position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-nav); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-top: 1px solid var(--border-color); z-index: 98; height: 56px; }
-    .mobile-tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 10px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: color 0.2s; padding: 4px 0; }
-    .mobile-tab.active { color: var(--apple-blue); }
-    .mobile-tab-icon { font-size: 20px; line-height: 1; }
-    body { padding-bottom: 56px; }
+    .hamburger-btn { display: block; }
     .tool-container { padding: 0 16px; gap: 16px; }
     .hero { padding: 24px 16px 16px; }
     .hero h1 { font-size: 24px; }
     .nav { padding: 0 16px; }
-    .nav-left .nav-brand span { display: none; }
   }
+
+  /* --- QR CODE TOOL --- */
+  .qr-output-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 300px; gap: 20px; }
+  #qrCodeCanvas { border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+  #qrCodeCanvas canvas, #qrCodeCanvas img { display: block; border-radius: 12px; }
+
+  /* --- SOCIAL CROPPER TOOL --- */
+  .ratio-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+  .ratio-btn { background: var(--bg-filter); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 10px; padding: 10px 6px; font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; transition: all 0.2s; line-height: 1.4; }
+  .ratio-btn:hover { border-color: var(--apple-blue); }
+  .ratio-btn.active { border-color: var(--apple-blue); background: rgba(0,113,227,0.08); color: var(--apple-blue); }
+  .ratio-btn .ratio-icon { font-size: 18px; display: block; margin-bottom: 4px; }
+  .crop-canvas-wrap { width: 100%; aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center; background: #1c1c1e; border-radius: 16px; overflow: hidden; border: 1px solid var(--border-color); }
+  #cropOutputCanvas { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+  /* --- POMODORO TOOL --- */
+  .pomo-wrap { display: flex; flex-direction: column; align-items: center; padding: 40px 20px; gap: 28px; }
+  .pomo-mode-bar { display: flex; position: relative; background: var(--button-active); border-radius: 12px; padding: 4px; width: 100%; max-width: 340px; }
+  .pomo-seg { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); border-radius: 9px; background: var(--bg-card); box-shadow: 0 2px 8px rgba(0,0,0,0.12); transition: transform 0.3s cubic-bezier(.4,0,.2,1); pointer-events: none; z-index: 0; }
+  .pomo-mode-btn { flex: 1; padding: 10px 8px; border: none; background: transparent; border-radius: 9px; cursor: pointer; color: var(--text-muted); font-size: 13px; font-weight: 500; transition: color 0.2s; text-align: center; position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .pomo-mode-btn.active { color: var(--text-main); font-weight: 700; }
+  .pomo-mode-icon { font-size: 18px; }
+  .pomo-ring-wrap { position: relative; width: 320px; height: 320px; display: flex; align-items: center; justify-content: center; }
+  @media (max-width: 480px) { .pomo-ring-wrap { width: 260px; height: 260px; } }
+  .pomo-ring-svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+  .pomo-ring-bg { fill: none; stroke: var(--border-color); stroke-width: 7; }
+  .pomo-ring-prog { fill: none; stroke: var(--apple-blue); stroke-width: 7; stroke-linecap: round; transition: stroke-dashoffset 0.95s linear, stroke 0.4s; }
+  .pomo-ring-prog.break { stroke: #34c759; }
+  .pomo-ring-inner { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .pomo-time { font-size: 72px; font-weight: 700; color: var(--text-main); line-height: 1; letter-spacing: -2px; font-variant-numeric: tabular-nums; }
+  .pomo-phase { font-size: 13px; font-weight: 600; color: var(--text-muted); margin-top: 8px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .pomo-controls { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .pomo-btn-primary { background: var(--apple-blue); color: #fff; border: none; border-radius: 980px; padding: 12px 28px; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+  .pomo-btn-primary:hover { opacity: 0.88; }
+  .pomo-btn-secondary { background: var(--button-active); color: var(--text-main); border: none; border-radius: 980px; padding: 12px 24px; font-size: 15px; font-weight: 500; cursor: pointer; transition: background 0.2s; }
+  .pomo-btn-secondary:hover { background: var(--border-color); }
+  .pomo-stats-row { display: flex; gap: 32px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; padding: 16px 32px; }
+  .pomo-stat { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .pomo-stat-num { font-size: 28px; font-weight: 700; color: var(--text-main); line-height: 1; }
+  .pomo-stat-lbl { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .pomo-focus-overlay { display: none; position: fixed; inset: 0; background: var(--bg-main); z-index: 200; flex-direction: column; align-items: center; justify-content: center; gap: 28px; }
+  .pomo-focus-overlay.active { display: flex; }
+  .pomo-exit-hint { font-size: 12px; color: var(--text-muted); }
   
   /* --- FOOTER UI --- */
   footer { padding: 32px; text-align: center; border-top: 1px solid var(--border-color); background: var(--bg-main); margin-top: auto; }
@@ -232,17 +281,34 @@
 <body>
 
 <nav class="nav">
-  <div class="nav-left"><a href="./" class="nav-brand"><div class="b-logo">B</div> BinTools</a></div>
+  <div class="nav-left" style="display:flex; align-items:center; gap:8px;">
+    <button class="hamburger-btn" id="hamburgerBtn" onclick="App.toggleDrawer()" title="工具選單">☰</button>
+    <a href="./" class="nav-brand"><div class="b-logo">B</div> BinTools</a>
+  </div>
   <div class="nav-center">
-    <a class="nav-link" onclick="App.switchView('excel2jpg')">表格生成器</a>
-    <a class="nav-link" onclick="App.switchView('code2jpg')">程式碼海報</a>
-    <a class="nav-link" onclick="App.switchView('animator')">動態展演</a>
+    <a class="nav-link" onclick="App.switchView('excel2jpg')">📊 表格生成器</a>
+    <a class="nav-link" onclick="App.switchView('code2jpg')">💻 程式碼海報</a>
+    <a class="nav-link" onclick="App.switchView('animator')">🎬 動態展演</a>
+    <a class="nav-link" onclick="App.switchView('qrcode')">🔳 QR Code</a>
+    <a class="nav-link" onclick="App.switchView('cropper')">✂️ 社群裁切</a>
+    <a class="nav-link" onclick="App.switchView('pomodoro')">🍅 專注計時</a>
   </div>
   <div class="nav-right">
     <button class="lang-btn" onclick="App.toggleTheme()">深淺色</button>
     <div id="authArea"><button class="btn-outline" onclick="window.FirebaseAuth && window.FirebaseAuth.login()">登入 Google</button></div>
   </div>
 </nav>
+
+<!-- 漢堡選單 抽屜 -->
+<div class="mobile-drawer" id="mobileDrawer">
+  <button class="drawer-item" onclick="App.switchView('excel2jpg'); App.closeDrawer()"><span class="drawer-item-icon">📊</span> 表格海報生成器</button>
+  <button class="drawer-item" onclick="App.switchView('code2jpg'); App.closeDrawer()"><span class="drawer-item-icon">💻</span> 程式碼海報生成器</button>
+  <button class="drawer-item" onclick="App.switchView('animator'); App.closeDrawer()"><span class="drawer-item-icon">🎬</span> 動態展演生成器</button>
+  <div class="drawer-divider"></div>
+  <button class="drawer-item" onclick="App.switchView('qrcode'); App.closeDrawer()"><span class="drawer-item-icon">🔳</span> QR Code 生成器</button>
+  <button class="drawer-item" onclick="App.switchView('cropper'); App.closeDrawer()"><span class="drawer-item-icon">✂️</span> 社群尺寸裁切器</button>
+  <button class="drawer-item" onclick="App.switchView('pomodoro'); App.closeDrawer()"><span class="drawer-item-icon">🍅</span> 專注計時器</button>
+</div>
 
 <div class="view-container">
 
@@ -482,6 +548,161 @@
       </div>
     </div>
   </div>
+  <!-- ================= TOOL: QR CODE ================= -->
+  <div id="view-qrcode" class="view">
+    <section class="hero" style="padding-bottom:24px;"><h1>QR Code 生成器</h1></section>
+    <div class="tool-container">
+      <div class="left-panel">
+        <div class="card">
+          <div class="card-title">1. 輸入內容</div>
+          <textarea id="qrInput" class="form-textarea" style="height:100px;" placeholder="輸入網址、文字或任何內容&#10;例如：https://bintools.com" oninput="ToolQR.update()"></textarea>
+        </div>
+        <div class="card">
+          <div class="card-title">2. 外觀設定</div>
+          <div class="settings-grid">
+            <div class="settings-group">
+              <label class="settings-label">QR 顏色</label>
+              <input type="color" id="qrColor" value="#000000" onchange="ToolQR.update()">
+            </div>
+            <div class="settings-group">
+              <label class="settings-label">背景顏色</label>
+              <input type="color" id="qrBgColor" value="#ffffff" onchange="ToolQR.update()">
+            </div>
+          </div>
+          <div class="settings-group" style="margin-top:8px;">
+            <label class="settings-label">尺寸: <span id="qrSizeLabel">256px</span></label>
+            <input type="range" id="qrSize" min="128" max="512" step="64" value="256" oninput="App.updateLabel('qrSize','qrSizeLabel','px'); ToolQR.update()">
+          </div>
+          <div class="settings-group" style="margin-top:12px;">
+            <label class="settings-label">容錯等級</label>
+            <select id="qrLevel" class="form-select" onchange="ToolQR.update()">
+              <option value="L">L — 低（7%）</option>
+              <option value="M" selected>M — 中（15%）</option>
+              <option value="Q">Q — 高（25%）</option>
+              <option value="H">H — 最高（30%）</option>
+            </select>
+          </div>
+        </div>
+        <div class="ad-container ad-banner"><span>Google AdSense 版位</span></div>
+      </div>
+      <div class="right-panel card">
+        <div class="preview-toolbar" style="flex-wrap:wrap; gap:8px;">
+          <span style="font-weight:600;">QR Code 預覽</span>
+          <button class="btn-blue" onclick="ToolQR.download()">⬇ 下載 PNG</button>
+        </div>
+        <div class="qr-output-wrap">
+          <div id="qrCodeCanvas"></div>
+          <p id="qrHint" style="font-size:13px; color:var(--text-muted);">在左側輸入內容後自動生成</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TOOL: SOCIAL CROPPER ================= -->
+  <div id="view-cropper" class="view">
+    <section class="hero" style="padding-bottom:24px;"><h1>社群尺寸裁切器</h1></section>
+    <div class="tool-container">
+      <div class="left-panel">
+        <div class="card">
+          <div class="card-title">1. 上傳圖片</div>
+          <div class="drop-zone" id="cropDropZone" onclick="document.getElementById('cropFileInput').click()">
+            <div style="font-size:14px; font-weight:500;">點擊或拖曳上傳圖片</div>
+            <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">支援 JPG、PNG、WebP</div>
+            <input type="file" id="cropFileInput" accept="image/*" style="display:none" onchange="ToolCrop.loadImage(event)">
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">2. 選擇平台尺寸</div>
+          <div class="ratio-grid">
+            <button class="ratio-btn active" onclick="ToolCrop.setRatio(1,1,this)"><span class="ratio-icon">📷</span>IG 貼文<br>1:1</button>
+            <button class="ratio-btn" onclick="ToolCrop.setRatio(4,5,this)"><span class="ratio-icon">📱</span>IG 直式<br>4:5</button>
+            <button class="ratio-btn" onclick="ToolCrop.setRatio(9,16,this)"><span class="ratio-icon">📲</span>IG Story<br>9:16</button>
+            <button class="ratio-btn" onclick="ToolCrop.setRatio(16,9,this)"><span class="ratio-icon">▶️</span>YouTube<br>16:9</button>
+            <button class="ratio-btn" onclick="ToolCrop.setRatio(9,16,this)"><span class="ratio-icon">🎵</span>TikTok<br>9:16</button>
+            <button class="ratio-btn" onclick="ToolCrop.setRatio(2.4,1,this)"><span class="ratio-icon">🐦</span>Twitter<br>2.4:1</button>
+          </div>
+          <div class="settings-group">
+            <label class="settings-label">輸出長邊（px）</label>
+            <select id="cropResolution" class="form-select" onchange="ToolCrop.redraw()">
+              <option value="1080">1080px（一般）</option>
+              <option value="1920">1920px（高清）</option>
+              <option value="2160">2160px（4K）</option>
+            </select>
+          </div>
+        </div>
+        <div class="ad-container ad-banner"><span>Google AdSense 版位</span></div>
+      </div>
+      <div class="right-panel card">
+        <div class="preview-toolbar" style="flex-wrap:wrap; gap:8px;">
+          <span style="font-weight:600;">裁切預覽</span>
+          <button class="btn-blue" onclick="ToolCrop.download()">⬇ 下載圖片</button>
+        </div>
+        <div class="crop-canvas-wrap">
+          <canvas id="cropOutputCanvas" style="max-width:100%; max-height:500px; border-radius:12px;"></canvas>
+        </div>
+        <p id="cropHint" style="font-size:13px; color:var(--text-muted); text-align:center; margin-top:12px;">請先上傳圖片</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TOOL: POMODORO ================= -->
+  <div id="view-pomodoro" class="view">
+    <div class="pomo-wrap">
+      <div class="pomo-mode-bar">
+        <div class="pomo-seg" id="pomoSeg"></div>
+        <button class="pomo-mode-btn active" onclick="Pomo.setMode('standard', this)">
+          <span class="pomo-mode-icon">🕒</span>
+          <span>標準模式</span>
+          <span style="font-size:11px; opacity:.7;">25 / 5 分鐘</span>
+        </button>
+        <button class="pomo-mode-btn" onclick="Pomo.setMode('deep', this)">
+          <span class="pomo-mode-icon">📚</span>
+          <span>深度學習</span>
+          <span style="font-size:11px; opacity:.7;">50 / 10 分鐘</span>
+        </button>
+      </div>
+      <div class="pomo-ring-wrap">
+        <svg class="pomo-ring-svg" viewBox="0 0 260 260">
+          <circle class="pomo-ring-bg" cx="130" cy="130" r="118"/>
+          <circle class="pomo-ring-prog" id="pomoRing" cx="130" cy="130" r="118"/>
+        </svg>
+        <div class="pomo-ring-inner">
+          <div class="pomo-time" id="pomoTime">25:00</div>
+          <div class="pomo-phase" id="pomoPhase">準備開始</div>
+        </div>
+      </div>
+      <div class="pomo-controls">
+        <button class="pomo-btn-primary" id="pomoStartBtn" onclick="Pomo.start()">▶ 開始專注</button>
+        <button class="pomo-btn-secondary" id="pomoPauseBtn" style="display:none;" onclick="Pomo.pause()">⏸ 暫停</button>
+        <button class="pomo-btn-secondary" onclick="Pomo.reset()">↻ 重置</button>
+      </div>
+      <div class="pomo-stats-row">
+        <div class="pomo-stat"><div class="pomo-stat-num" id="pomoCount">0</div><div class="pomo-stat-lbl">今日完成</div></div>
+        <div style="width:1px; background:var(--border-color);"></div>
+        <div class="pomo-stat"><div class="pomo-stat-num" id="pomoMinutes">0</div><div class="pomo-stat-lbl">專注分鐘</div></div>
+      </div>
+      <p style="font-size:13px; color:var(--text-muted); text-align:center;">💡 開始專注後會進入全螢幕模式，減少分心</p>
+    </div>
+    <div class="pomo-focus-overlay" id="pomoFocusOverlay">
+      <div class="pomo-ring-wrap" style="width:340px;height:340px;">
+        <svg class="pomo-ring-svg" viewBox="0 0 260 260">
+          <circle class="pomo-ring-bg" cx="130" cy="130" r="118"/>
+          <circle class="pomo-ring-prog" id="pomoFocusRing" cx="130" cy="130" r="118"/>
+        </svg>
+        <div class="pomo-ring-inner">
+          <div class="pomo-time" style="font-size:80px;" id="pomoFocusTime">25:00</div>
+          <div class="pomo-phase" id="pomoFocusPhase">專注時間</div>
+        </div>
+      </div>
+      <div class="pomo-controls">
+        <button class="pomo-btn-secondary" onclick="Pomo.pause()">⏸ 暫停</button>
+        <button class="pomo-btn-secondary" onclick="Pomo.reset()">↻ 重置</button>
+        <button class="pomo-btn-secondary" onclick="Pomo.exitFocus()">✕ 退出全螢幕</button>
+      </div>
+      <div class="pomo-exit-hint">按 ESC 也可退出全螢幕</div>
+    </div>
+  </div>
+
   <!-- ★ SEO ABOUT SECTION (底部) ★ -->
   <section class="seo-about">
     <h2>About BinTools Platform</h2>
@@ -489,19 +710,6 @@
   </section>
 
 </div> <!-- End view-container -->
-
-<!-- 手機版底部 Tab Bar -->
-<div class="mobile-tab-bar">
-  <div class="mobile-tab active" id="mTab-excel2jpg" onclick="App.switchView('excel2jpg'); App.setMobileTab('excel2jpg')">
-    <span class="mobile-tab-icon">📊</span>表格
-  </div>
-  <div class="mobile-tab" id="mTab-code2jpg" onclick="App.switchView('code2jpg'); App.setMobileTab('code2jpg')">
-    <span class="mobile-tab-icon">💻</span>程式碼
-  </div>
-  <div class="mobile-tab" id="mTab-animator" onclick="App.switchView('animator'); App.setMobileTab('animator')">
-    <span class="mobile-tab-icon">🎬</span>動畫
-  </div>
-</div>
 
 <!-- ★ FOOTER ★ -->
 <footer>
@@ -535,13 +743,6 @@
       btn.innerHTML = isLoading
         ? '<span class="spinner"></span> ' + (loadingText || "生成中...")
         : defaultText;
-    },
-    setMobileTab: function(viewId) {
-      document.querySelectorAll(".mobile-tab").forEach(function(tab) {
-        tab.classList.remove("active");
-      });
-      var active = document.getElementById("mTab-" + viewId);
-      if (active) active.classList.add("active");
     },
     base64ToBlob: function(base64, mimeType) {
       const binary = atob(base64);
@@ -619,13 +820,21 @@
       });
     },
     switchView: function(viewId) {
-      document.querySelectorAll(".view").forEach(function(el) {
-        el.classList.remove("active");
-      });
+      document.querySelectorAll(".view").forEach(function(el) { el.classList.remove("active"); });
       var target = document.getElementById("view-" + viewId);
       if (target) target.classList.add("active");
-      this.setMobileTab(viewId);
+      // highlight nav links
+      document.querySelectorAll(".nav-link").forEach(function(el) { el.style.color = ""; el.style.fontWeight = ""; });
+      document.querySelectorAll(".drawer-item").forEach(function(el) { el.classList.remove("active"); });
       window.scrollTo(0, 0);
+    },
+    toggleDrawer: function() {
+      var d = document.getElementById("mobileDrawer");
+      if (d) d.classList.toggle("open");
+    },
+    closeDrawer: function() {
+      var d = document.getElementById("mobileDrawer");
+      if (d) d.classList.remove("open");
     },
     toggleTheme: function() {
       if (document.body.hasAttribute("data-theme")) {
@@ -1077,6 +1286,258 @@
     }
   };
 
+  /* ===================== QR CODE TOOL ===================== */
+  var ToolQR = {
+    _instance: null,
+    update: function() {
+      var text = (document.getElementById("qrInput") || {}).value || "";
+      var hint = document.getElementById("qrHint");
+      if (!text.trim()) {
+        if (hint) hint.style.display = "block";
+        return;
+      }
+      if (hint) hint.style.display = "none";
+      var size = parseInt((document.getElementById("qrSize") || {}).value || "256");
+      var color = (document.getElementById("qrColor") || {}).value || "#000000";
+      var bgColor = (document.getElementById("qrBgColor") || {}).value || "#ffffff";
+      var level = (document.getElementById("qrLevel") || {}).value || "M";
+      var wrap = document.getElementById("qrCodeCanvas");
+      if (!wrap) return;
+      wrap.innerHTML = "";
+      try {
+        this._instance = new QRCode(wrap, {
+          text: text,
+          width: size,
+          height: size,
+          colorDark: color,
+          colorLight: bgColor,
+          correctLevel: QRCode.CorrectLevel[level]
+        });
+      } catch(e) {
+        App.showFriendlyMessage("QR Code 生成失敗，請檢查輸入內容", "error");
+      }
+    },
+    download: function() {
+      var wrap = document.getElementById("qrCodeCanvas");
+      if (!wrap) return;
+      var canvas = wrap.querySelector("canvas");
+      var img = wrap.querySelector("img");
+      if (canvas) {
+        var a = document.createElement("a");
+        a.href = canvas.toDataURL("image/png");
+        a.download = "BinTools_QRCode_" + Date.now() + ".png";
+        a.click();
+        App.showFriendlyMessage("QR Code 已下載！", "success");
+      } else if (img) {
+        var a2 = document.createElement("a");
+        a2.href = img.src;
+        a2.download = "BinTools_QRCode_" + Date.now() + ".png";
+        a2.click();
+        App.showFriendlyMessage("QR Code 已下載！", "success");
+      } else {
+        App.showFriendlyMessage("請先輸入內容生成 QR Code", "error");
+      }
+    }
+  };
+
+  /* ===================== SOCIAL CROPPER TOOL ===================== */
+  var ToolCrop = {
+    _img: null,
+    _ratioW: 1,
+    _ratioH: 1,
+    loadImage: function(e) {
+      var file = e.target.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(ev) {
+        var img = new Image();
+        img.onload = function() {
+          ToolCrop._img = img;
+          ToolCrop.redraw();
+          var hint = document.getElementById("cropHint");
+          if (hint) hint.style.display = "none";
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    },
+    setRatio: function(w, h, btn) {
+      this._ratioW = w;
+      this._ratioH = h;
+      document.querySelectorAll(".ratio-btn").forEach(function(b) { b.classList.remove("active"); });
+      if (btn) btn.classList.add("active");
+      this.redraw();
+    },
+    redraw: function() {
+      if (!this._img) return;
+      var resolutionEl = document.getElementById("cropResolution");
+      var maxPx = parseInt(resolutionEl ? resolutionEl.value : "1080");
+      var rW = this._ratioW, rH = this._ratioH;
+
+      // 計算輸出尺寸
+      var outW, outH;
+      if (rW >= rH) { outW = maxPx; outH = Math.round(maxPx * rH / rW); }
+      else { outH = maxPx; outW = Math.round(maxPx * rW / rH); }
+
+      var canvas = document.getElementById("cropOutputCanvas");
+      if (!canvas) return;
+      canvas.width = outW;
+      canvas.height = outH;
+      var ctx = canvas.getContext("2d");
+
+      // 計算中心裁切：cover 模式
+      var imgRatio = this._img.width / this._img.height;
+      var targetRatio = rW / rH;
+      var sx, sy, sw, sh;
+      if (imgRatio > targetRatio) {
+        sh = this._img.height;
+        sw = Math.round(sh * targetRatio);
+        sx = Math.round((this._img.width - sw) / 2);
+        sy = 0;
+      } else {
+        sw = this._img.width;
+        sh = Math.round(sw / targetRatio);
+        sx = 0;
+        sy = Math.round((this._img.height - sh) / 2);
+      }
+      ctx.drawImage(this._img, sx, sy, sw, sh, 0, 0, outW, outH);
+    },
+    download: function() {
+      if (!this._img) { App.showFriendlyMessage("請先上傳圖片", "error"); return; }
+      var canvas = document.getElementById("cropOutputCanvas");
+      if (!canvas) return;
+      var a = document.createElement("a");
+      a.href = canvas.toDataURL("image/png");
+      a.download = "BinTools_Crop_" + this._ratioW + "x" + this._ratioH + "_" + Date.now() + ".png";
+      a.click();
+      App.showFriendlyMessage("圖片已下載！", "success");
+    }
+  };
+
+  /* ===================== POMODORO TIMER ===================== */
+  var Pomo = {
+    MODES: { standard: { focus: 25, brk: 5 }, deep: { focus: 50, brk: 10 } },
+    mode: "standard",
+    status: "idle",   // idle | focus | break
+    timeLeft: 25 * 60,
+    timerId: null,
+    todayCount: 0,
+    todayMinutes: 0,
+
+    _beep: function() {
+      try {
+        var ctx = new (window.AudioContext || window.webkitAudioContext)();
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = 880;
+        gain.gain.setValueAtTime(0.3, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+        osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.6);
+      } catch(_) {}
+    },
+    _fmt: function(s) {
+      return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+    },
+    _updateRing: function(progress) {
+      var C = 2 * Math.PI * 118;
+      var offset = C * (1 - Math.max(0, Math.min(1, progress)));
+      var dash = C + " " + C;
+      ["pomoRing","pomoFocusRing"].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        el.style.strokeDasharray = dash;
+        el.style.strokeDashoffset = offset;
+        if (Pomo.status === "break") el.classList.add("break");
+        else el.classList.remove("break");
+      });
+    },
+    _updateUI: function() {
+      var str = this._fmt(this.timeLeft);
+      var setTxt = function(id, v) { var el = document.getElementById(id); if (el) el.textContent = v; };
+      setTxt("pomoTime", str);
+      setTxt("pomoFocusTime", str);
+      setTxt("pomoCount", this.todayCount);
+      setTxt("pomoMinutes", this.todayMinutes);
+      var phaseMap = { idle: "準備開始", focus: "專注中 🔥", break: "休息一下 ☕" };
+      setTxt("pomoPhase", phaseMap[this.status] || "");
+      setTxt("pomoFocusPhase", this.status === "break" ? "休息時間" : "專注時間");
+      document.title = this.status !== "idle" ? "(" + str + ") BinTools" : "BinTools";
+      var total = this.status === "break"
+        ? this.MODES[this.mode].brk * 60
+        : this.MODES[this.mode].focus * 60;
+      this._updateRing(this.status === "idle" ? 1 : this.timeLeft / total);
+    },
+    setMode: function(m, btn) {
+      if (this.status !== "idle" && !confirm("計時器正在運行，確定要切換模式嗎？")) return;
+      this.reset();
+      this.mode = m;
+      this.timeLeft = this.MODES[m].focus * 60;
+      document.querySelectorAll(".pomo-mode-btn").forEach(function(b) { b.classList.remove("active"); });
+      if (btn) btn.classList.add("active");
+      var seg = document.getElementById("pomoSeg");
+      if (seg) seg.style.transform = m === "deep" ? "translateX(100%)" : "translateX(0)";
+      this._updateUI();
+    },
+    start: function() {
+      if (this.status === "idle") {
+        this.status = "focus";
+        var overlay = document.getElementById("pomoFocusOverlay");
+        if (overlay) overlay.classList.add("active");
+        document.documentElement.requestFullscreen && document.documentElement.requestFullscreen().catch(function(){});
+      }
+      var startBtn = document.getElementById("pomoStartBtn");
+      var pauseBtn = document.getElementById("pomoPauseBtn");
+      if (startBtn) startBtn.style.display = "none";
+      if (pauseBtn) pauseBtn.style.display = "inline-flex";
+      if (this.timerId) clearInterval(this.timerId);
+      this.timerId = setInterval(function() { Pomo._tick(); }, 1000);
+    },
+    pause: function() {
+      clearInterval(this.timerId); this.timerId = null;
+      var startBtn = document.getElementById("pomoStartBtn");
+      var pauseBtn = document.getElementById("pomoPauseBtn");
+      if (startBtn) { startBtn.style.display = "inline-flex"; startBtn.textContent = "▶ 繼續"; }
+      if (pauseBtn) pauseBtn.style.display = "none";
+    },
+    reset: function() {
+      clearInterval(this.timerId); this.timerId = null;
+      this.status = "idle";
+      this.timeLeft = this.MODES[this.mode].focus * 60;
+      var startBtn = document.getElementById("pomoStartBtn");
+      var pauseBtn = document.getElementById("pomoPauseBtn");
+      if (startBtn) { startBtn.style.display = "inline-flex"; startBtn.textContent = "▶ 開始專注"; }
+      if (pauseBtn) pauseBtn.style.display = "none";
+      this.exitFocus();
+      this._updateUI();
+    },
+    exitFocus: function() {
+      var overlay = document.getElementById("pomoFocusOverlay");
+      if (overlay) overlay.classList.remove("active");
+      document.exitFullscreen && document.exitFullscreen().catch(function(){});
+    },
+    _tick: function() {
+      if (this.timeLeft > 0) {
+        this.timeLeft--;
+        this._updateUI();
+        return;
+      }
+      clearInterval(this.timerId); this.timerId = null;
+      this._beep();
+      if (this.status === "focus") {
+        this.todayCount++;
+        this.todayMinutes += this.MODES[this.mode].focus;
+        this.status = "break";
+        this.timeLeft = this.MODES[this.mode].brk * 60;
+        this.timerId = setInterval(function() { Pomo._tick(); }, 1000);
+        this._updateUI();
+      } else {
+        this.reset();
+        App.showFriendlyMessage("休息結束！準備下一輪專注 💪", "success");
+      }
+    }
+  };
+
   window.addEventListener("unhandledrejection", function(event) {
     event.preventDefault();
   });
@@ -1087,10 +1548,12 @@
       App.applyCanvasBg("captureArea", "solid-light");
       ToolTable.applyStyle();
       App.applyCanvasBg("captureAreaCode", "mac-monterey");
-      if (window.hljs && typeof hljs.highlightAll === "function") {
-        hljs.highlightAll();
-      }
+      if (window.hljs && typeof hljs.highlightAll === "function") { hljs.highlightAll(); }
       App.applyCanvasBg("captureAreaAnim", "solid-light");
+
+      // 初始化 Pomodoro UI
+      Pomo._updateUI();
+      Pomo._updateRing(1);
 
       // --- 拖曳上傳：動畫工具 ---
       (function() {
@@ -1099,13 +1562,11 @@
         animZone.addEventListener("dragover", function(e) { e.preventDefault(); animZone.classList.add("drag-over"); });
         animZone.addEventListener("dragleave", function() { animZone.classList.remove("drag-over"); });
         animZone.addEventListener("drop", function(e) {
-          e.preventDefault();
-          animZone.classList.remove("drag-over");
+          e.preventDefault(); animZone.classList.remove("drag-over");
           var file = e.dataTransfer.files[0];
           if (!file) return;
           if (!file.type.startsWith("image/")) { App.showFriendlyMessage("請上傳圖片檔案（PNG / JPG）", "error"); return; }
-          var fakeEvt = { target: { files: [file] } };
-          ToolAnim.handleUpload(fakeEvt);
+          ToolAnim.handleUpload({ target: { files: [file] } });
         });
       })();
 
@@ -1116,17 +1577,45 @@
         tableZone.addEventListener("dragover", function(e) { e.preventDefault(); tableZone.classList.add("drag-over"); });
         tableZone.addEventListener("dragleave", function() { tableZone.classList.remove("drag-over"); });
         tableZone.addEventListener("drop", function(e) {
-          e.preventDefault();
-          tableZone.classList.remove("drag-over");
+          e.preventDefault(); tableZone.classList.remove("drag-over");
           var file = e.dataTransfer.files[0];
           if (!file) return;
           var ext = file.name.split(".").pop().toLowerCase();
           if (ext !== "xlsx" && ext !== "csv") { App.showFriendlyMessage("請上傳 Excel 或 CSV 檔案", "error"); return; }
-          var fakeEvt = { target: { files: [file] } };
-          ToolTable.handleFile(fakeEvt);
+          ToolTable.handleFile({ target: { files: [file] } });
           App.showFriendlyMessage("檔案已載入，請點擊「匯入並預覽」");
         });
       })();
+
+      // --- 拖曳上傳：社群裁切器 ---
+      (function() {
+        var cropZone = document.getElementById("cropDropZone");
+        if (!cropZone) return;
+        cropZone.addEventListener("dragover", function(e) { e.preventDefault(); cropZone.classList.add("drag-over"); });
+        cropZone.addEventListener("dragleave", function() { cropZone.classList.remove("drag-over"); });
+        cropZone.addEventListener("drop", function(e) {
+          e.preventDefault(); cropZone.classList.remove("drag-over");
+          var file = e.dataTransfer.files[0];
+          if (!file || !file.type.startsWith("image/")) { App.showFriendlyMessage("請上傳圖片檔案", "error"); return; }
+          ToolCrop.loadImage({ target: { files: [file] } });
+        });
+      })();
+
+      // --- 點選頁面其他地方關閉漢堡選單 ---
+      document.addEventListener("click", function(e) {
+        var drawer = document.getElementById("mobileDrawer");
+        var btn = document.getElementById("hamburgerBtn");
+        if (drawer && drawer.classList.contains("open")) {
+          if (!drawer.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+            drawer.classList.remove("open");
+          }
+        }
+      });
+
+      // --- ESC 退出 Pomodoro 全螢幕 ---
+      document.addEventListener("keydown", function(e) {
+        if (e.key === "Escape") { Pomo.exitFocus(); }
+      });
 
     } catch (_) {
       App.showFriendlyMessage("初始化失敗，請重新整理後再試。", "error");
