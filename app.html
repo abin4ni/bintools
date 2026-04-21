@@ -14,10 +14,11 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 
-<!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-  import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged,
+           createUserWithEmailAndPassword, signInWithEmailAndPassword }
+    from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyB1VjckIhF2sEzLBIUh8Dh-K7oNc_xAqNA",
@@ -33,26 +34,51 @@
   const auth = getAuth(firebaseApp);
   const provider = new GoogleAuthProvider();
 
-  // 掛到 window 讓 onclick handler 可以呼叫
   window.FirebaseAuth = {
     currentUser: null,
     login: async function() {
       try {
         await signInWithPopup(auth, provider);
+        App.closeAuthModal();
       } catch (err) {
         if (err.code !== 'auth/popup-closed-by-user') {
-          if (window.App && App.showFriendlyMessage) App.showFriendlyMessage('登入失敗，請再試一次', 'error');
+          App.setAuthMsg('Google 登入失敗，請再試一次');
         }
       }
     },
-    logout: async function() {
+    emailLogin: async function(email, password) {
       try {
-        await signOut(auth);
-      } catch (_) {}
+        await signInWithEmailAndPassword(auth, email, password);
+        App.closeAuthModal();
+      } catch (err) {
+        const msgs = {
+          'auth/user-not-found': '找不到此帳號',
+          'auth/wrong-password': '密碼錯誤',
+          'auth/invalid-email': '電子郵件格式不正確',
+          'auth/invalid-credential': '帳號或密碼錯誤'
+        };
+        App.setAuthMsg(msgs[err.code] || '登入失敗：' + err.message);
+      }
+    },
+    emailRegister: async function(email, password) {
+      try {
+        await createUserWithEmailAndPassword(auth, email, password);
+        App.closeAuthModal();
+        App.showFriendlyMessage('帳號建立成功！歡迎使用 BinTools 🎉', 'success');
+      } catch (err) {
+        const msgs = {
+          'auth/email-already-in-use': '此電子郵件已被使用',
+          'auth/weak-password': '密碼至少需要 6 個字元',
+          'auth/invalid-email': '電子郵件格式不正確'
+        };
+        App.setAuthMsg(msgs[err.code] || '建立失敗：' + err.message);
+      }
+    },
+    logout: async function() {
+      try { await signOut(auth); } catch (_) {}
     }
   };
 
-  // 登入狀態變動時自動更新 UI
   onAuthStateChanged(auth, function(user) {
     window.FirebaseAuth.currentUser = user || null;
     if (window.App && typeof App.fetchUserStatus === 'function') {
@@ -89,18 +115,36 @@
   .nav-link { font-size: 14px; font-weight: 500; color: var(--text-main); cursor: pointer; opacity: 0.8; padding: 0 12px; height: 56px; display: flex; align-items: center; text-decoration: none; }
   .nav-link:hover { opacity: 1; }
 
-  .user-avatar { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 1px solid var(--border-color); }
-  .btn-pro { background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 99%, #FECFEF 100%); color: #1d1d1f; font-weight: 700; padding: 6px 14px; border-radius: 12px; border: none; cursor: pointer; font-size: 13px; box-shadow: 0 4px 10px rgba(255, 154, 158, 0.3); transition: transform 0.2s; text-decoration: none;}
-  .btn-pro:hover { transform: scale(1.05); }
-  
-  .icon-btn, .lang-btn { background: transparent; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 12px; font-size: 13px; font-weight: 600; padding: 6px 12px; cursor: pointer; transition: all 0.2s; }
-  .icon-btn:hover, .lang-btn:hover { background: var(--button-active); }
-  .btn-blue { background: var(--apple-blue); color: #ffffff; padding: 10px 20px; border-radius: 980px; border: none; font-size: 14px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: 0.3s;}
-  .btn-blue:disabled { opacity: 0.5; cursor: not-allowed; }
-  .btn-blue.success { background: #34c759; }
-  .btn-outline { background: transparent; color: var(--text-main); padding: 10px 20px; border-radius: 980px; border: 1px solid var(--border-color); cursor: pointer; font-size: 14px; font-weight: 500;}
+  /* --- TOOL BAR (桌面版水平捲動工具列) --- */
+  .tool-bar { display: flex; align-items: center; gap: 4px; padding: 0 24px; height: 48px; background: var(--bg-nav); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid var(--border-color); overflow-x: auto; overflow-y: hidden; scrollbar-width: none; position: sticky; top: 56px; z-index: 99; flex-shrink: 0; }
+  .tool-bar::-webkit-scrollbar { display: none; }
+  .tool-tab { display: flex; align-items: center; gap: 6px; padding: 0 14px; height: 34px; border-radius: 8px; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; white-space: nowrap; border: none; background: transparent; transition: background 0.15s, color 0.15s; flex-shrink: 0; }
+  .tool-tab:hover { background: var(--button-active); color: var(--text-main); }
+  .tool-tab.active { background: var(--button-active); color: var(--apple-blue); font-weight: 600; }
+  .tool-tab-icon { font-size: 15px; line-height: 1; }
+  .tool-bar-divider { width: 1px; height: 20px; background: var(--border-color); margin: 0 4px; flex-shrink: 0; }
 
-  /* --- VIEWS --- */
+  /* --- HAMBURGER MENU (手機版) --- */
+  .hamburger-btn { display: none; background: transparent; border: none; color: var(--text-main); font-size: 22px; cursor: pointer; padding: 4px 8px; border-radius: 8px; line-height: 1; transition: background 0.2s; }
+  .hamburger-btn:hover { background: var(--button-active); }
+  .mobile-drawer { display: none; position: fixed; top: 56px; left: 0; right: 0; background: var(--bg-nav); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid var(--border-color); z-index: 97; flex-direction: column; padding: 8px 0; }
+  .mobile-drawer.open { display: flex; }
+  .drawer-item { display: flex; align-items: center; gap: 14px; padding: 14px 24px; color: var(--text-main); font-size: 15px; font-weight: 500; cursor: pointer; transition: background 0.15s; border: none; background: transparent; width: 100%; text-align: left; }
+  .drawer-item:hover { background: var(--button-active); }
+  .drawer-item.active { color: var(--apple-blue); }
+  .drawer-item-icon { font-size: 20px; width: 28px; text-align: center; }
+  .drawer-divider { height: 1px; background: var(--border-color); margin: 4px 0; }
+
+  @media (max-width: 900px) { .tool-container { grid-template-columns: 1fr; } .right-panel { position: static; } }
+  @media (max-width: 768px) {
+    .nav-center { display: none; }
+    .tool-bar { display: none; }
+    .hamburger-btn { display: block; }
+    .tool-container { padding: 0 16px; gap: 16px; }
+    .hero { padding: 24px 16px 16px; }
+    .hero h1 { font-size: 24px; }
+    .nav { padding: 0 16px; }
+  }
   .view-container { flex: 1; display: flex; flex-direction: column; }
   .view { display: none; animation: fadeIn 0.4s ease; padding-bottom: 40px; flex: 1; }
   .view.active { display: block; }
@@ -112,7 +156,7 @@
   /* --- TOOL LAYOUT & CONTROLS --- */
   .tool-container { max-width: 1400px; margin: 0 auto; padding: 0 32px; display: grid; grid-template-columns: 360px 1fr; gap: 24px; align-items: flex-start; }
   .left-panel { display: flex; flex-direction: column; gap: 20px; }
-  .right-panel { position: sticky; top: 80px; }
+  .right-panel { position: sticky; top: 112px; }
   .card { background: var(--bg-card); border-radius: 16px; padding: 24px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); }
   .card-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
   
@@ -259,6 +303,16 @@
   .pomo-focus-overlay.active { display: flex; }
   .pomo-exit-hint { font-size: 12px; color: var(--text-muted); }
   
+  .user-avatar { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 1px solid var(--border-color); }
+  .btn-pro { background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 99%, #FECFEF 100%); color: #1d1d1f; font-weight: 700; padding: 6px 14px; border-radius: 12px; border: none; cursor: pointer; font-size: 13px; box-shadow: 0 4px 10px rgba(255,154,158,0.3); transition: transform 0.2s; text-decoration: none; }
+  .btn-pro:hover { transform: scale(1.05); }
+  .icon-btn, .lang-btn { background: transparent; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 12px; font-size: 13px; font-weight: 600; padding: 6px 12px; cursor: pointer; transition: all 0.2s; }
+  .icon-btn:hover, .lang-btn:hover { background: var(--button-active); }
+  .btn-blue { background: var(--apple-blue); color: #ffffff; padding: 10px 20px; border-radius: 980px; border: none; font-size: 14px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: 0.3s; }
+  .btn-blue:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-blue.success { background: #34c759; }
+  .btn-outline { background: transparent; color: var(--text-main); padding: 10px 20px; border-radius: 980px; border: 1px solid var(--border-color); cursor: pointer; font-size: 14px; font-weight: 500; }
+  
   /* --- FOOTER UI --- */
   footer { padding: 32px; text-align: center; border-top: 1px solid var(--border-color); background: var(--bg-main); margin-top: auto; }
   footer a { color: var(--text-muted); text-decoration: none; margin: 0 16px; font-size: 13px; transition: color 0.2s; cursor: pointer; }
@@ -276,6 +330,18 @@
 
   /* --- DRAG-OVER HIGHLIGHT --- */
   .drop-zone.drag-over { border-color: var(--apple-blue); background: rgba(0,113,227,0.05); }
+
+  /* --- AUTH MODAL --- */
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); backdrop-filter:blur(8px); z-index:500; display:flex; align-items:center; justify-content:center; padding:16px; }
+  .modal-box { background:var(--bg-card); border:1px solid var(--border-color); border-radius:24px; padding:32px; width:100%; max-width:400px; position:relative; box-shadow:0 24px 64px rgba(0,0,0,0.2); }
+  .modal-close { position:absolute; top:16px; right:16px; background:var(--button-active); border:none; border-radius:50%; width:28px; height:28px; font-size:13px; cursor:pointer; color:var(--text-muted); display:flex; align-items:center; justify-content:center; }
+  .modal-logo { display:flex; justify-content:center; margin-bottom:16px; }
+  .auth-tabs { display:flex; background:var(--button-active); border-radius:10px; padding:3px; margin-bottom:20px; }
+  .auth-tab { flex:1; border:none; background:transparent; border-radius:8px; padding:8px; font-size:14px; font-weight:500; color:var(--text-muted); cursor:pointer; transition:all 0.2s; }
+  .auth-tab.active { background:var(--bg-card); color:var(--text-main); font-weight:700; box-shadow:0 1px 4px rgba(0,0,0,0.1); }
+  .auth-input { width:100%; background:var(--bg-main); border:1px solid var(--border-color); border-radius:10px; padding:11px 14px; font-size:14px; color:var(--text-main); margin-bottom:10px; outline:none; font-family:inherit; transition:border-color 0.2s; }
+  .auth-input:focus { border-color:var(--apple-blue); }
+  .btn-google { width:100%; display:flex; align-items:center; justify-content:center; gap:10px; background:var(--bg-main); border:1px solid var(--border-color); border-radius:10px; padding:11px 14px; font-size:14px; font-weight:500; color:var(--text-main); cursor:pointer; transition:background 0.2s; }
 </style>
 </head>
 <body>
@@ -285,19 +351,34 @@
     <button class="hamburger-btn" id="hamburgerBtn" onclick="App.toggleDrawer()" title="工具選單">☰</button>
     <a href="./" class="nav-brand"><div class="b-logo">B</div> BinTools</a>
   </div>
-  <div class="nav-center">
-    <a class="nav-link" onclick="App.switchView('excel2jpg')">📊 表格生成器</a>
-    <a class="nav-link" onclick="App.switchView('code2jpg')">💻 程式碼海報</a>
-    <a class="nav-link" onclick="App.switchView('animator')">🎬 動態展演</a>
-    <a class="nav-link" onclick="App.switchView('qrcode')">🔳 QR Code</a>
-    <a class="nav-link" onclick="App.switchView('cropper')">✂️ 社群裁切</a>
-    <a class="nav-link" onclick="App.switchView('pomodoro')">🍅 專注計時</a>
-  </div>
   <div class="nav-right">
     <button class="lang-btn" onclick="App.toggleTheme()">深淺色</button>
-    <div id="authArea"><button class="btn-outline" onclick="window.FirebaseAuth && window.FirebaseAuth.login()">登入 Google</button></div>
+    <div id="authArea"><button class="btn-outline" onclick="App.openAuthModal()">登入 / 註冊</button></div>
   </div>
 </nav>
+
+<!-- 桌面版工具列 -->
+<div class="tool-bar" id="toolBar">
+  <button class="tool-tab active" id="ttab-excel2jpg" onclick="App.switchView('excel2jpg')">
+    <span class="tool-tab-icon">📊</span>表格生成器
+  </button>
+  <button class="tool-tab" id="ttab-code2jpg" onclick="App.switchView('code2jpg')">
+    <span class="tool-tab-icon">💻</span>程式碼海報
+  </button>
+  <button class="tool-tab" id="ttab-animator" onclick="App.switchView('animator')">
+    <span class="tool-tab-icon">🎬</span>動態展演
+  </button>
+  <div class="tool-bar-divider"></div>
+  <button class="tool-tab" id="ttab-qrcode" onclick="App.switchView('qrcode')">
+    <span class="tool-tab-icon">🔳</span>QR Code
+  </button>
+  <button class="tool-tab" id="ttab-cropper" onclick="App.switchView('cropper')">
+    <span class="tool-tab-icon">✂️</span>社群裁切
+  </button>
+  <button class="tool-tab" id="ttab-pomodoro" onclick="App.switchView('pomodoro')">
+    <span class="tool-tab-icon">🍅</span>專注計時
+  </button>
+</div>
 
 <!-- 漢堡選單 抽屜 -->
 <div class="mobile-drawer" id="mobileDrawer">
@@ -310,6 +391,47 @@
   <button class="drawer-item" onclick="App.switchView('pomodoro'); App.closeDrawer()"><span class="drawer-item-icon">🍅</span> 專注計時器</button>
 </div>
 
+<!-- ====== AUTH MODAL ====== -->
+<div id="authModal" class="modal-overlay" onclick="if(event.target===this) App.closeAuthModal()" style="display:none;">
+  <div class="modal-box">
+    <button class="modal-close" onclick="App.closeAuthModal()">✕</button>
+    <div class="modal-logo"><div class="b-logo" style="width:40px;height:40px;font-size:20px;">B</div></div>
+    <h2 style="text-align:center; font-size:22px; font-weight:700; margin-bottom:4px;">歡迎使用 BinTools</h2>
+    <p style="text-align:center; font-size:13px; color:var(--text-muted); margin-bottom:20px;">登入或建立帳號以享用完整功能</p>
+
+    <!-- Tab 切換 -->
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="authTabLogin" onclick="App.switchAuthTab('login')">登入</button>
+      <button class="auth-tab" id="authTabRegister" onclick="App.switchAuthTab('register')">建立帳號</button>
+    </div>
+
+    <!-- Email 登入 -->
+    <div id="authPanelLogin">
+      <input class="auth-input" type="email" id="authEmail" placeholder="電子郵件">
+      <input class="auth-input" type="password" id="authPassword" placeholder="密碼">
+      <button class="btn-blue" style="width:100%; margin-bottom:12px;" onclick="App.emailLogin()">登入</button>
+      <button class="btn-google" onclick="window.FirebaseAuth && window.FirebaseAuth.login()">
+        <svg width="18" height="18" viewBox="0 0 48 48" style="flex-shrink:0;"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+        使用 Google 帳號登入
+      </button>
+    </div>
+
+    <!-- Email 註冊 -->
+    <div id="authPanelRegister" style="display:none;">
+      <input class="auth-input" type="email" id="authRegEmail" placeholder="電子郵件">
+      <input class="auth-input" type="password" id="authRegPassword" placeholder="密碼（至少 6 位）">
+      <input class="auth-input" type="password" id="authRegPassword2" placeholder="確認密碼">
+      <button class="btn-blue" style="width:100%; margin-bottom:12px;" onclick="App.emailRegister()">建立帳號</button>
+      <button class="btn-google" onclick="window.FirebaseAuth && window.FirebaseAuth.login()">
+        <svg width="18" height="18" viewBox="0 0 48 48" style="flex-shrink:0;"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+        使用 Google 帳號快速註冊
+      </button>
+    </div>
+
+    <p id="authMsg" style="font-size:12px; text-align:center; margin-top:12px; color:#ff3b30; min-height:16px;"></p>
+  </div>
+</div>
+
 <div class="view-container">
 
   <!-- ================= TOOL: TABLE ================= -->
@@ -317,6 +439,8 @@
     <section class="hero" style="padding-bottom: 24px;"><h1>表格海報生成器</h1></section>
     <div class="tool-container">
       <div class="left-panel">
+
+        <!-- 資料輸入 -->
         <div class="card">
           <div class="card-title">1. 匯入資料</div>
           <div class="segmented-control">
@@ -330,91 +454,152 @@
               <button class="template-btn" onclick="ToolTable.loadTemplate('ranking')">🏆 排行榜</button>
               <button class="template-btn" onclick="ToolTable.loadTemplate('schedule')">📅 時間表</button>
             </div>
-            <textarea id="textInput" class="form-textarea" placeholder="產品&#9;價格&#10;iPhone&#9;$799"></textarea>
+            <textarea id="textInput" class="form-textarea" placeholder="欄位A&#9;欄位B&#10;資料1&#9;資料2" oninput="ToolTable.schedulePreview()"></textarea>
           </div>
           <div id="panel-1" class="input-panel">
-            <div class="drop-zone" onclick="document.getElementById('fileInput').click()"><div style="font-size:14px; font-weight:500;">點擊上傳 Excel/CSV</div><input type="file" id="fileInput" accept=".xlsx, .csv" style="display:none" onchange="ToolTable.handleFile(event)"></div>
+            <div class="drop-zone" id="tableDropZone" onclick="document.getElementById('fileInput').click()">
+              <div style="font-size:14px; font-weight:500;">點擊或拖曳上傳 Excel / CSV</div>
+              <input type="file" id="fileInput" accept=".xlsx,.csv" style="display:none" onchange="ToolTable.handleFile(event)">
+            </div>
             <p id="fileNameDisplay" style="font-size:12px; color:var(--apple-blue); margin-top:8px;"></p>
           </div>
-          <button class="btn-blue" onclick="ToolTable.process()" style="width:100%; margin-top:16px;">匯入並預覽</button>
+          <button class="btn-blue" onclick="ToolTable.render()" style="width:100%; margin-top:16px;">匯入並預覽</button>
         </div>
 
-        <!-- 列管理面板：匯入後顯示 -->
-        <div id="rowManagerCard" class="card" style="display:none;">
-          <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
-            <span>已匯入資料 <span id="rowCountBadge" style="font-size:12px; font-weight:400; color:var(--text-muted);"></span></span>
-            <button onclick="ToolTable.clearAll()" style="background:transparent; border:none; font-size:12px; color:var(--text-muted); cursor:pointer; padding:0;">清除全部</button>
-          </div>
-          <div id="rowManagerList" style="max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:4px;"></div>
-        </div>
-
+        <!-- 表格主題 -->
         <div class="card">
-          <div class="card-title">2. 背景與排版</div>
-          <div class="settings-group" style="margin-bottom: 12px;">
-            <label class="settings-label">畫布風格</label>
-            <select id="canvasBgSelect" class="form-select" onchange="App.applyCanvasBg('captureArea', this.value)">
-              <option value="solid-light">純色 (淺白)</option><option value="solid-dark">純色 (深灰)</option>
-              <option value="mac-monterey">macOS 漸層</option><option value="ipad-aurora">iPad 晨曦</option>
-              <option value="transparent">透明背景</option>
+          <div class="card-title">2. 表格樣式</div>
+          <div class="settings-group" style="margin-bottom:12px;">
+            <label class="settings-label">整體主題</label>
+            <select id="tblTheme" class="form-select" onchange="ToolTable.schedulePreview()">
+              <option value="keynote">🍎 Keynote 簡報</option>
+              <option value="modern">✨ Modern 圓角</option>
+              <option value="dark">🌙 Dark 深色</option>
+              <option value="bordered">📐 Bordered 全框線</option>
+              <option value="glass">🔮 Glass 毛玻璃</option>
             </select>
           </div>
-          <div class="settings-group" style="margin-bottom: 12px;">
-            <label class="settings-label">表格底色</label>
-            <select id="tblBgSelect" class="form-select" onchange="ToolTable.applyStyle()">
-              <option value="rgba(255, 255, 255, 0.85)">毛玻璃 (白)</option><option value="rgba(28, 28, 30, 0.85)">毛玻璃 (黑)</option>
-              <option value="#ffffff">純白 (實心)</option>
+          <div class="settings-group" style="margin-bottom:12px;">
+            <label class="settings-label">表格配色</label>
+            <select id="tblColorPreset" class="form-select" onchange="ToolTable.applyColorPreset()">
+              <option value="custom">🎨 自訂</option>
+              <option value="snow">❄️ 雪白</option>
+              <option value="slate">🌫 石板灰</option>
+              <option value="ocean">🌊 海洋藍</option>
+              <option value="forest">🌿 森林綠</option>
+              <option value="night">🌙 午夜黑</option>
+              <option value="rose">🌸 玫瑰粉</option>
             </select>
           </div>
-          <div class="settings-group" style="margin-bottom: 12px;">
+          <div id="tblCustomColors">
+            <div class="settings-grid" style="margin-bottom:8px;">
+              <div class="settings-group"><label class="settings-label">標題背景</label><input type="color" id="tblAccent" value="#1E4D8C" onchange="ToolTable.schedulePreview()"></div>
+              <div class="settings-group"><label class="settings-label">表格底色</label><input type="color" id="tblBg" value="#ffffff" onchange="ToolTable.schedulePreview()"></div>
+              <div class="settings-group"><label class="settings-label">標題文字</label><input type="color" id="tblHeaderTxt" value="#ffffff" onchange="ToolTable.schedulePreview()"></div>
+              <div class="settings-group"><label class="settings-label">內容文字</label><input type="color" id="tblBodyTxt" value="#1e293b" onchange="ToolTable.schedulePreview()"></div>
+            </div>
+            <div class="switch-row" style="margin-bottom:8px;">
+              <span style="font-size:13px; font-weight:500;">交替行顏色</span>
+              <label class="toggle-switch"><input type="checkbox" id="tblStripe" checked onchange="ToolTable.schedulePreview()"><span class="slider-toggle"></span></label>
+            </div>
+            <div class="settings-grid" id="tblStripeColors" style="margin-bottom:4px;">
+              <div class="settings-group"><label class="settings-label">奇數行</label><input type="color" id="tblRowOdd" value="#ffffff" onchange="ToolTable.schedulePreview()"></div>
+              <div class="settings-group"><label class="settings-label">偶數行</label><input type="color" id="tblRowEven" value="#eff6ff" onchange="ToolTable.schedulePreview()"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 字體與尺寸 -->
+        <div class="card">
+          <div class="card-title">3. 字體與尺寸</div>
+          <div class="settings-group" style="margin-bottom:12px;">
             <label class="settings-label">字型</label>
-            <select id="cfgFont" class="form-select" onchange="ToolTable.applyStyle()">
-              <option value="'Inter', -apple-system, BlinkMacSystemFont, sans-serif">Inter（系統預設）</option>
-              <option value="'Noto Serif TC', serif">Noto Serif TC（明體）</option>
-              <option value="'Fira Code', monospace">Fira Code（等寬）</option>
-              <option value="Georgia, serif">Georgia（英文明體）</option>
+            <select id="tblFont" class="form-select" onchange="ToolTable.schedulePreview()">
+              <option value="Noto Sans TC">Noto Sans TC 思源黑體</option>
+              <option value="Noto Serif TC">Noto Serif TC 思源宋體</option>
+              <option value="Arial">Arial</option>
+              <option value="Georgia">Georgia</option>
+              <option value="Courier New">Courier New 等寬</option>
             </select>
           </div>
-          <div class="settings-grid">
-            <div class="settings-group">
-              <label class="settings-label">文字顏色</label>
-              <input type="color" id="cfgTextColor" value="#1d1d1f" onchange="ToolTable.applyStyle()">
-            </div>
-            <div class="settings-group">
-              <label class="settings-label">分隔線顏色</label>
-              <input type="color" id="cfgBorderColor" value="#e0e0e5" onchange="ToolTable.applyStyle()">
-            </div>
+          <div class="settings-group" style="margin-bottom:12px;">
+            <label class="settings-label">字體大小: <span id="tblFontSizeLabel">24px</span></label>
+            <input type="range" id="tblFontSize" min="14" max="48" value="24" oninput="App.updateLabel('tblFontSize','tblFontSizeLabel','px'); ToolTable.schedulePreview()">
           </div>
-          <div class="settings-group" style="margin-bottom: 12px;">
-            <label class="settings-label">字級: <span id="valSize">15px</span></label>
-            <input type="range" id="cfgSize" min="10" max="32" value="15" oninput="App.updateLabel('cfgSize','valSize','px'); ToolTable.applyStyle()">
+          <div class="settings-group" style="margin-bottom:12px;">
+            <label class="settings-label">行距: <span id="tblRowGapLabel">26px</span></label>
+            <input type="range" id="tblRowGap" min="8" max="60" value="26" oninput="App.updateLabel('tblRowGap','tblRowGapLabel','px'); ToolTable.schedulePreview()">
+          </div>
+          <div class="settings-group" style="margin-bottom:12px;">
+            <label class="settings-label">圓角: <span id="tblRadiusLabel">20px</span></label>
+            <input type="range" id="tblRadius" min="0" max="60" value="20" oninput="App.updateLabel('tblRadius','tblRadiusLabel','px'); ToolTable.schedulePreview()">
+          </div>
+        </div>
+
+        <!-- 畫布與匯出 -->
+        <div class="card">
+          <div class="card-title">4. 畫布背景與匯出</div>
+          <div class="settings-group" style="margin-bottom:12px;">
+            <label class="settings-label">畫布背景</label>
+            <select id="tblBgStyle" class="form-select" onchange="ToolTable.schedulePreview()">
+              <option value="solid">純色（自訂）</option>
+              <optgroup label="── 平滑漸層 ──">
+                <option value="grad-rose">🌸 玫瑰紫藍</option>
+                <option value="grad-sunset">🌅 日落橙紅</option>
+                <option value="grad-ocean">🌊 深海青藍</option>
+                <option value="grad-aurora">🌌 極光綠紫</option>
+              </optgroup>
+              <optgroup label="── macOS 波浪 ──">
+                <option value="bigsur">🌊 Big Sur 彩浪</option>
+                <option value="monterey">🫐 Monterey 深淵</option>
+                <option value="ventura">🔥 Ventura 熔岩</option>
+                <option value="tahoe" selected>💙 Tahoe 藍浪</option>
+              </optgroup>
+            </select>
+          </div>
+          <div id="tblCanvasBgColorWrap" style="display:none; margin-bottom:12px;">
+            <div class="settings-group"><label class="settings-label">畫布顏色</label><input type="color" id="tblCanvasBg" value="#111114" onchange="ToolTable.schedulePreview()"></div>
+          </div>
+          <div class="settings-group" style="margin-bottom:12px;">
+            <label class="settings-label">輸出解析度</label>
+            <select id="tblResolution" class="form-select" onchange="ToolTable.schedulePreview()">
+              <option value="1920|1080">1920 × 1080（FHD）</option>
+              <option value="2560|1440">2560 × 1440（QHD）</option>
+              <option value="3840|2160">3840 × 2160（4K）</option>
+            </select>
+          </div>
+          <div class="settings-group" style="margin-bottom:12px;">
+            <label class="settings-label">格式</label>
+            <select id="tblFmt" class="form-select">
+              <option value="png">PNG</option>
+              <option value="jpg">JPG（較小）</option>
+            </select>
           </div>
           <div class="switch-row">
-            <span style="font-size:13px; font-weight:500;">斑馬紋（隔列底色）</span>
-            <label class="toggle-switch"><input type="checkbox" id="cfgZebraToggle" onchange="ToolTable.applyStyle()"><span class="slider-toggle"></span></label>
+            <span style="font-size:13px; font-weight:500;">透明背景</span>
+            <label class="toggle-switch"><input type="checkbox" id="tblTransparent" onchange="ToolTable.schedulePreview()"><span class="slider-toggle"></span></label>
           </div>
         </div>
+
         <div class="ad-container ad-banner"><span>Google AdSense 版位</span></div>
       </div>
 
+      <!-- 右側預覽 -->
       <div class="right-panel card">
-        <div class="preview-toolbar" style="flex-wrap: wrap; gap: 8px;">
-          <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-            <span style="font-weight: 600;">圖片預覽</span>
-            <span id="usageTextTable" style="font-size:12px; color:var(--text-muted);">今日額度: -/3</span>
-            <a class="pro-upsell" href="./#pricing" style="font-size:12px; color:var(--apple-blue); font-weight:500; text-decoration:none; white-space:nowrap;">⬆ 升級 Pro (1080p / 無浮水印)</a>
+        <div class="preview-toolbar" style="flex-wrap:wrap; gap:8px;">
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <span style="font-weight:600;">圖片預覽</span>
+            <span id="tblSizeBadge" style="font-size:12px; color:var(--text-muted);"></span>
+            <span id="tblStatus" style="font-size:12px; color:var(--apple-blue);"></span>
           </div>
-          <div style="display: flex; gap: 8px; align-items: center;">
-            <select id="exportFormat" class="form-select" style="width: auto; display:inline-block; padding:6px;"><option value="png">PNG</option><option value="jpeg">JPG</option></select>
-            <button class="btn-blue" onclick="App.exportMedia(event, './api/render-image', 'captureArea', 'exportFormat')">雲端下載</button>
-          </div>
+          <a id="tblDlAnchor" class="btn-blue" style="display:none; text-decoration:none;" download="BinTools_table.png" onclick="return ToolTable.handleDownload(event)">⬇ 下載圖片</a>
         </div>
-        <div id="captureArea" class="capture-area-wrapper">
-          <div class="table-card-container" id="tblContainer">
-            <table id="outputTable" class="output-table">
-              <thead><tr><th>名字/能力值</th><th>類型</th></tr></thead>
-              <tbody><tr><td>Keston Hiura / 76</td><td>簽名</td></tr></tbody>
-            </table>
+        <div class="capture-area-wrapper" style="position:relative; width:100%; aspect-ratio:16/9; min-height:400px; display:flex; align-items:center; justify-content:center; border-radius:12px; overflow:hidden; margin-top:12px; background:var(--bg-filter);">
+          <div id="tblPlaceholder" style="text-align:center; color:var(--text-muted);">
+            <div style="font-size:40px; margin-bottom:12px;">📊</div>
+            <div style="font-size:14px;">輸入資料後點擊「匯入並預覽」</div>
           </div>
+          <canvas id="tblCanvas" style="display:none; position:absolute; inset:0; width:100%; height:100%; object-fit:contain;"></canvas>
         </div>
       </div>
     </div>
@@ -783,38 +968,68 @@
 
       this.updateAuthUI();
     },
+    openAuthModal: function() {
+      var m = document.getElementById("authModal");
+      if (m) { m.style.display = "flex"; document.getElementById("authMsg").textContent = ""; }
+    },
+    closeAuthModal: function() {
+      var m = document.getElementById("authModal");
+      if (m) m.style.display = "none";
+    },
+    switchAuthTab: function(tab) {
+      document.getElementById("authTabLogin").classList.toggle("active", tab === "login");
+      document.getElementById("authTabRegister").classList.toggle("active", tab === "register");
+      document.getElementById("authPanelLogin").style.display = tab === "login" ? "block" : "none";
+      document.getElementById("authPanelRegister").style.display = tab === "register" ? "block" : "none";
+      document.getElementById("authMsg").textContent = "";
+    },
+    setAuthMsg: function(msg) {
+      var el = document.getElementById("authMsg");
+      if (el) el.textContent = msg || "";
+    },
+    emailLogin: function() {
+      var email = (document.getElementById("authEmail") || {}).value || "";
+      var pw = (document.getElementById("authPassword") || {}).value || "";
+      if (!email || !pw) { this.setAuthMsg("請填寫電子郵件與密碼"); return; }
+      if (window.FirebaseAuth) window.FirebaseAuth.emailLogin(email, pw);
+    },
+    emailRegister: function() {
+      var email = (document.getElementById("authRegEmail") || {}).value || "";
+      var pw = (document.getElementById("authRegPassword") || {}).value || "";
+      var pw2 = (document.getElementById("authRegPassword2") || {}).value || "";
+      if (!email || !pw) { this.setAuthMsg("請填寫電子郵件與密碼"); return; }
+      if (pw !== pw2) { this.setAuthMsg("兩次密碼不一致"); return; }
+      if (pw.length < 6) { this.setAuthMsg("密碼至少需要 6 個字元"); return; }
+      if (window.FirebaseAuth) window.FirebaseAuth.emailRegister(email, pw);
+    },
     updateAuthUI: function() {
-      const authArea = document.getElementById("authArea");
-      const isPro = this.user && this.user.plan === "pro";
-      const fbUser = window.FirebaseAuth ? window.FirebaseAuth.currentUser : null;
-
+      var authArea = document.getElementById("authArea");
+      var isPro = this.user && this.user.plan === "pro";
+      var fbUser = window.FirebaseAuth ? window.FirebaseAuth.currentUser : null;
       if (authArea) {
         if (fbUser) {
-          const proHtml = !isPro
-            ? "<button class=\"btn-pro\" onclick=\"window.location.href='./#pricing'\">升級 Pro</button>"
+          var proHtml = !isPro
+            ? "<button class=\"btn-pro\" onclick=\"App.switchView('pricing')\">升級 Pro</button>"
             : "<span style=\"font-size:12px; font-weight:bold; color:#ff2d55; margin-right:12px;\">PRO</span>";
-
-          const avatar = fbUser.photoURL
+          var initial = fbUser.displayName ? fbUser.displayName[0] : (fbUser.email ? fbUser.email[0].toUpperCase() : "U");
+          var avatar = fbUser.photoURL
             ? "<img src=\"" + fbUser.photoURL + "\" class=\"user-avatar\" onclick=\"window.FirebaseAuth && window.FirebaseAuth.logout()\" title=\"點擊登出\">"
-            : "<div class=\"user-avatar\" style=\"background:var(--apple-blue);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;cursor:pointer;\" onclick=\"window.FirebaseAuth && window.FirebaseAuth.logout()\" title=\"點擊登出\">" + (fbUser.displayName ? fbUser.displayName[0] : "U") + "</div>";
-
+            : "<div class=\"user-avatar\" style=\"background:var(--apple-blue);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;cursor:pointer;\" onclick=\"window.FirebaseAuth && window.FirebaseAuth.logout()\" title=\"點擊登出\">" + initial + "</div>";
           authArea.innerHTML = proHtml + avatar;
         } else {
-          authArea.innerHTML = "<button class=\"btn-outline\" onclick=\"window.FirebaseAuth && window.FirebaseAuth.login()\">登入 Google</button>";
+          authArea.innerHTML = "<button class=\"btn-outline\" onclick=\"App.openAuthModal()\">登入 / 註冊</button>";
         }
       }
 
-      const limitText = isPro ? "無限" : (this.user ? (this.user.downloadsToday + "/3") : "-/3");
-      const usageTable = document.getElementById("usageTextTable");
-      const usageAnim = document.getElementById("usageTextAnim");
-
+      var limitText = isPro ? "無限" : (this.user ? (this.user.downloadsToday + "/3") : "-/3");
+      var usageTable = document.getElementById("usageTextTable");
+      var usageAnim  = document.getElementById("usageTextAnim");
       if (usageTable) usageTable.innerText = "今日額度: " + limitText;
-      if (usageAnim) usageAnim.innerText = "今日額度: " + limitText;
+      if (usageAnim)  usageAnim.innerText  = "今日額度: " + limitText;
 
       document.querySelectorAll(".ad-banner").forEach(function(el) {
         el.style.display = isPro ? "none" : "flex";
       });
-
       document.querySelectorAll(".pro-upsell").forEach(function(el) {
         el.style.display = isPro ? "none" : "inline-block";
       });
@@ -823,8 +1038,15 @@
       document.querySelectorAll(".view").forEach(function(el) { el.classList.remove("active"); });
       var target = document.getElementById("view-" + viewId);
       if (target) target.classList.add("active");
-      // highlight nav links
-      document.querySelectorAll(".nav-link").forEach(function(el) { el.style.color = ""; el.style.fontWeight = ""; });
+      // 桌面版 tool-tab 高亮
+      document.querySelectorAll(".tool-tab").forEach(function(el) { el.classList.remove("active"); });
+      var activeTab = document.getElementById("ttab-" + viewId);
+      if (activeTab) {
+        activeTab.classList.add("active");
+        // 確保 active tab 捲入可視範圍
+        activeTab.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+      }
+      // 漢堡選單 drawer-item 高亮
       document.querySelectorAll(".drawer-item").forEach(function(el) { el.classList.remove("active"); });
       window.scrollTo(0, 0);
     },
@@ -908,7 +1130,7 @@
 
       const originHTML = btn.innerHTML;
       const format = formatSelect.value;
-      const bgSelectId = targetId === "captureAreaAnim" ? "animCanvasBgSelect" : (targetId === "captureArea" ? "canvasBgSelect" : "codeCanvasBgSelect");
+      const bgSelectId = targetId === "captureAreaAnim" ? "animCanvasBgSelect" : "codeCanvasBgSelect";
       const bgSelect = document.getElementById(bgSelectId);
       const isTransparentBg = bgSelect ? bgSelect.value === "transparent" : false;
 
@@ -987,213 +1209,337 @@
   };
 
   const ToolTable = {
+    method: 0,
+    data: [],
+    _autoTimer: null,
+    _blobUrl: null,
+
     loadTemplate: function(type) {
       var templates = {
         pricing: "方案\t免費版\tPro 版\t企業版\n月費\t$0\t$9.9\t$49\n儲存空間\t1 GB\t100 GB\t無限\n匯出品質\t720p\t1080p\t4K\n浮水印\t有\t無\t無\n商業授權\t否\t是\t是",
         ranking: "排名\t名稱\t分數\t較上週\n🥇 1\t王大明\t9,850\t↑ 2\n🥈 2\t林小美\t9,200\t↓ 1\n🥉 3\t陳志偉\t8,750\t↑ 5\n4\t張雅婷\t8,100\t→\n5\tJohn Wu\t7,600\t↑ 1",
-        schedule: "時間\t週一\t週三\t週五\n09:00\t團隊會議\t程式碼審查\t週計畫\n11:00\t功能開發\t客戶簡報\t測試\n14:00\t個人任務\t設計討論\t部署\n16:00\t Code Review\t文件整理\t週報"
+        schedule: "時間\t週一\t週三\t週五\n09:00\t團隊會議\t程式碼審查\t週計畫\n11:00\t功能開發\t客戶簡報\t測試\n14:00\t個人任務\t設計討論\t部署\n16:00\tCode Review\t文件整理\t週報"
       };
       var text = templates[type];
       if (!text) return;
-      var textInput = document.getElementById("textInput");
-      if (textInput) textInput.value = text;
-      ToolTable.switchInput(0);
-      ToolTable.process();
+      var el = document.getElementById("textInput");
+      if (!el) return;
+      el.value = text;
+      this.switchInput(0);
+      var self = this;
+      setTimeout(function() { self.render(); }, 30);
       App.showFriendlyMessage("範本已載入！");
     },
+
     switchInput: function(index) {
       this.method = index;
-      document.getElementById("segmentSlider").style.transform = "translateX(" + (index * 100) + "%)";
-      document.querySelectorAll("#view-excel2jpg .segment-btn").forEach(function(btn, i) {
-        btn.classList.toggle("active", i === index);
-      });
-      document.querySelectorAll("#view-excel2jpg .input-panel").forEach(function(panel, i) {
-        panel.classList.toggle("active", i === index);
-      });
+      var slider = document.getElementById("segmentSlider");
+      if (slider) slider.style.transform = "translateX(" + (index * 100) + "%)";
+      document.querySelectorAll("#view-excel2jpg .segment-btn").forEach(function(btn, i) { btn.classList.toggle("active", i === index); });
+      document.querySelectorAll("#view-excel2jpg .input-panel").forEach(function(panel, i) { panel.classList.toggle("active", i === index); });
     },
+
     handleFile: function(e) {
-      const file = e.target.files[0];
+      var file = e.target.files[0];
       if (!file) return;
-
-      const fileNameDisplay = document.getElementById("fileNameDisplay");
-      if (fileNameDisplay) fileNameDisplay.innerText = file.name;
-
-      const reader = new FileReader();
-      reader.onerror = function() {
-        App.showFriendlyMessage("檔案讀取失敗，請重試。");
-      };
-      reader.onload = (ev) => {
+      var display = document.getElementById("fileNameDisplay");
+      if (display) display.textContent = file.name;
+      var reader = new FileReader();
+      reader.onload = function(ev) {
         try {
-          const workbook = XLSX.read(new Uint8Array(ev.target.result), { type: "array" });
-          ToolTable.data = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], { header: 1 });
-        } catch (_) {
-          App.showFriendlyMessage("檔案內容無法解析。");
-        }
+          var wb = XLSX.read(new Uint8Array(ev.target.result), { type: "array" });
+          ToolTable.data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1 });
+        } catch (_) { App.showFriendlyMessage("檔案解析失敗", "error"); }
       };
       reader.readAsArrayBuffer(file);
     },
-    process: async function() {
-      try {
-        let output = [];
 
-        if (this.method === 0) {
-          const textInput = document.getElementById("textInput");
-          const text = textInput ? textInput.value.trim() : "";
-          if (!text) {
-            App.showFriendlyMessage("請先輸入內容");
-            return;
-          }
-          output = text.split("\n").map(function(row) { return row.split("\t"); });
-        } else if (this.method === 1) {
-          if (!Array.isArray(this.data) || this.data.length === 0) {
-            App.showFriendlyMessage("請先上傳檔案");
-            return;
-          }
-          output = this.data;
-        }
-
-        try {
-          const response = await fetch("./api/generate-table", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ rows: output })
-          });
-          const payload = await response.json().catch(function() { return null; });
-          if (response.ok && payload && payload.success && payload.data && Array.isArray(payload.data.rows) && payload.data.rows.length) {
-            output = payload.data.rows;
-          }
-        } catch (_) {
-          // fallback: keep local preview
-        }
-
-        this.render(output);
-      } catch (_) {
-        App.showFriendlyMessage("生成失敗，請稍後再試");
-      }
+    schedulePreview: function() {
+      clearTimeout(this._autoTimer);
+      this._autoTimer = setTimeout(function() { ToolTable.render(); }, 350);
     },
-    render: function(dataArray) {
-      if (!dataArray || dataArray.length === 0) return;
 
-      // 儲存當前資料供列管理使用
-      this._rows = dataArray.map(function(row) { return row.slice(); });
-
-      let html = "<thead><tr>";
-      dataArray[0].forEach((cell) => {
-        html += "<th>" + this.escape(String(cell || "")) + "</th>";
-      });
-      html += "</tr></thead><tbody>";
-
-      for (let i = 1; i < dataArray.length; i += 1) {
-        if (dataArray[i].length === 0 || (dataArray[i].length === 1 && !dataArray[i][0])) continue;
-        html += "<tr>";
-        dataArray[i].forEach((cell) => {
-          html += "<td>" + this.escape(String(cell || "")) + "</td>";
-        });
-        html += "</tr>";
-      }
-
-      html += "</tbody>";
-      const table = document.getElementById("outputTable");
-      if (table) table.innerHTML = html;
-
-      // 更新列管理面板
-      this.updateRowManager();
+    applyColorPreset: function() {
+      var preset = (document.getElementById("tblColorPreset") || {}).value;
+      var presets = {
+        snow:   { accent:"#334155", bg:"#ffffff", hTxt:"#ffffff", bTxt:"#1e293b", odd:"#ffffff", even:"#f8fafc" },
+        slate:  { accent:"#475569", bg:"#f8fafc", hTxt:"#ffffff", bTxt:"#334155", odd:"#f8fafc", even:"#e2e8f0" },
+        ocean:  { accent:"#1d4ed8", bg:"#ffffff", hTxt:"#ffffff", bTxt:"#1e3a5f", odd:"#ffffff", even:"#eff6ff" },
+        forest: { accent:"#15803d", bg:"#ffffff", hTxt:"#ffffff", bTxt:"#14532d", odd:"#ffffff", even:"#f0fdf4" },
+        night:  { accent:"#1e1e2e", bg:"#181825", hTxt:"#cdd6f4", bTxt:"#bac2de", odd:"#1e1e2e", even:"#313244" },
+        rose:   { accent:"#be185d", bg:"#ffffff", hTxt:"#ffffff", bTxt:"#881337", odd:"#ffffff", even:"#fdf2f8" }
+      };
+      var p = presets[preset];
+      if (!p) { document.getElementById("tblCustomColors").style.display = ""; return; }
+      document.getElementById("tblAccent").value = p.accent;
+      document.getElementById("tblBg").value = p.bg;
+      document.getElementById("tblHeaderTxt").value = p.hTxt;
+      document.getElementById("tblBodyTxt").value = p.bTxt;
+      document.getElementById("tblRowOdd").value = p.odd;
+      document.getElementById("tblRowEven").value = p.even;
+      this.schedulePreview();
     },
-    updateRowManager: function() {
-      const card = document.getElementById("rowManagerCard");
-      const list = document.getElementById("rowManagerList");
-      const badge = document.getElementById("rowCountBadge");
-      if (!card || !list || !this._rows) return;
 
-      const rows = this._rows;
-      card.style.display = rows.length > 0 ? "block" : "none";
-      if (badge) badge.textContent = "共 " + rows.length + " 列";
-
-      list.innerHTML = rows.map(function(row, i) {
-        const preview = row.join(" | ").substring(0, 40) + (row.join(" | ").length > 40 ? "…" : "");
-        const isHeader = i === 0;
-        return "<div style='display:flex; align-items:center; justify-content:space-between; padding:6px 8px; border-radius:8px; background:var(--bg-filter); font-size:12px;'>" +
-          "<span style='color:" + (isHeader ? "var(--apple-blue)" : "var(--text-main)") + "; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;'>" +
-          (isHeader ? "🏷 " : "") + ToolTable.escape(preview) + "</span>" +
-          (isHeader ? "" :
-            "<button onclick='ToolTable.deleteRow(" + i + ")' style='margin-left:8px; background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:14px; line-height:1; flex-shrink:0;' title='刪除此列'>✕</button>") +
-          "</div>";
-      }).join("");
+    _getData: function() {
+      if (this.method === 1) return (this.data && this.data.length > 0) ? this.data : null;
+      var text = ((document.getElementById("textInput") || {}).value || "").trim();
+      if (!text) return null;
+      return text.split("\n").map(function(r) { return r.split("\t"); });
     },
-    deleteRow: function(index) {
-      if (!this._rows || index < 1 || index >= this._rows.length) return;
-      this._rows.splice(index, 1);
-      this.render(this._rows);
-    },
-    clear: function() {
-      const textInput = document.getElementById("textInput");
-      const fileInput = document.getElementById("fileInput");
-      const fileNameDisplay = document.getElementById("fileNameDisplay");
 
-      if (textInput) textInput.value = "";
-      if (fileInput) fileInput.value = "";
-      if (fileNameDisplay) fileNameDisplay.innerText = "";
-      this.data = [];
-      this._rows = [];
+    _rrect: function(ctx, x, y, w, h, r) {
+      r = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
     },
-    clearAll: function() {
-      this.clear();
-      const card = document.getElementById("rowManagerCard");
-      if (card) card.style.display = "none";
-      const table = document.getElementById("outputTable");
-      if (table) table.innerHTML = "<thead><tr><th>名字/能力值</th><th>類型</th></tr></thead><tbody><tr><td>Keston Hiura / 76</td><td>簽名</td></tr></tbody>";
-    },
-    escape: function(str) {
-      return str.replace(/[&<>'"]/g, function(tag) {
-        return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[tag] || tag);
-      });
-    },
-    applyStyle: function() {
-      const root = document.getElementById("captureArea");
-      const container = document.getElementById("tblContainer");
-      const tblBgSelect = document.getElementById("tblBgSelect");
 
-      if (!root || !container || !tblBgSelect) return;
-
-      const valBg = tblBgSelect.value;
-      container.style.setProperty("--tbl-container-bg", valBg);
-
-      if (valBg === "transparent") {
-        container.style.boxShadow = "none";
-        container.style.border = "none";
+    _drawBg: function(ctx, W, H, bgStyle, canvasBg) {
+      var lg = function() {
+        var args = Array.from(arguments);
+        var g = ctx.createLinearGradient(args[0]*W, args[1]*H, args[2]*W, args[3]*H);
+        for (var i = 4; i < args.length; i += 2) g.addColorStop(args[i], args[i+1]);
+        return g;
+      };
+      var wave = function(pts, fill) {
+        ctx.beginPath();
+        ctx.moveTo(pts[0]*W, pts[1]*H);
+        ctx.bezierCurveTo(pts[2]*W, pts[3]*H, pts[4]*W, pts[5]*H, pts[6]*W, pts[7]*H);
+        ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
+        ctx.fillStyle = fill; ctx.fill();
+      };
+      if (bgStyle === "grad-rose") {
+        var gr = ctx.createLinearGradient(0,0,W,H); gr.addColorStop(0,"#c084fc"); gr.addColorStop(0.5,"#818cf8"); gr.addColorStop(1,"#38bdf8");
+        ctx.fillStyle = gr; ctx.fillRect(0,0,W,H);
+      } else if (bgStyle === "grad-sunset") {
+        var gs = ctx.createLinearGradient(0,0,W,H); gs.addColorStop(0,"#f97316"); gs.addColorStop(0.5,"#ef4444"); gs.addColorStop(1,"#7c3aed");
+        ctx.fillStyle = gs; ctx.fillRect(0,0,W,H);
+      } else if (bgStyle === "grad-ocean") {
+        var go = ctx.createLinearGradient(0,0,W,H); go.addColorStop(0,"#0ea5e9"); go.addColorStop(0.5,"#2563eb"); go.addColorStop(1,"#1e1b4b");
+        ctx.fillStyle = go; ctx.fillRect(0,0,W,H);
+      } else if (bgStyle === "grad-aurora") {
+        var ga = ctx.createLinearGradient(0,0,W,H); ga.addColorStop(0,"#059669"); ga.addColorStop(0.5,"#7c3aed"); ga.addColorStop(1,"#0f172a");
+        ctx.fillStyle = ga; ctx.fillRect(0,0,W,H);
+      } else if (bgStyle === "bigsur") {
+        ctx.fillStyle = lg(0,0,1,1, 0,"#4ba3e0", 0.5,"#2e8bc0", 1,"#1a6ea8"); ctx.fillRect(0,0,W,H);
+        wave([0,0.58,0.18,0.82,0.52,0.92,1,0.68], lg(0,0.58,1,0.68, 0,"#f9b234",0.5,"#f58a00",1,"#e87000"));
+        wave([0,0.38,0.2,0.62,0.55,0.75,1,0.48], lg(0,0.38,1,0.5, 0,"#f55a3c",0.4,"#f03020",1,"#e82040"));
+        wave([0,0.22,0.22,0.46,0.52,0.58,1,0.32], lg(0,0.22,1,0.35, 0,"#f0306a",0.5,"#e0205a",1,"#c81858"));
+      } else if (bgStyle === "monterey") {
+        ctx.fillStyle = lg(0,0,0,1, 0,"#080820",0.5,"#0a0a28",1,"#060618"); ctx.fillRect(0,0,W,H);
+        wave([0,0.68,0.2,0.78,0.48,0.82,1,0.72], lg(0,0.65,1,0.72, 0,"#12103a",0.5,"#18156a",1,"#100e30"));
+        wave([0,0.5,0.18,0.62,0.45,0.7,1,0.56], lg(0,0.48,1,0.58, 0,"#1c1870",0.5,"#221e88",1,"#181660"));
+        wave([0,0.3,0.12,0.42,0.32,0.55,0.5,0.45], lg(0,0.28,0.5,0.48, 0,"#2a2290",0.5,"#321aaa",1,"#221888"));
+        var rg = ctx.createRadialGradient(0.58*W,0.62*H,0, 0.58*W,0.62*H,0.22*W);
+        rg.addColorStop(0,"rgba(180,50,230,0.65)"); rg.addColorStop(0.4,"rgba(130,30,180,0.3)"); rg.addColorStop(1,"transparent");
+        ctx.fillStyle = rg; ctx.fillRect(0,0,W,H);
+      } else if (bgStyle === "ventura") {
+        ctx.fillStyle = lg(0,0,1,1, 0,"#060f1a",0.5,"#081420",1,"#050e18"); ctx.fillRect(0,0,W,H);
+        var vg = ctx.createRadialGradient(0.5*W,0.36*H,0, 0.5*W,0.36*H,0.32*W);
+        vg.addColorStop(0,"rgba(255,160,20,0.95)"); vg.addColorStop(0.35,"rgba(220,80,10,0.7)"); vg.addColorStop(0.65,"rgba(160,30,5,0.3)"); vg.addColorStop(1,"transparent");
+        ctx.fillStyle = vg; ctx.fillRect(0,0,W,H);
+        wave([0,0.6,0.12,0.68,0.32,0.6,0.55,0.32], lg(0,0.6,0.55,0.32, 0,"#c83000",0.4,"#e05800",1,"#f09000"));
+        wave([0.45,0.32,0.65,0.5,0.82,0.62,1,0.55], lg(0.45,0.3,1,0.55, 0,"#f08000",0.8,"#c83000",1,"#a02000"));
+      } else if (bgStyle === "tahoe") {
+        ctx.fillStyle = lg(0,0,1,1, 0,"#d8cba8",0.4,"#c8b890",0.7,"#b8ccd8",1,"#a8bfd0"); ctx.fillRect(0,0,W,H);
+        wave([0,0.55,0.3,0.72,0.62,0.8,1,0.62], lg(0,0.5,1,0.65, 0,"#0a3060",0.5,"#0c3878",1,"#0a2858"));
+        wave([0,0.38,0.28,0.55,0.6,0.66,1,0.48], lg(0,0.35,1,0.5, 0,"#1560b0",0.3,"#1878d0",0.65,"#1060a8",1,"#0e4888"));
+        wave([0,0.28,0.26,0.44,0.58,0.54,1,0.36], lg(0,0.25,1,0.38, 0,"#2888d8",0.3,"#30a0e8",0.6,"#2080c8",1,"#1860a8"));
+        ctx.save(); ctx.globalAlpha=0.6;
+        ctx.beginPath(); ctx.moveTo(0,0.38*H); ctx.bezierCurveTo(0.28*W,0.55*H,0.6*W,0.66*H,W,0.48*H);
+        ctx.lineWidth = Math.max(1,W*0.002); ctx.strokeStyle="rgba(255,255,255,0.9)"; ctx.stroke(); ctx.restore();
       } else {
-        container.style.boxShadow = "0 20px 40px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.08)";
-        container.style.border = "1px solid rgba(255,255,255,0.25)";
+        ctx.fillStyle = canvasBg || "#111114"; ctx.fillRect(0,0,W,H);
+      }
+    },
+
+    render: async function() {
+      var st = document.getElementById("tblStatus");
+      try {
+      var data = this._getData();
+      if (!data || data.length === 0) { App.showFriendlyMessage("請先輸入或上傳資料", "error"); return; }
+      if (st) st.textContent = "⏳ 生成中…";
+
+      var theme     = (document.getElementById("tblTheme") || {}).value || "keynote";
+      var family    = (document.getElementById("tblFont") || {}).value || "Noto Sans TC";
+      var fontSize  = parseInt((document.getElementById("tblFontSize") || {}).value) || 24;
+      var rowGap    = parseInt((document.getElementById("tblRowGap") || {}).value) || 26;
+      var rad       = parseInt((document.getElementById("tblRadius") || {}).value) || 20;
+      var bgStyle   = (document.getElementById("tblBgStyle") || {}).value || "tahoe";
+      var canvasBg  = (document.getElementById("tblCanvasBg") || {}).value || "#111114";
+      var accent    = (document.getElementById("tblAccent") || {}).value || "#1E4D8C";
+      var tableBg   = (document.getElementById("tblBg") || {}).value || "#ffffff";
+      var hTxt      = (document.getElementById("tblHeaderTxt") || {}).value || "#ffffff";
+      var bTxt      = (document.getElementById("tblBodyTxt") || {}).value || "#1e293b";
+      var stripeOn  = (document.getElementById("tblStripe") || {}).checked !== false;
+      var rowOdd    = (document.getElementById("tblRowOdd") || {}).value || "#ffffff";
+      var rowEven   = (document.getElementById("tblRowEven") || {}).value || "#eff6ff";
+      var transpBg  = (document.getElementById("tblTransparent") || {}).checked;
+      var fmt       = (document.getElementById("tblFmt") || {}).value || "png";
+      var resParts  = ((document.getElementById("tblResolution") || {}).value || "1920|1080").split("|");
+      var outW = parseInt(resParts[0]) || 1920;
+      var outH = parseInt(resParts[1]) || 1080;
+
+      var isKeynote = theme === "keynote";
+      var isGlass   = theme === "glass";
+      var isDark    = theme === "dark";
+      var fontStr   = fontSize + "px \"" + family + "\",\"Noto Sans TC\",Arial,sans-serif";
+
+      // 字體載入：最多等 1.5 秒，避免 hang
+      try {
+        var _fl = document.fonts.load(fontStr, "Aa中文ABC123");
+        await Promise.race([_fl, new Promise(function(r){ setTimeout(r, 1500); })]);
+      } catch (_) {}
+
+      var headers = data[0];
+      var rows = data.slice(1).filter(function(r) { return r.some(function(c) { return String(c || "").trim(); }); });
+
+      // 測量欄寬
+      var mc = document.createElement("canvas").getContext("2d");
+      mc.font = fontStr;
+      var colW = headers.map(function(h) { return mc.measureText(String(h || "")).width + rowGap * 2; });
+      rows.forEach(function(row) {
+        row.forEach(function(c, i) {
+          var w = mc.measureText(String(c || "")).width + rowGap * 2;
+          if (w > (colW[i] || 0)) colW[i] = w;
+        });
+      });
+      colW = colW.map(function(w) { return Math.max(w, 80); });
+
+      var rowH   = fontSize + rowGap * 2;
+      var tableW = colW.reduce(function(a, b) { return a + b; }, 0);
+      var tableH = rowH * (rows.length + 1);
+
+      var cv = document.getElementById("tblCanvas");
+      cv.width  = outW;
+      cv.height = outH;
+      var ctx   = cv.getContext("2d");
+
+      // 背景
+      if (transpBg) {
+        ctx.clearRect(0,0,outW,outH);
+      } else {
+        this._drawBg(ctx, outW, outH, bgStyle, canvasBg);
       }
 
-      const cfgSize = document.getElementById("cfgSize");
-      const cfgFont = document.getElementById("cfgFont");
-      const cfgTextColor = document.getElementById("cfgTextColor");
-      const cfgBorderColor = document.getElementById("cfgBorderColor");
-      const cfgPadY = document.getElementById("cfgPadY");
-      const cfgPadX = document.getElementById("cfgPadX");
-      const cfgZebraToggle = document.getElementById("cfgZebraToggle");
+      var tx = Math.round((outW - tableW) / 2);
+      var ty = Math.round((outH - tableH) / 2);
+      var self = this;
 
-      const fontValue = cfgFont ? cfgFont.value : "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
-      const fontSize = cfgSize ? cfgSize.value : "15";
-      const textColor = cfgTextColor ? cfgTextColor.value : "#1d1d1f";
-      const borderColor = cfgBorderColor ? cfgBorderColor.value : "rgba(0,0,0,0.1)";
-      const padY = cfgPadY ? cfgPadY.value : "10";
-      const padX = cfgPadX ? cfgPadX.value : "12";
-
-      root.style.setProperty("--tbl-font", fontValue);
-      root.style.setProperty("--tbl-font-size", fontSize + "px");
-      root.style.setProperty("--tbl-color", textColor);
-      root.style.setProperty("--tbl-border-color", borderColor);
-      root.style.setProperty("--tbl-pad-y", padY + "px");
-      root.style.setProperty("--tbl-pad-x", padX + "px");
-      root.style.setProperty("--tbl-header-color", textColor);
-      root.style.setProperty("--tbl-header-border", "2px solid " + textColor);
-
-      const table = document.getElementById("outputTable");
-      if (table && cfgZebraToggle) {
-        table.classList.toggle("zebra-on", cfgZebraToggle.checked);
+      // 卡片
+      if (isKeynote) {
+        var cp = Math.round(rowGap * 1.5);
+        ctx.save(); ctx.shadowColor="rgba(0,0,0,0.12)"; ctx.shadowBlur=48; ctx.shadowOffsetY=12;
+        ctx.fillStyle="#ffffff"; self._rrect(ctx, tx-cp, ty-cp, tableW+cp*2, tableH+cp*2, Math.max(rad,24)); ctx.fill(); ctx.restore();
+        ctx.fillStyle="#ffffff"; self._rrect(ctx, tx-cp, ty-cp, tableW+cp*2, tableH+cp*2, Math.max(rad,24)); ctx.fill();
+      } else if (isGlass) {
+        var gp = Math.round(rowGap * 1.5), gr2 = Math.max(rad,28);
+        var sc = 1/8;
+        var off = document.createElement("canvas");
+        off.width = Math.max(1,Math.round((tableW+gp*2+80)*sc)); off.height = Math.max(1,Math.round((tableH+gp*2+80)*sc));
+        off.getContext("2d").drawImage(cv, tx-gp-40, ty-gp-40, tableW+gp*2+80, tableH+gp*2+80, 0,0, off.width, off.height);
+        ctx.save(); self._rrect(ctx, tx-gp, ty-gp, tableW+gp*2, tableH+gp*2, gr2); ctx.clip();
+        ctx.drawImage(off, 0,0,off.width,off.height, tx-gp-40, ty-gp-40, tableW+gp*2+80, tableH+gp*2+80);
+        ctx.fillStyle="rgba(210,210,215,0.72)"; ctx.fillRect(tx-gp,ty-gp,tableW+gp*2,tableH+gp*2);
+        var shine = ctx.createLinearGradient(0,ty-gp,0,ty-gp+(tableH+gp*2)*0.3);
+        shine.addColorStop(0,"rgba(255,255,255,0.28)"); shine.addColorStop(1,"rgba(255,255,255,0)");
+        ctx.fillStyle=shine; ctx.fillRect(tx-gp,ty-gp,tableW+gp*2,(tableH+gp*2)*0.3); ctx.restore();
+        ctx.save(); ctx.shadowColor="rgba(0,0,0,0.22)"; ctx.shadowBlur=30; ctx.shadowOffsetY=5;
+        ctx.fillStyle="rgba(0,0,0,0.001)"; self._rrect(ctx,tx-gp,ty-gp,tableW+gp*2,tableH+gp*2,gr2); ctx.fill(); ctx.restore();
+        ctx.save(); self._rrect(ctx,tx-gp,ty-gp,tableW+gp*2,tableH+gp*2,gr2);
+        ctx.strokeStyle="rgba(255,255,255,0.6)"; ctx.lineWidth=1; ctx.stroke(); ctx.restore();
+      } else if (!isKeynote && !isGlass) {
+        ctx.fillStyle = isDark ? "#1c1c1e" : tableBg;
+        self._rrect(ctx, tx, ty, tableW, tableH, rad); ctx.fill();
       }
+
+      ctx.save(); self._rrect(ctx, tx, ty, tableW, tableH, rad); ctx.clip();
+
+      // Header
+      if (!isKeynote && !isGlass) {
+        ctx.fillStyle = isDark ? "#2c2c2e" : accent;
+      } else {
+        ctx.fillStyle = "rgba(0,0,0,0)";
+      }
+      ctx.fillRect(tx, ty, tableW, rowH);
+
+      ctx.font = (isKeynote || isGlass) ? ("bold " + fontStr) : fontStr;
+      ctx.fillStyle = (isKeynote || isGlass) ? "rgba(0,0,0,0.85)" : (isDark ? "#f5f5f7" : hTxt);
+      ctx.textBaseline = "middle";
+      var cx = tx;
+      headers.forEach(function(h, i) {
+        ctx.fillText(String(h || ""), cx + rowGap, ty + rowH / 2);
+        cx += colW[i];
+      });
+
+      // Rows
+      rows.forEach(function(row, ri) {
+        var ry = ty + rowH * (ri + 1);
+        var rowBg = isDark ? (ri % 2 === 0 ? "#1c1c1e" : "#2c2c2e") :
+          isKeynote ? "#ffffff" : isGlass ? "rgba(0,0,0,0)" :
+          (stripeOn ? (ri % 2 === 0 ? rowOdd : rowEven) : tableBg);
+        ctx.fillStyle = rowBg; ctx.fillRect(tx, ry, tableW, rowH);
+        var divClr = isKeynote ? "rgba(0,0,0,0.08)" : isGlass ? "rgba(0,0,0,0.1)" : (isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)");
+        ctx.strokeStyle = divClr; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(tx + rowGap, ry); ctx.lineTo(tx + tableW - rowGap, ry); ctx.stroke();
+        ctx.font = fontStr;
+        ctx.fillStyle = isGlass ? "rgba(0,0,0,0.8)" : (isDark ? "#f5f5f7" : bTxt);
+        ctx.textBaseline = "middle";
+        var cx2 = tx;
+        row.forEach(function(cell, ci) {
+          ctx.fillText(String(cell || ""), cx2 + rowGap, ry + rowH / 2);
+          cx2 += colW[ci] || 80;
+        });
+      });
+
+      // Header underline
+      if (isKeynote || isGlass) {
+        ctx.strokeStyle = isGlass ? "rgba(0,0,0,0.12)" : "#1d1d1f";
+        ctx.lineWidth = isGlass ? 1 : 1.5;
+        ctx.beginPath(); ctx.moveTo(tx + rowGap, ty + rowH); ctx.lineTo(tx + tableW - rowGap, ty + rowH); ctx.stroke();
+      }
+      ctx.restore();
+
+      // Update UI
+      document.getElementById("tblPlaceholder").style.display = "none";
+      cv.style.display = "block";
+      var badge = document.getElementById("tblSizeBadge");
+      if (badge) badge.textContent = outW + " × " + outH + " px";
+
+      // 生成 blob 供下載
+      var usePng = transpBg || fmt === "png";
+      cv.toBlob(function(blob) {
+        if (!blob) { if (st) st.textContent = "❌ 生成失敗"; return; }
+        if (ToolTable._blobUrl) URL.revokeObjectURL(ToolTable._blobUrl);
+        ToolTable._blobUrl = URL.createObjectURL(blob);
+        var anchor = document.getElementById("tblDlAnchor");
+        if (anchor) {
+          anchor.href = ToolTable._blobUrl;
+          anchor.download = "BinTools_Table_" + outW + "x" + outH + "." + (usePng ? "png" : "jpg");
+          anchor.style.display = "inline-flex";
+        }
+        if (st) st.textContent = "✓ 完成";
+      }, usePng ? "image/png" : "image/jpeg", 0.95);
+      } catch(err) {
+        console.error("[ToolTable.render]", err);
+        if (st) st.textContent = "❌ " + (err.message || "生成失敗");
+        App.showFriendlyMessage("生成失敗，請重試（" + (err.message || "") + "）", "error");
+      }
+    },
+
+    handleDownload: function(e) {
+      var anchor = document.getElementById("tblDlAnchor");
+      if (!anchor || !anchor.href.startsWith("blob:")) { e.preventDefault(); return false; }
+      App.showFriendlyMessage("圖片已下載！", "success");
+      return true;
     }
   };
 
@@ -1545,8 +1891,6 @@
   window.onload = function() {
     try {
       App.init();
-      App.applyCanvasBg("captureArea", "solid-light");
-      ToolTable.applyStyle();
       App.applyCanvasBg("captureAreaCode", "mac-monterey");
       if (window.hljs && typeof hljs.highlightAll === "function") { hljs.highlightAll(); }
       App.applyCanvasBg("captureAreaAnim", "solid-light");
@@ -1554,6 +1898,32 @@
       // 初始化 Pomodoro UI
       Pomo._updateUI();
       Pomo._updateRing(1);
+
+      // 表格工具：tblBgStyle 切換時顯示/隱藏純色選色器
+      var tblBgStyleEl = document.getElementById("tblBgStyle");
+      if (tblBgStyleEl) {
+        tblBgStyleEl.addEventListener("change", function() {
+          var wrap = document.getElementById("tblCanvasBgColorWrap");
+          if (wrap) wrap.style.display = this.value === "solid" ? "" : "none";
+        });
+      }
+
+      // --- 拖曳上傳：表格工具 ---
+      (function() {
+        var tableZone = document.getElementById("tableDropZone");
+        if (!tableZone) return;
+        tableZone.addEventListener("dragover", function(e) { e.preventDefault(); tableZone.classList.add("drag-over"); });
+        tableZone.addEventListener("dragleave", function() { tableZone.classList.remove("drag-over"); });
+        tableZone.addEventListener("drop", function(e) {
+          e.preventDefault(); tableZone.classList.remove("drag-over");
+          var file = e.dataTransfer.files[0];
+          if (!file) return;
+          var ext = file.name.split(".").pop().toLowerCase();
+          if (ext !== "xlsx" && ext !== "csv") { App.showFriendlyMessage("請上傳 Excel 或 CSV 檔案", "error"); return; }
+          ToolTable.handleFile({ target: { files: [file] } });
+          App.showFriendlyMessage("檔案已載入，請點擊「匯入並預覽」");
+        });
+      })();
 
       // --- 拖曳上傳：動畫工具 ---
       (function() {
@@ -1567,23 +1937,6 @@
           if (!file) return;
           if (!file.type.startsWith("image/")) { App.showFriendlyMessage("請上傳圖片檔案（PNG / JPG）", "error"); return; }
           ToolAnim.handleUpload({ target: { files: [file] } });
-        });
-      })();
-
-      // --- 拖曳上傳：表格工具 ---
-      (function() {
-        var tableZone = document.querySelector("#view-excel2jpg .drop-zone");
-        if (!tableZone) return;
-        tableZone.addEventListener("dragover", function(e) { e.preventDefault(); tableZone.classList.add("drag-over"); });
-        tableZone.addEventListener("dragleave", function() { tableZone.classList.remove("drag-over"); });
-        tableZone.addEventListener("drop", function(e) {
-          e.preventDefault(); tableZone.classList.remove("drag-over");
-          var file = e.dataTransfer.files[0];
-          if (!file) return;
-          var ext = file.name.split(".").pop().toLowerCase();
-          if (ext !== "xlsx" && ext !== "csv") { App.showFriendlyMessage("請上傳 Excel 或 CSV 檔案", "error"); return; }
-          ToolTable.handleFile({ target: { files: [file] } });
-          App.showFriendlyMessage("檔案已載入，請點擊「匯入並預覽」");
         });
       })();
 
@@ -1612,9 +1965,9 @@
         }
       });
 
-      // --- ESC 退出 Pomodoro 全螢幕 ---
+      // --- ESC 退出全螢幕 / 關閉 Modal ---
       document.addEventListener("keydown", function(e) {
-        if (e.key === "Escape") { Pomo.exitFocus(); }
+        if (e.key === "Escape") { Pomo.exitFocus(); App.closeAuthModal(); }
       });
 
     } catch (_) {
