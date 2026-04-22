@@ -115,31 +115,21 @@
   .nav-link { font-size: 14px; font-weight: 500; color: var(--text-main); cursor: pointer; opacity: 0.8; padding: 0 12px; height: 56px; display: flex; align-items: center; text-decoration: none; }
   .nav-link:hover { opacity: 1; }
 
-  /* --- TOOL BAR (桌面版水平捲動工具列) --- */
-  .tool-bar { display: flex; align-items: center; gap: 4px; padding: 0 24px; height: 48px; background: var(--bg-nav); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid var(--border-color); overflow-x: auto; overflow-y: hidden; scrollbar-width: none; position: sticky; top: 56px; z-index: 99; flex-shrink: 0; }
-  .tool-bar::-webkit-scrollbar { display: none; }
-  .tool-tab { display: flex; align-items: center; gap: 6px; padding: 0 14px; height: 34px; border-radius: 8px; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; white-space: nowrap; border: none; background: transparent; transition: background 0.15s, color 0.15s; flex-shrink: 0; }
-  .tool-tab:hover { background: var(--button-active); color: var(--text-main); }
-  .tool-tab.active { background: var(--button-active); color: var(--apple-blue); font-weight: 600; }
-  .tool-tab-icon { font-size: 15px; line-height: 1; }
-  .tool-bar-divider { width: 1px; height: 20px; background: var(--border-color); margin: 0 4px; flex-shrink: 0; }
-
-  /* --- HAMBURGER MENU (手機版) --- */
-  .hamburger-btn { display: none; background: transparent; border: none; color: var(--text-main); font-size: 22px; cursor: pointer; padding: 4px 8px; border-radius: 8px; line-height: 1; transition: background 0.2s; }
+  /* --- TOOLS DROPDOWN (桌面 + 手機共用) --- */
+  .hamburger-btn { background: transparent; border: 1px solid var(--border-color); color: var(--text-main); font-size: 13px; font-weight: 600; cursor: pointer; padding: 6px 14px; border-radius: 12px; line-height: 1; transition: background 0.2s; display: flex; align-items: center; gap: 6px; }
   .hamburger-btn:hover { background: var(--button-active); }
-  .mobile-drawer { display: none; position: fixed; top: 56px; left: 0; right: 0; background: var(--bg-nav); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid var(--border-color); z-index: 97; flex-direction: column; padding: 8px 0; }
+  .tool-dropdown-wrap { position: relative; }
+  .mobile-drawer { display: none; position: absolute; top: calc(100% + 10px); left: 50%; transform: translateX(-50%); width: 240px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; z-index: 200; flex-direction: column; padding: 6px; box-shadow: 0 12px 40px rgba(0,0,0,0.15); }
   .mobile-drawer.open { display: flex; }
-  .drawer-item { display: flex; align-items: center; gap: 14px; padding: 14px 24px; color: var(--text-main); font-size: 15px; font-weight: 500; cursor: pointer; transition: background 0.15s; border: none; background: transparent; width: 100%; text-align: left; }
+  .drawer-item { display: flex; align-items: center; gap: 12px; padding: 10px 12px; color: var(--text-main); font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.15s; border: none; background: transparent; width: 100%; text-align: left; border-radius: 10px; }
   .drawer-item:hover { background: var(--button-active); }
-  .drawer-item.active { color: var(--apple-blue); }
-  .drawer-item-icon { font-size: 20px; width: 28px; text-align: center; }
+  .drawer-item.active { color: var(--apple-blue); background: rgba(0,113,227,0.06); }
+  .drawer-item-icon { font-size: 18px; width: 24px; text-align: center; flex-shrink: 0; }
   .drawer-divider { height: 1px; background: var(--border-color); margin: 4px 0; }
 
   @media (max-width: 900px) { .tool-container { grid-template-columns: 1fr; } .right-panel { position: static; } }
   @media (max-width: 768px) {
-    .nav-center { display: none; }
-    .tool-bar { display: none; }
-    .hamburger-btn { display: block; }
+    .mobile-drawer { left: auto; right: 0; transform: none; width: 220px; }
     .tool-container { padding: 0 16px; gap: 16px; }
     .hero { padding: 24px 16px 16px; }
     .hero h1 { font-size: 24px; }
@@ -156,7 +146,7 @@
   /* --- TOOL LAYOUT & CONTROLS --- */
   .tool-container { max-width: 1400px; margin: 0 auto; padding: 0 32px; display: grid; grid-template-columns: 360px 1fr; gap: 24px; align-items: flex-start; }
   .left-panel { display: flex; flex-direction: column; gap: 20px; }
-  .right-panel { position: sticky; top: 112px; }
+  .right-panel { position: sticky; top: 80px; }
   .card { background: var(--bg-card); border-radius: 16px; padding: 24px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color); }
   .card-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
   
@@ -239,21 +229,9 @@
   .template-btn { flex: 1; min-width: 0; background: var(--bg-filter); border: 1px solid var(--border-color); color: var(--text-main); padding: 6px 8px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer; text-align: center; transition: border-color 0.2s, background 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .template-btn:hover { border-color: var(--apple-blue); background: rgba(0,113,227,0.06); }
 
-  /* --- HAMBURGER MENU --- */
-  .hamburger-btn { display: none; background: transparent; border: none; color: var(--text-main); font-size: 22px; cursor: pointer; padding: 4px 8px; border-radius: 8px; line-height: 1; transition: background 0.2s; }
-  .hamburger-btn:hover { background: var(--button-active); }
-  .mobile-drawer { display: none; position: fixed; top: 56px; left: 0; right: 0; background: var(--bg-nav); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid var(--border-color); z-index: 97; flex-direction: column; padding: 8px 0; }
-  .mobile-drawer.open { display: flex; }
-  .drawer-item { display: flex; align-items: center; gap: 14px; padding: 14px 24px; color: var(--text-main); font-size: 15px; font-weight: 500; cursor: pointer; transition: background 0.15s; border: none; background: transparent; width: 100%; text-align: left; }
-  .drawer-item:hover { background: var(--button-active); }
-  .drawer-item.active { color: var(--apple-blue); }
-  .drawer-item-icon { font-size: 20px; width: 28px; text-align: center; }
-  .drawer-divider { height: 1px; background: var(--border-color); margin: 4px 0; }
 
   @media (max-width: 900px) { .tool-container { grid-template-columns: 1fr; } .right-panel { position: static; } }
   @media (max-width: 768px) {
-    .nav-center { display: none; }
-    .hamburger-btn { display: block; }
     .tool-container { padding: 0 16px; gap: 16px; }
     .hero { padding: 24px 16px 16px; }
     .hero h1 { font-size: 24px; }
@@ -348,8 +326,21 @@
 
 <nav class="nav">
   <div class="nav-left" style="display:flex; align-items:center; gap:8px;">
-    <button class="hamburger-btn" id="hamburgerBtn" onclick="App.toggleDrawer()" title="工具選單">☰</button>
     <a href="./" class="nav-brand"><div class="b-logo">B</div> BinTools</a>
+  </div>
+  <div class="tool-dropdown-wrap">
+    <button class="hamburger-btn" id="hamburgerBtn" onclick="App.toggleDrawer()">
+      工具 <span style="font-size:11px; opacity:0.7;">▾</span>
+    </button>
+    <div class="mobile-drawer" id="mobileDrawer">
+      <button class="drawer-item" onclick="App.switchView('excel2jpg'); App.closeDrawer()"><span class="drawer-item-icon">📊</span>表格海報生成器</button>
+      <button class="drawer-item" onclick="App.switchView('code2jpg'); App.closeDrawer()"><span class="drawer-item-icon">💻</span>程式碼海報生成器</button>
+      <button class="drawer-item" onclick="App.switchView('animator'); App.closeDrawer()"><span class="drawer-item-icon">🎬</span>動態展演生成器</button>
+      <div class="drawer-divider"></div>
+      <button class="drawer-item" onclick="App.switchView('qrcode'); App.closeDrawer()"><span class="drawer-item-icon">🔳</span>QR Code 生成器</button>
+      <button class="drawer-item" onclick="App.switchView('cropper'); App.closeDrawer()"><span class="drawer-item-icon">✂️</span>社群尺寸裁切器</button>
+      <button class="drawer-item" onclick="App.switchView('pomodoro'); App.closeDrawer()"><span class="drawer-item-icon">🍅</span>專注計時器</button>
+    </div>
   </div>
   <div class="nav-right">
     <button class="lang-btn" onclick="App.toggleTheme()">深淺色</button>
@@ -357,39 +348,6 @@
   </div>
 </nav>
 
-<!-- 桌面版工具列 -->
-<div class="tool-bar" id="toolBar">
-  <button class="tool-tab active" id="ttab-excel2jpg" onclick="App.switchView('excel2jpg')">
-    <span class="tool-tab-icon">📊</span>表格生成器
-  </button>
-  <button class="tool-tab" id="ttab-code2jpg" onclick="App.switchView('code2jpg')">
-    <span class="tool-tab-icon">💻</span>程式碼海報
-  </button>
-  <button class="tool-tab" id="ttab-animator" onclick="App.switchView('animator')">
-    <span class="tool-tab-icon">🎬</span>動態展演
-  </button>
-  <div class="tool-bar-divider"></div>
-  <button class="tool-tab" id="ttab-qrcode" onclick="App.switchView('qrcode')">
-    <span class="tool-tab-icon">🔳</span>QR Code
-  </button>
-  <button class="tool-tab" id="ttab-cropper" onclick="App.switchView('cropper')">
-    <span class="tool-tab-icon">✂️</span>社群裁切
-  </button>
-  <button class="tool-tab" id="ttab-pomodoro" onclick="App.switchView('pomodoro')">
-    <span class="tool-tab-icon">🍅</span>專注計時
-  </button>
-</div>
-
-<!-- 漢堡選單 抽屜 -->
-<div class="mobile-drawer" id="mobileDrawer">
-  <button class="drawer-item" onclick="App.switchView('excel2jpg'); App.closeDrawer()"><span class="drawer-item-icon">📊</span> 表格海報生成器</button>
-  <button class="drawer-item" onclick="App.switchView('code2jpg'); App.closeDrawer()"><span class="drawer-item-icon">💻</span> 程式碼海報生成器</button>
-  <button class="drawer-item" onclick="App.switchView('animator'); App.closeDrawer()"><span class="drawer-item-icon">🎬</span> 動態展演生成器</button>
-  <div class="drawer-divider"></div>
-  <button class="drawer-item" onclick="App.switchView('qrcode'); App.closeDrawer()"><span class="drawer-item-icon">🔳</span> QR Code 生成器</button>
-  <button class="drawer-item" onclick="App.switchView('cropper'); App.closeDrawer()"><span class="drawer-item-icon">✂️</span> 社群尺寸裁切器</button>
-  <button class="drawer-item" onclick="App.switchView('pomodoro'); App.closeDrawer()"><span class="drawer-item-icon">🍅</span> 專注計時器</button>
-</div>
 
 <!-- ====== AUTH MODAL ====== -->
 <div id="authModal" class="modal-overlay" onclick="if(event.target===this) App.closeAuthModal()" style="display:none;">
@@ -1038,16 +996,10 @@
       document.querySelectorAll(".view").forEach(function(el) { el.classList.remove("active"); });
       var target = document.getElementById("view-" + viewId);
       if (target) target.classList.add("active");
-      // 桌面版 tool-tab 高亮
-      document.querySelectorAll(".tool-tab").forEach(function(el) { el.classList.remove("active"); });
-      var activeTab = document.getElementById("ttab-" + viewId);
-      if (activeTab) {
-        activeTab.classList.add("active");
-        // 確保 active tab 捲入可視範圍
-        activeTab.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-      }
-      // 漢堡選單 drawer-item 高亮
+      // drawer-item 高亮 active 工具
       document.querySelectorAll(".drawer-item").forEach(function(el) { el.classList.remove("active"); });
+      var activeItems = document.querySelectorAll(".drawer-item[onclick*=\"'" + viewId + "'\"]");
+      activeItems.forEach(function(el) { el.classList.add("active"); });
       window.scrollTo(0, 0);
     },
     toggleDrawer: function() {
