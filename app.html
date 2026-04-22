@@ -972,6 +972,22 @@
 
   const App = {
     user: null,
+
+    // ── 開發者帳號清單（登入後自動取得 Pro 權限）──────────────
+    DEV_EMAILS: [
+      "kino2ho@gmail.com"
+      // 新增開發者：在此加入 email，例如：
+      // "dev2@example.com",
+    ],
+
+    // ── 統一 isPro 判斷（isDev || user.plan === "pro"）─────────
+    getIsPro: function() {
+      var fbUser = window.FirebaseAuth ? window.FirebaseAuth.currentUser : null;
+      if (fbUser && fbUser.email && this.DEV_EMAILS.indexOf(fbUser.email) !== -1) {
+        return true; // 開發者帳號永遠是 Pro
+      }
+      return !!(this.user && this.user.plan === "pro");
+    },
     showFriendlyMessage: function(message, type) {
       const container = document.getElementById("toastContainer");
       if (!container) return;
@@ -1040,6 +1056,9 @@
       }
 
       this.updateAuthUI();
+      var fbU = window.FirebaseAuth ? window.FirebaseAuth.currentUser : null;
+      var isDev = fbU && fbU.email && this.DEV_EMAILS.indexOf(fbU.email) !== -1;
+      console.log("[App] user fetched | plan:", this.user && this.user.plan, "| isDev:", isDev, "| getIsPro:", this.getIsPro());
     },
     openAuthModal: function() {
       var m = document.getElementById("authModal");
@@ -1077,13 +1096,15 @@
     },
     updateAuthUI: function() {
       var authArea = document.getElementById("authArea");
-      var isPro = this.user && this.user.plan === "pro";
+      var isPro = this.getIsPro();
       var fbUser = window.FirebaseAuth ? window.FirebaseAuth.currentUser : null;
       if (authArea) {
         if (fbUser) {
+          var fbUser2 = window.FirebaseAuth ? window.FirebaseAuth.currentUser : null;
+          var isDev = fbUser2 && fbUser2.email && this.DEV_EMAILS.indexOf(fbUser2.email) !== -1;
           var proHtml = !isPro
             ? "<button class=\"btn-pro\" onclick=\"App.switchView('pricing')\">升級 Pro</button>"
-            : "<span style=\"font-size:12px; font-weight:bold; color:#ff2d55; margin-right:12px;\">PRO</span>";
+            : "<span style=\"font-size:12px; font-weight:bold; color:#ff2d55; margin-right:12px;\">" + (isDev ? "DEV ✦" : "PRO") + "</span>";
           var initial = fbUser.displayName ? fbUser.displayName[0] : (fbUser.email ? fbUser.email[0].toUpperCase() : "U");
           var avatar = fbUser.photoURL
             ? "<img src=\"" + fbUser.photoURL + "\" class=\"user-avatar\" onclick=\"window.FirebaseAuth && window.FirebaseAuth.logout()\" title=\"點擊登出\">"
@@ -1196,7 +1217,7 @@
       if (!formatSelect || !btn) return;
 
       // ── 免費額度檢查 ──────────────────────────────────────────
-      const isPro = this.user && this.user.plan === "pro";
+      const isPro = this.getIsPro();
       if (!UserState.canDownload(isPro)) {
         this.showFriendlyMessage(
           "今日免費額度（" + UserState.FREE_DAILY_LIMIT + " 次）已用完，請明天再試或升級 Pro 🚀",
@@ -1462,7 +1483,7 @@
       var outH = parseInt(resParts[1]) || 1080;
 
       // ── 免費用戶解析度限制（訊息由 clampResolution 內部處理）──
-      var _isPro = window.App && App.user && App.user.plan === "pro";
+      var _isPro = window.App ? App.getIsPro() : false;
       var _clamped = UserState.clampResolution(_isPro, outW, outH);
       outW = _clamped.w;
       outH = _clamped.h;
