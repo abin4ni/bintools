@@ -866,6 +866,93 @@
 <div id="toastContainer" class="toast-container"></div>
 
 <script>
+  /* ===================== USER STATE MODULE =====================
+   * 管理使用者狀態：免費/Pro、每日使用次數
+   * 預留 Firebase Auth 與 Stripe 接口
+   * =========================================================== */
+  const UserState = {
+    FREE_DAILY_LIMIT: 3,
+    FREE_MAX_RES_W: 1280,
+    FREE_MAX_RES_H: 720,
+    STORAGE_KEY: "bintools_user_state",
+
+    // 讀取 localStorage 狀態
+    _load: function() {
+      try {
+        var raw = localStorage.getItem(this.STORAGE_KEY);
+        return raw ? JSON.parse(raw) : {};
+      } catch (_) { return {}; }
+    },
+
+    // 寫入 localStorage
+    _save: function(data) {
+      try { localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data)); } catch (_) {}
+    },
+
+    // 今日日期 key
+    _today: function() {
+      return new Date().toISOString().split("T")[0];
+    },
+
+    // 取得今日使用次數
+    getTodayUsage: function() {
+      var s = this._load();
+      if (!s.usageDate || s.usageDate !== this._today()) return 0;
+      return typeof s.usageCount === "number" ? s.usageCount : 0;
+    },
+
+    // 增加一次使用次數
+    incrementUsage: function() {
+      var s = this._load();
+      var today = this._today();
+      if (!s.usageDate || s.usageDate !== today) {
+        s.usageDate = today;
+        s.usageCount = 0;
+      }
+      s.usageCount = (s.usageCount || 0) + 1;
+      this._save(s);
+      console.log("[UserState] usage today:", s.usageCount, "/", this.FREE_DAILY_LIMIT);
+      return s.usageCount;
+    },
+
+    // 檢查是否超過免費額度（回傳 true = 可繼續）
+    canDownload: function(isPro) {
+      if (isPro) return true;
+      return this.getTodayUsage() < this.FREE_DAILY_LIMIT;
+    },
+
+    // 免費用戶解析度限制
+    clampResolution: function(isPro, w, h) {
+      if (isPro) return { w: w, h: h };
+      var maxW = this.FREE_MAX_RES_W, maxH = this.FREE_MAX_RES_H;
+      if (w > maxW || h > maxH) {
+        var ratio = w / h;
+        if (w / maxW > h / maxH) { return { w: maxW, h: Math.round(maxW / ratio) }; }
+        else { return { w: Math.round(maxH * ratio), h: maxH }; }
+      }
+      return { w: w, h: h };
+    },
+
+    // ── Firebase 接口（預留） ──────────────────────────────────
+    // 未來接入 Firebase Firestore 儲存用戶方案
+    // firebase.firestore().collection("users").doc(uid).set({ plan: "pro" })
+    // 呼叫方式：await UserState.syncFromFirebase(uid)
+    syncFromFirebase: async function(uid) {
+      // TODO: 接入後取代 localStorage plan 邏輯
+      console.log("[UserState] Firebase sync placeholder, uid:", uid);
+      return null;
+    },
+
+    // ── Stripe 接口（預留） ────────────────────────────────────
+    // 未來接入 Stripe Checkout Session
+    // 呼叫方式：await UserState.openStripeCheckout()
+    openStripeCheckout: async function() {
+      // TODO: fetch("/api/create-checkout-session") → redirect to Stripe
+      console.log("[UserState] Stripe checkout placeholder");
+      return null;
+    }
+  };
+
   const App = {
     user: null,
     showFriendlyMessage: function(message, type) {
@@ -915,13 +1002,24 @@
         const payload = await res.json();
         const data = payload && payload.success ? (payload.data || {}) : (payload || {});
 
+        // 整合伺服器 plan 與 localStorage 每日次數
+        var serverPlan = data && data.plan ? data.plan : "free";
+        var todayUsage = UserState.getTodayUsage();
+
         this.user = {
           uid: uid,
-          plan: data && data.plan ? data.plan : "free",
-          downloadsToday: data && Number.isFinite(Number(data.downloadsToday)) ? Number(data.downloadsToday) : 0
+          plan: serverPlan,
+          downloadsToday: Math.max(
+            todayUsage,
+            data && Number.isFinite(Number(data.downloadsToday)) ? Number(data.downloadsToday) : 0
+          )
         };
       } catch (_) {
-        this.user = { uid: uid, plan: "free", downloadsToday: 0 };
+        this.user = {
+          uid: uid,
+          plan: "free",
+          downloadsToday: UserState.getTodayUsage()
+        };
       }
 
       this.updateAuthUI();
@@ -979,7 +1077,7 @@
         }
       }
 
-      var limitText = isPro ? "無限" : (this.user ? (this.user.downloadsToday + "/3") : "-/3");
+      var limitText = isPro ? "無限" : (UserState.getTodayUsage() + "/" + UserState.FREE_DAILY_LIMIT);
       var usageTable = document.getElementById("usageTextTable");
       var usageAnim  = document.getElementById("usageTextAnim");
       if (usageTable) usageTable.innerText = "今日額度: " + limitText;
@@ -1080,6 +1178,17 @@
       const btn = evt && evt.currentTarget ? evt.currentTarget : null;
       if (!formatSelect || !btn) return;
 
+      // ── 免費額度檢查 ──────────────────────────────────────────
+      const isPro = this.user && this.user.plan === "pro";
+      if (!UserState.canDownload(isPro)) {
+        this.showFriendlyMessage(
+          "今日免費額度（" + UserState.FREE_DAILY_LIMIT + " 次）已用完，請明天再試或升級 Pro 🚀",
+          "error"
+        );
+        console.log("[App] daily limit reached, usage:", UserState.getTodayUsage());
+        return;
+      }
+
       const originHTML = btn.innerHTML;
       const format = formatSelect.value;
       const bgSelectId = targetId === "captureAreaAnim" ? "animCanvasBgSelect" : "codeCanvasBgSelect";
@@ -1087,12 +1196,8 @@
       const isTransparentBg = bgSelect ? bgSelect.value === "transparent" : false;
 
       let finalFormat = format;
-      if (isTransparentBg && format === "jpeg") {
-        finalFormat = "png";
-      }
-      if (isTransparentBg && format === "mp4") {
-        finalFormat = "webm";
-      }
+      if (isTransparentBg && format === "jpeg") { finalFormat = "png"; }
+      if (isTransparentBg && format === "mp4")  { finalFormat = "webm"; }
 
       const fbUser = window.FirebaseAuth ? window.FirebaseAuth.currentUser : null;
       const uid = fbUser ? fbUser.uid : "guest";
@@ -1103,59 +1208,58 @@
       try {
         const payloadHtml = this.getRenderPayload(targetId, isTransparentBg);
         if (!payloadHtml) {
-          this.showFriendlyMessage("生成失敗，請稍後再試");
+          this.showFriendlyMessage("無法取得渲染內容，請先匯入資料", "error");
           return;
         }
 
         const response = await fetch(apiEndpoint, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-user-uid": uid
-          },
-          body: JSON.stringify({
-            html: payloadHtml,
-            format: finalFormat,
-            targetId: targetId,
-            isTransparent: isTransparentBg
-          })
+          headers: { "Content-Type": "application/json", "x-user-uid": uid },
+          body: JSON.stringify({ html: payloadHtml, format: finalFormat, targetId, isTransparent: isTransparentBg })
         });
+
+        if (response.status === 403) {
+          this.showFriendlyMessage("伺服器額度已用完，請升級 Pro 或明天再試 🚀", "error");
+          return;
+        }
 
         const payload = await response.json().catch(function() { return null; });
 
         if (!response.ok || !payload || !payload.success || !payload.data || !payload.data.base64) {
-          this.showFriendlyMessage("生成失敗，請稍後再試");
+          const errMsg = payload && payload.error ? payload.error : "生成失敗，請稍後再試";
+          this.showFriendlyMessage(errMsg, "error");
           return;
         }
 
         const blob = this.base64ToBlob(payload.data.base64, payload.data.mimeType);
         if (!blob || blob.size === 0) {
-          this.showFriendlyMessage("生成失敗，請稍後再試");
+          this.showFriendlyMessage("檔案生成異常，請重試", "error");
           return;
         }
 
         const ext = payload.data.extension || finalFormat;
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
-        a.href = url;
-        a.download = "BinTools_Export_" + Date.now() + "." + ext;
+        a.href = url; a.download = "BinTools_Export_" + Date.now() + "." + ext;
         a.click();
         window.URL.revokeObjectURL(url);
 
-        await this.fetchUserStatus();
+        // ── 下載成功：更新 localStorage 次數 ────────────────────
+        if (!isPro) {
+          UserState.incrementUsage();
+        }
 
+        await this.fetchUserStatus();
         keepSuccessState = true;
         btn.innerHTML = "下載完成 ✓";
         App.showFriendlyMessage("下載完成！", "success");
-        setTimeout(function() {
-          App.setButtonLoading(btn, false, "", originHTML);
-        }, 2000);
-      } catch (_) {
-        this.showFriendlyMessage("生成失敗，請稍後再試");
+        setTimeout(function() { App.setButtonLoading(btn, false, "", originHTML); }, 2000);
+
+      } catch (err) {
+        console.error("[exportMedia]", err);
+        this.showFriendlyMessage("網路錯誤，請確認連線後重試", "error");
       } finally {
-        if (!keepSuccessState) {
-          this.setButtonLoading(btn, false, "", originHTML);
-        }
+        if (!keepSuccessState) { this.setButtonLoading(btn, false, "", originHTML); }
       }
     }
   };
@@ -1339,6 +1443,16 @@
       var resParts  = ((document.getElementById("tblResolution") || {}).value || "1920|1080").split("|");
       var outW = parseInt(resParts[0]) || 1920;
       var outH = parseInt(resParts[1]) || 1080;
+
+      // ── 免費用戶解析度限制 ──
+      var _isPro = window.App && App.user && App.user.plan === "pro";
+      var _clamped = UserState.clampResolution(_isPro, outW, outH);
+      if (!_isPro && (_clamped.w !== outW || _clamped.h !== outH)) {
+        App.showFriendlyMessage("免費版最高 " + UserState.FREE_MAX_RES_W + "×" + UserState.FREE_MAX_RES_H + "，升級 Pro 解鎖 4K ⬆");
+        console.log("[ToolTable] resolution clamped:", outW+"x"+outH, "→", _clamped.w+"x"+_clamped.h);
+      }
+      outW = _clamped.w;
+      outH = _clamped.h;
 
       var isKeynote = theme === "keynote";
       var isGlass   = theme === "glass";
