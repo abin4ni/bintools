@@ -872,8 +872,9 @@
    * =========================================================== */
   const UserState = {
     FREE_DAILY_LIMIT: 3,
-    FREE_MAX_RES_W: 1280,
-    FREE_MAX_RES_H: 720,
+    FREE_MAX_RES_W: 1920,
+    FREE_MAX_RES_H: 1080,
+    FREE_4K_TRIAL_KEY: "bintools_4k_used",
     STORAGE_KEY: "bintools_user_state",
 
     // 讀取 localStorage 狀態
@@ -901,6 +902,17 @@
       return typeof s.usageCount === "number" ? s.usageCount : 0;
     },
 
+    // 4K 體驗次數是否已用過
+    has4KTrial: function() {
+      try { return !!localStorage.getItem(this.FREE_4K_TRIAL_KEY); } catch (_) { return true; }
+    },
+
+    // 標記 4K 體驗已使用
+    mark4KTrialUsed: function() {
+      try { localStorage.setItem(this.FREE_4K_TRIAL_KEY, "1"); } catch (_) {}
+      console.log("[UserState] 4K trial marked as used");
+    },
+
     // 增加一次使用次數
     incrementUsage: function() {
       var s = this._load();
@@ -915,39 +927,44 @@
       return s.usageCount;
     },
 
-    // 檢查是否超過免費額度（回傳 true = 可繼續）
+    // 檢查是否可以下載
     canDownload: function(isPro) {
       if (isPro) return true;
       return this.getTodayUsage() < this.FREE_DAILY_LIMIT;
     },
 
-    // 免費用戶解析度限制
+    // 解析度限制邏輯：
+    //   Pro      → 不限
+    //   免費首次用 4K → 允許並標記
+    //   免費已用 4K → clamp 到 1920×1080
     clampResolution: function(isPro, w, h) {
       if (isPro) return { w: w, h: h };
-      var maxW = this.FREE_MAX_RES_W, maxH = this.FREE_MAX_RES_H;
-      if (w > maxW || h > maxH) {
-        var ratio = w / h;
-        if (w / maxW > h / maxH) { return { w: maxW, h: Math.round(maxW / ratio) }; }
-        else { return { w: Math.round(maxH * ratio), h: maxH }; }
+      var is4K = (w > 1920 || h > 1080);
+      if (!is4K) return { w: w, h: h }; // 1080p 以下完全不限制
+      if (!this.has4KTrial()) {
+        // 首次 4K：允許並標記
+        this.mark4KTrialUsed();
+        App.showFriendlyMessage("🎉 免費 4K 體驗額度已啟用！升級 Pro 可永久解鎖 ⬆", "success");
+        console.log("[UserState] 4K trial granted:", w + "x" + h);
+        return { w: w, h: h };
       }
-      return { w: w, h: h };
+      // 已用過 4K 體驗：clamp 到 1080p
+      var ratio = w / h;
+      var clampW = ratio >= 1 ? 1920 : Math.round(1080 * ratio);
+      var clampH = ratio >= 1 ? Math.round(1920 / ratio) : 1080;
+      App.showFriendlyMessage("免費版 4K 體驗已使用，已降至 1080p。升級 Pro 永久解鎖 4K ⬆");
+      console.log("[UserState] 4K trial exhausted, clamped:", w + "x" + h, "→", clampW + "x" + clampH);
+      return { w: clampW, h: clampH };
     },
 
-    // ── Firebase 接口（預留） ──────────────────────────────────
-    // 未來接入 Firebase Firestore 儲存用戶方案
-    // firebase.firestore().collection("users").doc(uid).set({ plan: "pro" })
-    // 呼叫方式：await UserState.syncFromFirebase(uid)
+    // ── Firebase 接口（預留） ──
     syncFromFirebase: async function(uid) {
-      // TODO: 接入後取代 localStorage plan 邏輯
       console.log("[UserState] Firebase sync placeholder, uid:", uid);
       return null;
     },
 
-    // ── Stripe 接口（預留） ────────────────────────────────────
-    // 未來接入 Stripe Checkout Session
-    // 呼叫方式：await UserState.openStripeCheckout()
+    // ── Stripe 接口（預留） ──
     openStripeCheckout: async function() {
-      // TODO: fetch("/api/create-checkout-session") → redirect to Stripe
       console.log("[UserState] Stripe checkout placeholder");
       return null;
     }
@@ -1444,13 +1461,9 @@
       var outW = parseInt(resParts[0]) || 1920;
       var outH = parseInt(resParts[1]) || 1080;
 
-      // ── 免費用戶解析度限制 ──
+      // ── 免費用戶解析度限制（訊息由 clampResolution 內部處理）──
       var _isPro = window.App && App.user && App.user.plan === "pro";
       var _clamped = UserState.clampResolution(_isPro, outW, outH);
-      if (!_isPro && (_clamped.w !== outW || _clamped.h !== outH)) {
-        App.showFriendlyMessage("免費版最高 " + UserState.FREE_MAX_RES_W + "×" + UserState.FREE_MAX_RES_H + "，升級 Pro 解鎖 4K ⬆");
-        console.log("[ToolTable] resolution clamped:", outW+"x"+outH, "→", _clamped.w+"x"+_clamped.h);
-      }
       outW = _clamped.w;
       outH = _clamped.h;
 
