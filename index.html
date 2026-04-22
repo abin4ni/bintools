@@ -8,150 +8,364 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-<!-- Google AdSense (請填入你的 ID) -->
-<!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXX" crossorigin="anonymous"></script> -->
-
 <style>
   :root {
-    --bg-main: #000000; --text-main: #f5f5f7; --text-muted: rgba(255,255,255,0.6);
-    --glass-bg: rgba(255, 255, 255, 0.05); --glass-border: rgba(255, 255, 255, 0.1);
-    --apple-blue: #0A84FF; --apple-blue-hover: #0071e3;
-    --font-display: 'Inter', sans-serif;
+    --bg-main:#000000; --text-main:#f5f5f7; --text-muted:rgba(255,255,255,0.55);
+    --glass-bg:rgba(255,255,255,0.05); --glass-border:rgba(255,255,255,0.10);
+    --glass-border-hover:rgba(255,255,255,0.22);
+    --apple-blue:#0A84FF; --apple-blue-hover:#0071e3;
+    --font:Inter,-apple-system,BlinkMacSystemFont,sans-serif;
+    --ease-spring:cubic-bezier(0.34,1.56,0.64,1);
+    --ease-out:cubic-bezier(0.22,1,0.36,1);
   }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: var(--bg-main); color: var(--text-main); font-family: var(--font-display); line-height: 1.5; overflow-x: hidden; display: flex; flex-direction: column; min-height: 100vh;}
-  
-  .nav { position: fixed; top: 0; width: 100%; z-index: 100; display: flex; justify-content: space-between; align-items: center; padding: 0 40px; height: 60px; background: rgba(0,0,0,0.7); backdrop-filter: blur(20px); border-bottom: 1px solid var(--glass-border); }
-  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; color: #fff; text-decoration: none;}
-  .b-logo { width: 30px; height: 30px; background: #fff; color: #000; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800;}
-  .nav-links { display: flex; gap: 24px; }
-  .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.3s; }
-  .nav-links a:hover { color: #fff; }
-  .btn-primary { background: var(--apple-blue); color: #fff; text-decoration: none; padding: 8px 20px; border-radius: 20px; font-size: 14px; font-weight: 600; transition: 0.3s; }
-  .btn-primary:hover { background: var(--apple-blue-hover); transform: scale(1.05); }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--bg-main);color:var(--text-main);font-family:var(--font);line-height:1.5;overflow-x:hidden;display:flex;flex-direction:column;min-height:100vh;}
 
-  .hero { text-align: center; padding: 180px 20px 100px; position: relative; flex: 1;}
-  .hero h1 { font-size: 64px; font-weight: 700; letter-spacing: -1.5px; margin-bottom: 24px; background: linear-gradient(135deg, #fff 0%, #a5a5a5 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-  .hero p { font-size: 22px; color: var(--text-muted); max-width: 700px; margin: 0 auto 40px; }
-  .hero-buttons { display: flex; justify-content: center; gap: 16px; }
-  .btn-secondary { background: var(--glass-bg); color: #fff; border: 1px solid var(--glass-border); text-decoration: none; padding: 14px 28px; border-radius: 30px; font-size: 16px; font-weight: 600; backdrop-filter: blur(10px); transition: 0.3s; }
-  .btn-secondary:hover { background: rgba(255,255,255,0.1); }
-  .btn-primary-large { padding: 14px 28px; border-radius: 30px; font-size: 16px; }
+  /* NAV */
+  .nav{position:fixed;top:0;width:100%;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:0 40px;height:60px;background:rgba(0,0,0,0.72);backdrop-filter:blur(20px);border-bottom:1px solid var(--glass-border);transition:background 0.3s;}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:20px;color:#fff;text-decoration:none;}
+  .b-logo{width:30px;height:30px;background:#fff;color:#000;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;}
+  .nav-links{display:flex;gap:24px;}
+  .nav-links a{color:var(--text-muted);text-decoration:none;font-size:14px;font-weight:500;transition:color 0.25s;}
+  .nav-links a:hover{color:#fff;}
+  .btn-primary{background:var(--apple-blue);color:#fff;text-decoration:none;padding:8px 20px;border-radius:20px;font-size:14px;font-weight:600;transition:background 0.25s,transform 0.18s var(--ease-spring),box-shadow 0.25s;display:inline-block;}
+  .btn-primary:hover{background:var(--apple-blue-hover);transform:scale(1.05);box-shadow:0 4px 20px rgba(10,132,255,0.35);}
+  .btn-primary:active{transform:scale(0.97);}
 
-  .section-title { text-align: center; font-size: 40px; margin-bottom: 60px; font-weight: 700; letter-spacing: -1px; }
-  .features { max-width: 1200px; margin: 0 auto 120px; padding: 0 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
-  .feature-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 24px; padding: 40px; backdrop-filter: blur(20px); transition: transform 0.3s; text-align: left;}
-  .feature-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
-  .f-icon { font-size: 40px; margin-bottom: 20px; }
-  .feature-card h3 { font-size: 24px; margin-bottom: 12px; }
-  .feature-card p { color: var(--text-muted); font-size: 15px; }
+  /* HERO */
+  .hero{text-align:center;padding:180px 20px 120px;position:relative;overflow:hidden;}
+  .hero-glow{position:absolute;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 70% 50% at 50% -10%,rgba(10,132,255,0.18) 0%,transparent 70%),radial-gradient(ellipse 50% 40% at 80% 80%,rgba(120,80,255,0.10) 0%,transparent 60%),radial-gradient(ellipse 40% 30% at 10% 70%,rgba(0,200,180,0.07) 0%,transparent 60%);}
+  .hero-blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:0.15;animation:blobFloat 18s ease-in-out infinite;pointer-events:none;z-index:0;}
+  .hero-blob-1{width:500px;height:500px;background:#0A84FF;top:-100px;left:-100px;animation-delay:0s;}
+  .hero-blob-2{width:400px;height:400px;background:#7c3aed;top:100px;right:-80px;animation-delay:-6s;}
+  .hero-blob-3{width:300px;height:300px;background:#06b6d4;bottom:0;left:40%;animation-delay:-12s;}
+  @keyframes blobFloat{0%,100%{transform:translate(0,0) scale(1);}33%{transform:translate(40px,-30px) scale(1.06);}66%{transform:translate(-25px,20px) scale(0.95);}}
+  .hero-content{position:relative;z-index:1;}
+  .hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(10,132,255,0.12);border:1px solid rgba(10,132,255,0.3);color:#60aaff;font-size:12px;font-weight:600;letter-spacing:0.06em;padding:5px 14px;border-radius:980px;margin-bottom:28px;animation:fadeSlideUp 0.8s var(--ease-out) both;}
+  .hero h1{font-size:clamp(40px,6vw,72px);font-weight:700;letter-spacing:-2px;margin-bottom:28px;background:linear-gradient(135deg,#ffffff 0%,#c0c0c8 50%,#7878a0 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;animation:fadeSlideUp 0.8s var(--ease-out) 0.1s both;}
+  .hero p{font-size:clamp(15px,2vw,21px);color:var(--text-muted);max-width:640px;margin:0 auto 44px;line-height:1.7;animation:fadeSlideUp 0.8s var(--ease-out) 0.2s both;}
+  .hero-buttons{display:flex;justify-content:center;gap:16px;flex-wrap:wrap;animation:fadeSlideUp 0.8s var(--ease-out) 0.32s both;}
+  .btn-secondary{background:var(--glass-bg);color:#fff;border:1px solid var(--glass-border);text-decoration:none;padding:14px 28px;border-radius:30px;font-size:16px;font-weight:600;backdrop-filter:blur(10px);transition:background 0.25s,border-color 0.25s,transform 0.18s var(--ease-spring),box-shadow 0.25s;display:inline-block;}
+  .btn-secondary:hover{background:rgba(255,255,255,0.1);border-color:var(--glass-border-hover);transform:scale(1.04);}
+  .btn-secondary:active{transform:scale(0.97);}
+  .btn-primary-large{padding:14px 32px;border-radius:30px;font-size:16px;}
+  .hero-stats{display:flex;justify-content:center;gap:48px;margin-top:72px;animation:fadeSlideUp 0.8s var(--ease-out) 0.44s both;flex-wrap:wrap;}
+  .hero-stat{text-align:center;}
+  .hero-stat-num{font-size:32px;font-weight:700;color:#fff;line-height:1;}
+  .hero-stat-lbl{font-size:12px;color:var(--text-muted);margin-top:4px;letter-spacing:0.04em;}
+  @keyframes fadeSlideUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
 
-  .pricing { max-width: 900px; margin: 0 auto 120px; padding: 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
-  .price-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 30px; padding: 50px; text-align: left; backdrop-filter: blur(20px); }
-  .price-card.pro { border-color: #FF9A9E; position: relative; }
-  .badge { position: absolute; top: -15px; right: 40px; background: linear-gradient(135deg, #FF9A9E, #FECFEF); color: #000; font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 20px; }
-  .p-price { font-size: 56px; font-weight: 700; margin-bottom: 30px; display: flex; align-items: baseline; gap: 8px;}
-  .p-price span { font-size: 16px; color: var(--text-muted); font-weight: 400; }
-  .p-list { list-style: none; margin-bottom: 40px; }
-  .p-list li { margin-bottom: 16px; font-size: 15px; display: flex; align-items: center; gap: 12px; }
-  .p-list li::before { content: '✓'; color: var(--apple-blue); font-weight: bold; }
+  /* SCROLL REVEAL */
+  .reveal{opacity:0;transform:translateY(32px);transition:opacity 0.7s var(--ease-out),transform 0.7s var(--ease-out);}
+  .reveal.visible{opacity:1;transform:translateY(0);}
+  .reveal-delay-1{transition-delay:0.1s;}
+  .reveal-delay-2{transition-delay:0.2s;}
+  .reveal-delay-3{transition-delay:0.3s;}
 
-  footer { border-top: 1px solid var(--glass-border); padding: 40px 20px; text-align: center; margin-top: auto;}
-  .f-links { display: flex; justify-content: center; gap: 24px; margin-bottom: 20px; }
-  .f-links a { color: var(--text-muted); text-decoration: none; font-size: 14px; transition: 0.2s; }
-  .f-links a:hover { color: #fff; }
+  /* SECTION */
+  .section-label{text-align:center;font-size:11px;font-weight:700;letter-spacing:0.14em;color:var(--apple-blue);text-transform:uppercase;margin-bottom:14px;}
+  .section-title{text-align:center;font-size:clamp(26px,4vw,42px);margin-bottom:16px;font-weight:700;letter-spacing:-1px;}
+  .section-sub{text-align:center;font-size:16px;color:var(--text-muted);max-width:520px;margin:0 auto 60px;line-height:1.7;}
 
-  .view { display: none; animation: fadeIn 0.4s ease; }
-  .view.active { display: block; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  /* FEATURES */
+  .features-section{max-width:1200px;margin:0 auto 120px;padding:0 24px;}
+  .features{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;}
+  .feature-card{background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:24px;overflow:hidden;backdrop-filter:blur(20px);transition:transform 0.36s var(--ease-spring),box-shadow 0.36s var(--ease-out),border-color 0.3s;}
+  .feature-card:hover{transform:translateY(-10px) scale(1.02);box-shadow:0 32px 64px rgba(0,0,0,0.5),0 0 0 1px rgba(255,255,255,0.14);border-color:var(--glass-border-hover);}
+  .feature-img{width:100%;height:200px;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;border-bottom:1px solid var(--glass-border);}
+  .feature-img-inner{width:85%;height:80%;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:56px;transition:transform 0.4s var(--ease-spring);position:relative;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.4);}
+  .feature-card:hover .feature-img-inner{transform:scale(1.06) translateY(-4px);}
+  .feature-img-table{background:linear-gradient(135deg,#0f2027 0%,#1a3a4a 50%,#0d2236 100%);}
+  .feature-img-code{background:linear-gradient(135deg,#1a1b26 0%,#24283b 100%);}
+  .feature-img-anim{background:linear-gradient(135deg,#0d0d1a 0%,#1a0d2e 100%);}
+  .demo-table{width:90%;border-collapse:collapse;font-size:11px;}
+  .demo-table th{background:rgba(10,132,255,0.7);color:#fff;padding:6px 10px;text-align:left;font-weight:600;}
+  .demo-table td{padding:5px 10px;color:rgba(255,255,255,0.85);border-bottom:1px solid rgba(255,255,255,0.07);}
+  .demo-table tr:nth-child(even) td{background:rgba(255,255,255,0.04);}
+  .demo-code{width:90%;font-size:11px;font-family:'Courier New',monospace;text-align:left;line-height:1.8;}
+  .code-kw{color:#c678dd;} .code-fn{color:#61afef;} .code-str{color:#98c379;} .code-cm{color:#5c6370;font-style:italic;} .code-num{color:#d19a66;}
+  .demo-anim-card{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.18);border-radius:14px;padding:16px 24px;backdrop-filter:blur(10px);color:#fff;font-size:13px;font-weight:600;animation:demoPopIn 2.4s ease-in-out infinite;box-shadow:0 8px 24px rgba(0,0,0,0.3);}
+  @keyframes demoPopIn{0%,100%{transform:scale(0.9);opacity:0.5;}40%,60%{transform:scale(1);opacity:1;}}
+  .feature-body{padding:28px 32px 32px;}
+  .f-icon{font-size:28px;margin-bottom:14px;display:block;}
+  .feature-card h3{font-size:20px;font-weight:700;margin-bottom:10px;}
+  .feature-card p{color:var(--text-muted);font-size:14px;line-height:1.7;}
+  .feature-tag{display:inline-block;margin-top:14px;background:rgba(10,132,255,0.12);border:1px solid rgba(10,132,255,0.25);color:#60aaff;font-size:11px;font-weight:600;padding:3px 10px;border-radius:980px;}
 
-  .legal-section { max-width: 800px; margin: 100px auto; padding: 40px 20px; }
-  .legal-section h2 { font-size: 32px; margin-bottom: 24px; border-bottom: 1px solid var(--glass-border); padding-bottom: 16px;}
-  .legal-section p { color: var(--text-muted); margin-bottom: 16px; }
+  /* BLOG */
+  .blog-section{max-width:1000px;margin:0 auto 120px;padding:0 24px;}
+  .blog-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;margin-bottom:40px;}
+  .blog-card{background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:20px;padding:28px;cursor:pointer;backdrop-filter:blur(20px);transition:transform 0.3s var(--ease-spring),border-color 0.25s,box-shadow 0.3s;text-decoration:none;display:block;}
+  .blog-card:hover{transform:translateY(-6px) scale(1.015);border-color:var(--glass-border-hover);box-shadow:0 20px 40px rgba(0,0,0,0.4);}
+  .blog-card h4{font-size:17px;font-weight:700;color:#fff;margin-bottom:10px;line-height:1.4;}
+  .blog-card p{color:var(--text-muted);font-size:14px;line-height:1.65;}
+  .blog-tag{display:inline-block;margin-bottom:12px;font-size:11px;font-weight:600;color:var(--apple-blue);letter-spacing:0.06em;text-transform:uppercase;}
+  .blog-center{text-align:center;}
 
-  @media (max-width: 768px) { .pricing { grid-template-columns: 1fr; } .hero h1 { font-size: 48px; } .nav-links { display: none; } }
+  /* PRICING */
+  .pricing-section{max-width:900px;margin:0 auto 120px;padding:0 24px;}
+  .pricing{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+  .price-card{background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:28px;padding:44px;text-align:left;backdrop-filter:blur(20px);transition:transform 0.3s var(--ease-spring),box-shadow 0.3s;}
+  .price-card:hover{transform:translateY(-6px);box-shadow:0 24px 48px rgba(0,0,0,0.4);}
+  .price-card.pro{border-color:rgba(255,154,158,0.4);background:linear-gradient(160deg,rgba(255,154,158,0.06) 0%,rgba(254,207,239,0.04) 100%);position:relative;}
+  .price-card.pro:hover{box-shadow:0 24px 48px rgba(255,100,120,0.15);}
+  .badge{position:absolute;top:-14px;right:36px;background:linear-gradient(135deg,#FF9A9E,#FECFEF);color:#1d1d1f;font-size:11px;font-weight:700;padding:5px 14px;border-radius:20px;letter-spacing:0.04em;}
+  .p-plan{font-size:13px;font-weight:700;color:var(--text-muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.08em;}
+  .p-price{font-size:52px;font-weight:700;margin-bottom:28px;display:flex;align-items:baseline;gap:8px;}
+  .p-price span{font-size:15px;color:var(--text-muted);font-weight:400;}
+  .p-list{list-style:none;margin-bottom:36px;}
+  .p-list li{margin-bottom:14px;font-size:14px;display:flex;align-items:center;gap:10px;}
+  .p-list li::before{content:'✓';color:var(--apple-blue);font-weight:700;font-size:13px;flex-shrink:0;}
+  .p-list li.disabled{color:rgba(255,255,255,0.28);}
+  .p-list li.disabled::before{color:rgba(255,255,255,0.2);content:'✗';}
+  .p-btn{display:block;text-align:center;padding:14px;border-radius:16px;font-size:15px;font-weight:600;cursor:pointer;border:none;transition:all 0.22s var(--ease-spring);width:100%;text-decoration:none;}
+  .p-btn:active{transform:scale(0.97);}
+  .p-btn-free{background:var(--glass-bg);border:1px solid var(--glass-border);color:#fff;}
+  .p-btn-free:hover{background:rgba(255,255,255,0.1);border-color:var(--glass-border-hover);}
+  .p-btn-pro{background:linear-gradient(135deg,#0A84FF 0%,#0066cc 100%);color:#fff;box-shadow:0 4px 20px rgba(10,132,255,0.28);}
+  .p-btn-pro:hover{transform:scale(1.03);box-shadow:0 8px 28px rgba(10,132,255,0.42);}
+
+  /* PRO MODAL */
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(12px);z-index:500;align-items:center;justify-content:center;padding:20px;}
+  .modal-overlay.open{display:flex;animation:modalFadeIn 0.25s var(--ease-out);}
+  @keyframes modalFadeIn{from{opacity:0;}to{opacity:1;}}
+  .modal-box{background:#111114;border:1px solid rgba(255,255,255,0.12);border-radius:28px;padding:40px 36px;width:100%;max-width:440px;text-align:center;position:relative;box-shadow:0 32px 80px rgba(0,0,0,0.5);animation:modalSlideUp 0.3s var(--ease-spring);}
+  @keyframes modalSlideUp{from{opacity:0;transform:translateY(20px) scale(0.97);}to{opacity:1;transform:translateY(0) scale(1);}}
+  .modal-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.08);border:none;border-radius:50%;width:30px;height:30px;color:rgba(255,255,255,0.6);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s;}
+  .modal-close:hover{background:rgba(255,255,255,0.14);}
+  .modal-icon{font-size:52px;margin-bottom:16px;display:block;}
+  .modal-title{font-size:24px;font-weight:700;margin-bottom:10px;}
+  .modal-desc{font-size:14px;color:var(--text-muted);line-height:1.7;margin-bottom:24px;}
+  .modal-price-badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(255,154,158,0.15),rgba(254,207,239,0.1));border:1px solid rgba(255,154,158,0.3);color:#ffb3b8;font-size:22px;font-weight:700;padding:10px 24px;border-radius:16px;margin-bottom:24px;}
+  .modal-features{list-style:none;text-align:left;margin-bottom:24px;}
+  .modal-features li{padding:9px 0;font-size:14px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;align-items:center;gap:10px;}
+  .modal-features li:last-child{border-bottom:none;}
+  .modal-features li::before{content:'✓';color:#34c759;font-weight:700;flex-shrink:0;}
+  .modal-coming-soon{background:rgba(255,255,255,0.04);border-radius:12px;padding:16px;font-size:13px;color:var(--text-muted);margin-bottom:20px;border:1px solid rgba(255,255,255,0.07);}
+  .modal-coming-soon strong{color:#fff;display:block;margin-bottom:6px;font-size:14px;}
+  .modal-cta{width:100%;padding:15px;border-radius:14px;border:none;font-size:15px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#0A84FF 0%,#0066cc 100%);color:#fff;box-shadow:0 4px 20px rgba(10,132,255,0.3);transition:all 0.22s var(--ease-spring);margin-bottom:12px;}
+  .modal-cta:hover{transform:scale(1.02);box-shadow:0 8px 28px rgba(10,132,255,0.45);}
+  .modal-cta:disabled{opacity:0.7;cursor:default;transform:none;}
+  .modal-note{font-size:12px;color:var(--text-muted);}
+
+  /* FOOTER */
+  footer{border-top:1px solid var(--glass-border);padding:40px 20px;text-align:center;margin-top:auto;}
+  .f-links{display:flex;justify-content:center;gap:24px;margin-bottom:20px;flex-wrap:wrap;}
+  .f-links a{color:var(--text-muted);text-decoration:none;font-size:14px;transition:color 0.2s;}
+  .f-links a:hover{color:#fff;}
+  .copyright{color:rgba(255,255,255,0.25);font-size:12px;}
+
+  /* RESPONSIVE */
+  @media(max-width:768px){
+    .pricing{grid-template-columns:1fr;}
+    .hero h1{font-size:40px;letter-spacing:-1px;}
+    .nav-links{display:none;}
+    .nav{padding:0 20px;}
+    .hero{padding:140px 20px 80px;}
+    .hero-stats{gap:28px;}
+    .feature-img{height:160px;}
+    .price-card{padding:32px;}
+    .features-section,.blog-section,.pricing-section{padding:0 16px;}
+  }
 </style>
 </head>
 <body>
 
 <nav class="nav">
-  <a href="./" class="brand" onclick="event.preventDefault(); App.switchView('home')"><div class="b-logo">B</div> BinTools</a>
+  <a href="./" class="brand"><div class="b-logo">B</div> BinTools</a>
   <div class="nav-links">
-    <a href="#features" onclick="event.preventDefault(); App.switchView('home'); window.location.hash='features';">功能介紹</a>
-    <a href="#pricing" onclick="event.preventDefault(); App.switchView('home'); window.location.hash='pricing';">方案價格</a>
+    <a href="#features">功能介紹</a>
+    <a href="#pricing">方案價格</a>
     <a href="/blog">教學文章</a>
   </div>
   <a href="./app" class="btn-primary">進入工具區</a>
 </nav>
 
-<div class="view-container">
-  <!-- ================= HOME VIEW ================= -->
-  <div id="view-home" class="view active">
-    <header class="hero">
-      <h1>資料呈現，從未如此優雅。</h1>
-      <p>將繁雜的數據與程式碼，一鍵轉化為頂級質感的 Apple 風格海報與 60fps 動態展演短影片。免安裝，雲端即刻渲染。</p>
-      <div class="hero-buttons">
-        <a href="./app" class="btn-primary btn-primary-large">免費開始使用</a>
-        <a href="#pricing" class="btn-secondary">查看方案</a>
-      </div>
-    </header>
-
-    <section id="features">
-      <h2 class="section-title">三大生產力工具</h2>
-      <div class="features">
-        <div class="feature-card"><div class="f-icon">📊</div><h3>表格海報生成器</h3><p>支援匯入 Excel、CSV。自動排版出帶有毛玻璃、深邃陰影的高級數據海報。</p></div>
-        <div class="feature-card"><div class="f-icon">👨‍💻</div><h3>程式碼視窗截圖</h3><p>將冰冷的程式碼裝入 macOS 風格視窗，支援自動語法高亮與開發者風格背景。</p></div>
-        <div class="feature-card"><div class="f-icon">🎬</div><h3>動態展演生成</h3><p>獨家雲端渲染引擎，為圖片加入 Apple 彈性特效，支援 1080p 60fps 透明去背影片。</p></div>
-      </div>
-    </section>
-
-    <!-- ★ BLOG 導流區塊 ★ -->
-    <section style="max-width: 1000px; margin: 60px auto 120px; padding: 0 32px;">
-      <h2 class="section-title" style="margin-bottom: 40px;">最新教學與技巧</h2>
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
-        <div style="background: var(--glass-bg); padding: 30px; border-radius: 20px; border: 1px solid var(--glass-border); cursor: pointer; backdrop-filter: blur(20px); transition: transform 0.3s;" onclick="window.location.href='/blog'" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='none'">
-          <h4 style="margin-bottom: 12px; font-size: 18px; color: #fff;">IG 貼文生成器技巧</h4>
-          <p style="color: var(--text-muted); font-size: 14px;">如何用數據表格一鍵產出高質感 Instagram 貼文...</p>
-        </div>
-        <div style="background: var(--glass-bg); padding: 30px; border-radius: 20px; border: 1px solid var(--glass-border); cursor: pointer; backdrop-filter: blur(20px); transition: transform 0.3s;" onclick="window.location.href='/blog'" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='none'">
-          <h4 style="margin-bottom: 12px; font-size: 18px; color: #fff;">Canva 免費替代工具</h4>
-          <p style="color: var(--text-muted); font-size: 14px;">專注於數據與程式碼呈現的極簡高級生成器...</p>
-        </div>
-      </div>
-      <div style="text-align: center; margin-top: 40px;">
-        <a href="/blog" class="btn-secondary">閱讀全部文章</a>
-      </div>
-    </section>
-
-    <section id="pricing">
-      <h2 class="section-title">選擇適合你的方案</h2>
-      <div class="pricing">
-        <div class="price-card">
-          <div style="font-size: 20px; font-weight: 600; color: var(--text-muted); margin-bottom: 16px;">Free</div>
-          <div class="p-price">$0 <span>/ 永久</span></div>
-          <ul class="p-list">
-            <li>每日 3 次下載額度</li><li>最高 720p 30fps 畫質</li><li>帶有 BinTools 浮水印</li><li style="color: rgba(255,255,255,0.4)">支援去除浮水印</li>
-          </ul>
-          <a href="./app" class="btn-secondary" style="display:block; text-align:center;">免費註冊</a>
-        </div>
-        <div class="price-card pro">
-          <div class="badge">最受歡迎</div>
-          <div style="font-size: 20px; font-weight: 600; color: var(--text-muted); margin-bottom: 16px;">Pro</div>
-          <div class="p-price">$9.9 <span>/ 月</span></div>
-          <ul class="p-list">
-            <li>無限制下載次數</li><li>解鎖 1080p 60fps 頂級畫質</li><li>完全去除浮水印</li><li>商用授權與去背影片支援</li>
-          </ul>
-          <a href="./app" class="btn-primary btn-primary-large" style="display:block; text-align:center; padding:14px;">前往升級 Pro</a>
-        </div>
-      </div>
-    </section>
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-blob hero-blob-1"></div>
+  <div class="hero-blob hero-blob-2"></div>
+  <div class="hero-blob hero-blob-3"></div>
+  <div class="hero-content">
+    <div class="hero-badge">✦ 免安裝，即刻可用</div>
+    <h1>資料呈現，<br>從未如此優雅。</h1>
+    <p>將繁雜的數據與程式碼，一鍵轉化為頂級質感的 Apple 風格海報與 60fps 動態展演短影片。專為創作者與專業人士打造。</p>
+    <div class="hero-buttons">
+      <a href="./app" class="btn-primary btn-primary-large">免費開始使用</a>
+      <a href="#pricing" class="btn-secondary">查看方案</a>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="hero-stat-num">6+</div><div class="hero-stat-lbl">專業工具</div></div>
+      <div class="hero-stat"><div class="hero-stat-num">4K</div><div class="hero-stat-lbl">最高輸出解析度</div></div>
+      <div class="hero-stat"><div class="hero-stat-num">60fps</div><div class="hero-stat-lbl">動態展演影片</div></div>
+      <div class="hero-stat"><div class="hero-stat-num">免費</div><div class="hero-stat-lbl">立即使用</div></div>
+    </div>
   </div>
+</header>
 
+<!-- FEATURES -->
+<section id="features">
+  <div class="features-section">
+    <p class="section-label reveal">核心功能</p>
+    <h2 class="section-title reveal">三大生產力工具</h2>
+    <p class="section-sub reveal">從數據到設計，從程式碼到影片，一站式完成所有內容創作。</p>
+    <div class="features">
+
+      <div class="feature-card reveal reveal-delay-1">
+        <div class="feature-img">
+          <div class="feature-img-inner feature-img-table">
+            <table class="demo-table">
+              <thead><tr><th>方案</th><th>月費</th><th>畫質</th></tr></thead>
+              <tbody>
+                <tr><td>Free</td><td>$0</td><td>720p</td></tr>
+                <tr><td>Pro</td><td>$9.9</td><td>4K</td></tr>
+                <tr><td>Team</td><td>$29</td><td>4K+</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="feature-body">
+          <span class="f-icon">📊</span>
+          <h3>表格海報生成器</h3>
+          <p>支援匯入 Excel、CSV 或直接貼上文字。5 種主題、7 種配色，Canvas 渲染直接下載，永不失敗。</p>
+          <span class="feature-tag">Canvas 渲染 · 支援 4K</span>
+        </div>
+      </div>
+
+      <div class="feature-card reveal reveal-delay-2">
+        <div class="feature-img">
+          <div class="feature-img-inner feature-img-code">
+            <div class="demo-code">
+              <div><span class="code-cm">// BinTools 程式碼截圖</span></div>
+              <div><span class="code-kw">const</span> <span class="code-fn">poster</span> = <span class="code-kw">await</span> generate({</div>
+              <div>&nbsp;&nbsp;theme: <span class="code-str">'atom-dark'</span>,</div>
+              <div>&nbsp;&nbsp;lang: <span class="code-str">'javascript'</span>,</div>
+              <div>&nbsp;&nbsp;size: <span class="code-num">1920</span></div>
+              <div>});</div>
+            </div>
+          </div>
+        </div>
+        <div class="feature-body">
+          <span class="f-icon">👨‍💻</span>
+          <h3>程式碼視窗截圖</h3>
+          <p>將冰冷的程式碼裝入 macOS 風格視窗，支援自動語法高亮、行號顯示與多種開發者風格主題。</p>
+          <span class="feature-tag">語法高亮 · 20+ 語言</span>
+        </div>
+      </div>
+
+      <div class="feature-card reveal reveal-delay-3">
+        <div class="feature-img">
+          <div class="feature-img-inner feature-img-anim">
+            <div class="demo-anim-card">
+              ✦ Apple 彈性特效<br>
+              <span style="font-size:11px;opacity:0.7;font-weight:400;">60fps · 透明去背 · WebM</span>
+            </div>
+          </div>
+        </div>
+        <div class="feature-body">
+          <span class="f-icon">🎬</span>
+          <h3>動態展演生成</h3>
+          <p>獨家雲端渲染引擎，為圖片加入 Apple 彈性特效，支援 1080p 60fps 透明去背影片，直接套用剪輯軟體。</p>
+          <span class="feature-tag">60fps · WebM 去背</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- BLOG -->
+<section>
+  <div class="blog-section">
+    <p class="section-label reveal">學習資源</p>
+    <h2 class="section-title reveal">最新教學與技巧</h2>
+    <p class="section-sub reveal">探索如何將 BinTools 融入你的創作流程，讓內容產出效率翻倍。</p>
+    <div class="blog-grid">
+      <a href="/blog" class="blog-card reveal reveal-delay-1">
+        <span class="blog-tag">設計技巧</span>
+        <h4>IG 貼文生成器技巧</h4>
+        <p>如何用數據表格一鍵產出高質感 Instagram 貼文，讓你的社群貼文更專業、更吸睛...</p>
+      </a>
+      <a href="/blog" class="blog-card reveal reveal-delay-2">
+        <span class="blog-tag">工具比較</span>
+        <h4>Canva 免費替代工具</h4>
+        <p>專注於數據與程式碼呈現的極簡高級生成器，在特定場景下比 Canva 更強大...</p>
+      </a>
+    </div>
+    <div class="blog-center reveal">
+      <a href="/blog" class="btn-secondary">閱讀全部文章 →</a>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="pricing-section">
+    <p class="section-label reveal">定價方案</p>
+    <h2 class="section-title reveal">選擇適合你的方案</h2>
+    <p class="section-sub reveal">免費方案即可體驗全部工具，Pro 方案解鎖頂級畫質與無限下載。</p>
+    <div class="pricing">
+      <div class="price-card reveal reveal-delay-1">
+        <div class="p-plan">Free</div>
+        <div class="p-price">$0 <span>/ 永久</span></div>
+        <ul class="p-list">
+          <li>每日 3 次下載額度</li>
+          <li>最高 720p 30fps 畫質</li>
+          <li>全部 6 項工具可用</li>
+          <li class="disabled">去除浮水印</li>
+          <li class="disabled">商業授權</li>
+        </ul>
+        <a href="./app" class="p-btn p-btn-free">免費開始使用</a>
+      </div>
+      <div class="price-card pro reveal reveal-delay-2">
+        <div class="badge">最受歡迎</div>
+        <div class="p-plan">Pro</div>
+        <div class="p-price">$9.9 <span>/ 月</span></div>
+        <ul class="p-list">
+          <li>無限制下載次數</li>
+          <li>解鎖 4K 60fps 頂級畫質</li>
+          <li>完全去除浮水印</li>
+          <li>商用授權與去背影片</li>
+          <li>優先客服支援</li>
+        </ul>
+        <button class="p-btn p-btn-pro" onclick="App.openProModal()">升級 Pro 方案</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRO MODAL -->
+<div class="modal-overlay" id="proModal" onclick="if(event.target===this) App.closeProModal()">
+  <div class="modal-box">
+    <button class="modal-close" onclick="App.closeProModal()">✕</button>
+    <span class="modal-icon">🚀</span>
+    <h2 class="modal-title">升級 Pro 方案</h2>
+    <p class="modal-desc">解鎖無限下載、4K 畫質與完整商業授權，讓你的創作不設上限。</p>
+    <div class="modal-price-badge">$9.9 <span style="font-size:14px;font-weight:400;opacity:0.7;">/ 月</span></div>
+    <ul class="modal-features">
+      <li>無限制下載次數，不受每日額度限制</li>
+      <li>解鎖 4K 解析度與 60fps 影片匯出</li>
+      <li>所有生成內容完全去除浮水印</li>
+      <li>商業授權，可用於商業專案</li>
+      <li>透明去背 WebM 影片格式</li>
+    </ul>
+    <div class="modal-coming-soon">
+      <strong>🔧 付款系統即將上線</strong>
+      Pro 方案正在接入付款流程，預計近期開放。可先加入候補名單，上線即第一時間通知！
+    </div>
+    <button class="modal-cta" id="proModalCta" onclick="App.handleProCTA()">加入候補通知名單</button>
+    <p class="modal-note">上線即通知 · 可隨時取消 · 完全免費</p>
+  </div>
 </div>
 
+<!-- FOOTER -->
 <footer>
   <div class="f-links">
+    <a href="#features">功能介紹</a>
+    <a href="#pricing">方案價格</a>
+    <a href="/blog">教學文章</a>
     <a href="/privacy">Privacy Policy</a>
     <a href="/terms">Terms of Service</a>
     <a href="/contact">Contact</a>
@@ -161,13 +375,89 @@
 
 <script>
   const App = {
-    switchView: function(viewId) {
-      document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-      const target = document.getElementById(`view-${viewId}`);
-      if(target) target.classList.add('active');
-      window.scrollTo(0,0);
+    isPro: false,
+
+    init: function() {
+      this.initScrollReveal();
+      this.initNavScroll();
+      this.initButtonFeedback();
+      console.log('[BinTools] index initialized, isPro:', this.isPro);
+    },
+
+    initScrollReveal: function() {
+      var els = document.querySelectorAll('.reveal');
+      if (!els.length) return;
+      var io = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            io.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.12 });
+      els.forEach(function(el) { io.observe(el); });
+      console.log('[BinTools] ScrollReveal watching', els.length, 'elements');
+    },
+
+    initNavScroll: function() {
+      var nav = document.querySelector('.nav');
+      if (!nav) return;
+      window.addEventListener('scroll', function() {
+        nav.style.background = window.scrollY > 60
+          ? 'rgba(0,0,0,0.90)'
+          : 'rgba(0,0,0,0.72)';
+      }, { passive: true });
+    },
+
+    initButtonFeedback: function() {
+      document.querySelectorAll('.btn-primary,.btn-secondary,.p-btn,.modal-cta').forEach(function(btn) {
+        btn.addEventListener('mousedown', function() {
+          this.style.transform = 'scale(0.96)';
+        });
+        btn.addEventListener('mouseup', function() {
+          this.style.transform = '';
+        });
+        btn.addEventListener('mouseleave', function() {
+          this.style.transform = '';
+        });
+      });
+    },
+
+    openProModal: function() {
+      var m = document.getElementById('proModal');
+      if (!m) return;
+      m.classList.add('open');
+      // 重置 CTA 按鈕狀態
+      var cta = document.getElementById('proModalCta');
+      if (cta) {
+        cta.textContent = '加入候補通知名單';
+        cta.style.background = '';
+        cta.disabled = false;
+      }
+      console.log('[Pro] modal opened');
+    },
+
+    closeProModal: function() {
+      var m = document.getElementById('proModal');
+      if (m) m.classList.remove('open');
+    },
+
+    handleProCTA: function() {
+      var btn = document.getElementById('proModalCta');
+      if (!btn || btn.disabled) return;
+      btn.textContent = '✓ 已加入候補名單！';
+      btn.style.background = 'linear-gradient(135deg,#34c759 0%,#28a745 100%)';
+      btn.disabled = true;
+      console.log('[Pro] user joined waitlist');
+      setTimeout(function() { App.closeProModal(); }, 2000);
     }
   };
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') App.closeProModal();
+  });
+
+  document.addEventListener('DOMContentLoaded', function() { App.init(); });
 </script>
 </body>
 </html>
