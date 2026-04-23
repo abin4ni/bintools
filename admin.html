@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard - BinTools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0a0f; --bg-card:#111118; --bg-row:#16161e; --bg-hover:#1c1c28;
+    --text:#f0f0f5; --muted:rgba(240,240,245,0.5); --border:rgba(255,255,255,0.08);
+    --blue:#0A84FF; --green:#34c759; --orange:#ff9f0a; --red:#ff453a; --purple:#bf5af2;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:Inter,sans-serif;min-height:100vh;display:flex;flex-direction:column;}
+
+  /* NAV */
+  .nav{height:56px;background:rgba(10,10,15,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 32px;position:sticky;top:0;z-index:100;}
+  .nav-brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;text-decoration:none;color:var(--text);}
+  .b-logo{width:28px;height:28px;background:#fff;color:#000;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;}
+  .admin-badge{background:linear-gradient(135deg,#ff9f0a,#ff6b00);color:#000;font-size:10px;font-weight:800;padding:2px 8px;border-radius:6px;letter-spacing:0.08em;}
+  .nav-right{display:flex;align-items:center;gap:12px;}
+  .nav-user{font-size:13px;color:var(--muted);}
+  .btn-sm{background:rgba(255,255,255,0.07);border:1px solid var(--border);color:var(--text);padding:6px 14px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;transition:background 0.2s;text-decoration:none;display:inline-block;}
+  .btn-sm:hover{background:rgba(255,255,255,0.12);}
+
+  /* LAYOUT */
+  .layout{display:flex;flex:1;}
+  .sidebar{width:220px;background:var(--bg-card);border-right:1px solid var(--border);padding:20px 0;flex-shrink:0;}
+  .sidebar-section{padding:6px 16px;font-size:10px;font-weight:700;letter-spacing:0.1em;color:var(--muted);text-transform:uppercase;margin-top:16px;}
+  .sidebar-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:14px;font-weight:500;color:var(--muted);cursor:pointer;transition:all 0.15s;border:none;background:transparent;width:100%;text-align:left;text-decoration:none;}
+  .sidebar-item:hover{background:var(--bg-row);color:var(--text);}
+  .sidebar-item.active{background:rgba(10,132,255,0.1);color:var(--blue);border-right:2px solid var(--blue);}
+  .sidebar-icon{font-size:16px;width:20px;text-align:center;}
+  .main{flex:1;padding:32px;overflow-y:auto;}
+
+  /* STATS ROW */
+  .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+  .stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:20px 24px;}
+  .stat-label{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:8px;}
+  .stat-value{font-size:30px;font-weight:700;line-height:1;}
+  .stat-sub{font-size:12px;color:var(--muted);margin-top:6px;}
+  .stat-icon{font-size:24px;float:right;margin-top:-4px;}
+
+  /* TABLE */
+  .panel{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:24px;}
+  .panel-header{padding:18px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+  .panel-title{font-size:15px;font-weight:700;}
+  .panel-actions{display:flex;gap:8px;align-items:center;}
+  .search-input{background:var(--bg-row);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 12px;font-size:13px;outline:none;width:200px;font-family:inherit;}
+  .search-input:focus{border-color:var(--blue);}
+  .filter-select{background:var(--bg-row);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 12px;font-size:13px;outline:none;font-family:inherit;cursor:pointer;}
+
+  table{width:100%;border-collapse:collapse;}
+  thead tr{background:rgba(255,255,255,0.03);}
+  th{padding:11px 20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);text-align:left;border-bottom:1px solid var(--border);}
+  td{padding:14px 20px;font-size:13px;border-bottom:1px solid rgba(255,255,255,0.04);}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:var(--bg-hover);}
+  .td-avatar{width:32px;height:32px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;flex-shrink:0;}
+  .td-user{display:flex;align-items:center;gap:10px;}
+  .td-email{font-weight:500;}
+  .td-name{font-size:11px;color:var(--muted);margin-top:2px;}
+
+  /* BADGES */
+  .badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px;letter-spacing:0.04em;}
+  .badge-user{background:rgba(255,255,255,0.07);color:var(--muted);}
+  .badge-pro{background:rgba(255,45,85,0.15);color:#ff6b8a;}
+  .badge-admin{background:rgba(255,159,10,0.15);color:var(--orange);}
+  .badge-free{background:rgba(255,255,255,0.05);color:var(--muted);}
+  .badge-paid{background:rgba(52,199,89,0.12);color:var(--green);}
+
+  /* ROLE ACTIONS */
+  .role-select{background:var(--bg-row);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:4px 8px;font-size:12px;cursor:pointer;font-family:inherit;}
+  .btn-action{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;transition:all 0.15s;}
+  .btn-action:hover{background:var(--blue);border-color:var(--blue);color:#fff;}
+  .btn-action.danger:hover{background:var(--red);border-color:var(--red);color:#fff;}
+
+  /* LOADING / EMPTY */
+  .loading-row{text-align:center;padding:40px;color:var(--muted);}
+  .spinner-lg{display:inline-block;width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:12px;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ACCESS DENIED */
+  .access-denied{display:none;flex:1;align-items:center;justify-content:center;text-align:center;}
+  .access-denied.show{display:flex;}
+  .access-box{padding:48px;}
+
+  /* TOAST */
+  .toast-wrap{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);z-index:999;display:flex;flex-direction:column;gap:8px;pointer-events:none;}
+  .toast{background:var(--bg-card);border:1px solid var(--border);color:var(--text);padding:10px 22px;border-radius:980px;font-size:13px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,0.3);white-space:nowrap;opacity:0;animation:tin 0.25s ease forwards;}
+  .toast.ok{border-color:var(--green);color:var(--green);}
+  .toast.err{border-color:var(--red);color:var(--red);}
+  @keyframes tin{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+
+  @media(max-width:900px){.stats-row{grid-template-columns:repeat(2,1fr);}.sidebar{display:none;}.layout{flex-direction:column;}}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="/" class="nav-brand"><div class="b-logo">B</div> BinTools <span class="admin-badge">ADMIN</span></a>
+  <div class="nav-right">
+    <span class="nav-user" id="adminUserEmail">載入中...</span>
+    <a href="/app" class="btn-sm">進入工具區</a>
+    <button class="btn-sm" onclick="AdminApp.logout()">登出</button>
+  </div>
+</nav>
+
+<!-- ACCESS DENIED -->
+<div class="access-denied" id="accessDenied">
+  <div class="access-box">
+    <div style="font-size:52px;margin-bottom:16px;">🔒</div>
+    <h2 style="font-size:22px;margin-bottom:10px;">存取被拒</h2>
+    <p style="color:var(--muted);margin-bottom:24px;">你沒有管理者權限，或尚未登入。</p>
+    <a href="/" class="btn-sm">回到首頁</a>
+  </div>
+</div>
+
+<!-- MAIN LAYOUT -->
+<div class="layout" id="mainLayout" style="display:none;">
+  <aside class="sidebar">
+    <div class="sidebar-section">主選單</div>
+    <button class="sidebar-item active" onclick="AdminApp.showSection('users')">
+      <span class="sidebar-icon">👥</span> 會員管理
+    </button>
+    <button class="sidebar-item" onclick="AdminApp.showSection('stats')">
+      <span class="sidebar-icon">📊</span> 統計數據
+    </button>
+    <div class="sidebar-section">系統</div>
+    <a href="/app" class="sidebar-item">
+      <span class="sidebar-icon">🔧</span> 工具頁面
+    </a>
+    <a href="/" class="sidebar-item">
+      <span class="sidebar-icon">🏠</span> 首頁
+    </a>
+  </aside>
+
+  <main class="main" id="mainContent">
+    <!-- 統計卡片 -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">總會員數 <span class="stat-icon">👥</span></div>
+        <div class="stat-value" id="statTotal">—</div>
+        <div class="stat-sub">所有已註冊用戶</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pro 用戶 <span class="stat-icon">⭐</span></div>
+        <div class="stat-value" id="statPro" style="color:var(--orange)">—</div>
+        <div class="stat-sub">升級付費方案</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">今日新增 <span class="stat-icon">✨</span></div>
+        <div class="stat-value" id="statToday" style="color:var(--green)">—</div>
+        <div class="stat-sub">今天新加入</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">管理員 <span class="stat-icon">🔑</span></div>
+        <div class="stat-value" id="statAdmin" style="color:var(--purple)">—</div>
+        <div class="stat-sub">具管理員權限</div>
+      </div>
+    </div>
+
+    <!-- 用戶列表 -->
+    <div class="panel" id="sectionUsers">
+      <div class="panel-header">
+        <div class="panel-title">會員列表</div>
+        <div class="panel-actions">
+          <input class="search-input" type="text" id="searchInput" placeholder="搜尋 email..." oninput="AdminApp.filterTable()">
+          <select class="filter-select" id="roleFilter" onchange="AdminApp.filterTable()">
+            <option value="">全部角色</option>
+            <option value="admin">Admin</option>
+            <option value="pro">Pro</option>
+            <option value="user">User</option>
+          </select>
+          <button class="btn-sm" onclick="AdminApp.loadUsers()">↻ 重新整理</button>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>用戶</th>
+            <th>角色</th>
+            <th>方案</th>
+            <th>註冊時間</th>
+            <th>最後登入</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="userTableBody">
+          <tr><td colspan="6" class="loading-row">
+            <div class="spinner-lg"></div><br>載入會員資料中...
+          </td></tr>
+        </tbody>
+      </table>
+      <div style="padding:14px 20px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);" id="tableFooter"></div>
+    </div>
+
+    <!-- 統計區（未來擴充） -->
+    <div id="sectionStats" style="display:none;">
+      <div style="color:var(--muted);text-align:center;padding:60px;font-size:15px;">📊 統計圖表（即將推出）</div>
+    </div>
+  </main>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp }   from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut }
+    from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+  import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, query, orderBy, limit }
+    from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+  const ADMIN_EMAILS = ["kino2ho@gmail.com"];
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyB1VjckIhF2sEzLBIUh8Dh-K7oNc_xAqNA",
+    authDomain: "bintools-33fd9.firebaseapp.com",
+    projectId: "bintools-33fd9",
+    storageBucket: "bintools-33fd9.firebasestorage.app",
+    messagingSenderId: "559899034826",
+    appId: "1:559899034826:web:833ea45e63d442c5596033"
+  };
+
+  const fbApp = initializeApp(firebaseConfig);
+  const auth  = getAuth(fbApp);
+  const db    = getFirestore(fbApp);
+
+  // ── 工具函式 ─────────────────────────────────────────────────────
+  function toast(msg, type) {
+    var wrap = document.getElementById("toastWrap");
+    var el   = document.createElement("div");
+    el.className = "toast" + (type === "ok" ? " ok" : type === "err" ? " err" : "");
+    el.textContent = msg;
+    wrap.appendChild(el);
+    setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 3000);
+  }
+
+  function fmtDate(ts) {
+    if (!ts) return "—";
+    var d = ts.toDate ? ts.toDate() : new Date(ts);
+    return d.toLocaleDateString("zh-TW") + " " + d.toLocaleTimeString("zh-TW", { hour:"2-digit", minute:"2-digit" });
+  }
+
+  function roleBadge(role) {
+    var map = {
+      admin: "<span class='badge badge-admin'>⚙ Admin</span>",
+      pro:   "<span class='badge badge-pro'>⭐ Pro</span>",
+      user:  "<span class='badge badge-user'>User</span>"
+    };
+    return map[role] || map.user;
+  }
+
+  function planBadge(plan) {
+    return plan === "pro"
+      ? "<span class='badge badge-paid'>付費</span>"
+      : "<span class='badge badge-free'>免費</span>";
+  }
+
+  function avatarColor(email) {
+    var colors = ["#0A84FF","#34c759","#ff9f0a","#bf5af2","#ff6b8a","#00c7be"];
+    var idx    = email ? email.charCodeAt(0) % colors.length : 0;
+    return colors[idx];
+  }
+
+  // ── AdminApp 核心 ─────────────────────────────────────────────────
+  window.AdminApp = {
+    allUsers: [],
+    currentUser: null,
+
+    init: function(user) {
+      this.currentUser = user;
+      document.getElementById("adminUserEmail").textContent = user.email;
+      document.getElementById("mainLayout").style.display = "flex";
+      this.loadUsers();
+    },
+
+    logout: async function() {
+      await signOut(auth);
+      window.location.href = "/";
+    },
+
+    showSection: function(name) {
+      document.getElementById("sectionUsers").style.display = name === "users" ? "block" : "none";
+      document.getElementById("sectionStats").style.display = name === "stats" ? "block" : "none";
+      document.querySelectorAll(".sidebar-item").forEach(function(el) {
+        el.classList.toggle("active", el.textContent.trim().includes(name === "users" ? "會員" : "統計"));
+      });
+    },
+
+    loadUsers: async function() {
+      document.getElementById("userTableBody").innerHTML =
+        "<tr><td colspan='6' class='loading-row'><div class='spinner-lg'></div><br>載入中...</td></tr>";
+
+      try {
+        var q    = query(collection(db, "users"), orderBy("createdAt", "desc"), limit(500));
+        var snap = await getDocs(q);
+        this.allUsers = [];
+        snap.forEach(function(d) { AdminApp.allUsers.push(Object.assign({ uid: d.id }, d.data())); });
+        this.renderTable(this.allUsers);
+        this.updateStats(this.allUsers);
+        toast("已載入 " + this.allUsers.length + " 位會員", "ok");
+      } catch (err) {
+        document.getElementById("userTableBody").innerHTML =
+          "<tr><td colspan='6' class='loading-row' style='color:var(--red)'>❌ 載入失敗：" + err.message + "</td></tr>";
+        toast("載入失敗：" + err.message, "err");
+        console.error("[Admin] load users error:", err);
+      }
+    },
+
+    renderTable: function(users) {
+      var today = new Date().toDateString();
+      if (!users.length) {
+        document.getElementById("userTableBody").innerHTML =
+          "<tr><td colspan='6' class='loading-row'>沒有符合條件的會員</td></tr>";
+        document.getElementById("tableFooter").textContent = "";
+        return;
+      }
+
+      var html = users.map(function(u) {
+        var initial = (u.name || u.email || "?")[0].toUpperCase();
+        var avatarImg = u.photoURL
+          ? "<img src='" + u.photoURL + "' style='width:32px;height:32px;border-radius:50%;object-fit:cover;'>"
+          : "<div class='td-avatar' style='background:" + avatarColor(u.email) + "'>" + initial + "</div>";
+
+        return "<tr data-uid='" + u.uid + "' data-role='" + (u.role||"user") + "' data-email='" + (u.email||"").toLowerCase() + "'>" +
+          "<td><div class='td-user'>" + avatarImg +
+            "<div><div class='td-email'>" + (u.email || "—") + "</div><div class='td-name'>" + (u.name || "未設定名稱") + "</div></div>" +
+          "</div></td>" +
+          "<td>" + roleBadge(u.role) + "</td>" +
+          "<td>" + planBadge(u.plan) + "</td>" +
+          "<td>" + fmtDate(u.createdAt) + "</td>" +
+          "<td>" + fmtDate(u.lastLogin) + "</td>" +
+          "<td><div style='display:flex;gap:6px;align-items:center;'>" +
+            "<select class='role-select' onchange=\"AdminApp.changeRole('" + u.uid + "', this.value)\">" +
+              "<option value='user'" + ((!u.role || u.role==="user")?" selected":"") + ">user</option>" +
+              "<option value='pro'" + (u.role==="pro"?" selected":"") + ">pro</option>" +
+              "<option value='admin'" + (u.role==="admin"?" selected":"") + ">admin</option>" +
+            "</select>" +
+          "</div></td>" +
+        "</tr>";
+      }).join("");
+
+      document.getElementById("userTableBody").innerHTML = html;
+      document.getElementById("tableFooter").textContent =
+        "顯示 " + users.length + " / " + this.allUsers.length + " 位會員";
+    },
+
+    filterTable: function() {
+      var keyword = (document.getElementById("searchInput").value || "").toLowerCase();
+      var role    = (document.getElementById("roleFilter").value || "");
+      var filtered = this.allUsers.filter(function(u) {
+        var matchEmail = !keyword || (u.email || "").toLowerCase().includes(keyword) || (u.name || "").toLowerCase().includes(keyword);
+        var matchRole  = !role || u.role === role;
+        return matchEmail && matchRole;
+      });
+      this.renderTable(filtered);
+    },
+
+    updateStats: function(users) {
+      var today     = new Date().toDateString();
+      var proCount  = users.filter(function(u) { return u.role === "pro" || u.plan === "pro"; }).length;
+      var todayNew  = users.filter(function(u) {
+        if (!u.createdAt) return false;
+        var d = u.createdAt.toDate ? u.createdAt.toDate() : new Date(u.createdAt);
+        return d.toDateString() === today;
+      }).length;
+      var adminCount = users.filter(function(u) { return u.role === "admin"; }).length;
+
+      document.getElementById("statTotal").textContent = users.length;
+      document.getElementById("statPro").textContent   = proCount;
+      document.getElementById("statToday").textContent = todayNew;
+      document.getElementById("statAdmin").textContent  = adminCount;
+    },
+
+    changeRole: async function(uid, newRole) {
+      try {
+        await updateDoc(doc(db, "users", uid), { role: newRole, plan: newRole === "pro" ? "pro" : "free" });
+        // 更新本地快取
+        var u = this.allUsers.find(function(x) { return x.uid === uid; });
+        if (u) { u.role = newRole; u.plan = newRole === "pro" ? "pro" : "free"; }
+        this.updateStats(this.allUsers);
+        toast("✓ 已更新：" + newRole, "ok");
+        console.log("[Admin] role updated:", uid, "→", newRole);
+      } catch (err) {
+        toast("更新失敗：" + err.message, "err");
+        console.error("[Admin] changeRole error:", err);
+      }
+    }
+  };
+
+  // ── 登入狀態判斷 ─────────────────────────────────────────────────
+  onAuthStateChanged(auth, async function(user) {
+    if (!user) {
+      document.getElementById("accessDenied").classList.add("show");
+      return;
+    }
+
+    var isAdminByEmail = ADMIN_EMAILS.includes(user.email);
+    var isAdminByRole  = false;
+
+    try {
+      var snap = await getDoc(doc(db, "users", user.uid));
+      if (snap.exists()) {
+        isAdminByRole = snap.data().role === "admin";
+      }
+    } catch (_) {}
+
+    if (!isAdminByEmail && !isAdminByRole) {
+      document.getElementById("accessDenied").classList.add("show");
+      return;
+    }
+
+    AdminApp.init(user);
+  });
+</script>
+</body>
+</html>

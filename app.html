@@ -15,10 +15,12 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
 
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+  import { initializeApp }        from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
   import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged,
            createUserWithEmailAndPassword, signInWithEmailAndPassword }
     from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, updateDoc, serverTimestamp }
+    from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyB1VjckIhF2sEzLBIUh8Dh-K7oNc_xAqNA",
@@ -31,11 +33,68 @@
   };
 
   const firebaseApp = initializeApp(firebaseConfig);
-  const auth = getAuth(firebaseApp);
-  const provider = new GoogleAuthProvider();
+  const auth        = getAuth(firebaseApp);
+  const db          = getFirestore(firebaseApp);
+  const provider    = new GoogleAuthProvider();
 
+  // ── 管理員 email 清單（前端輔助判斷，後端以 Firestore role 為準）
+  const ADMIN_EMAILS = ["kino2ho@gmail.com"];
+
+  // ── 建立或更新 Firestore users 文件 ─────────────────────────────
+  async function syncUserDoc(user) {
+    if (!user) return null;
+    const ref  = doc(db, "users", user.uid);
+    const snap = await getDoc(ref);
+
+    if (!snap.exists()) {
+      // 首次登入：建立文件
+      const isAdminByEmail = ADMIN_EMAILS.includes(user.email);
+      await setDoc(ref, {
+        uid:       user.uid,
+        email:     user.email || "",
+        name:      user.displayName || "",
+        photoURL:  user.photoURL || "",
+        role:      isAdminByEmail ? "admin" : "user",
+        plan:      "free",
+        createdAt: serverTimestamp(),
+        lastLogin: serverTimestamp()
+      });
+      console.log("[Firestore] user doc created:", user.email);
+    } else {
+      // 已有文件：只更新 lastLogin 與 name/photoURL
+      await updateDoc(ref, {
+        lastLogin: serverTimestamp(),
+        name:      user.displayName || snap.data().name || "",
+        photoURL:  user.photoURL   || snap.data().photoURL || ""
+      });
+      console.log("[Firestore] user doc updated:", user.email);
+    }
+
+    const latest = await getDoc(ref);
+    return latest.data();
+  }
+
+  // ── 讀取 Firestore 用戶資料（附快取，60秒內不重複請求）──────────
+  let _userDocCache = null;
+  let _userDocTs    = 0;
+  async function getUserDoc(uid) {
+    if (_userDocCache && Date.now() - _userDocTs < 60000) return _userDocCache;
+    try {
+      const snap = await getDoc(doc(db, "users", uid));
+      _userDocCache = snap.exists() ? snap.data() : null;
+      _userDocTs    = Date.now();
+      return _userDocCache;
+    } catch (_) { return null; }
+  }
+  function clearUserDocCache() { _userDocCache = null; _userDocTs = 0; }
+
+  // ── 對外介面 ─────────────────────────────────────────────────────
   window.FirebaseAuth = {
-    currentUser: null,
+    currentUser:  null,
+    currentRole:  "user",   // "user" | "pro" | "admin"
+    currentPlan:  "free",   // "free" | "pro"
+    db,
+
     login: async function() {
       try {
         await signInWithPopup(auth, provider);
@@ -46,20 +105,22 @@
         }
       }
     },
+
     emailLogin: async function(email, password) {
       try {
         await signInWithEmailAndPassword(auth, email, password);
         App.closeAuthModal();
       } catch (err) {
         const msgs = {
-          'auth/user-not-found': '找不到此帳號',
-          'auth/wrong-password': '密碼錯誤',
-          'auth/invalid-email': '電子郵件格式不正確',
-          'auth/invalid-credential': '帳號或密碼錯誤'
+          'auth/user-not-found':    '找不到此帳號',
+          'auth/wrong-password':    '密碼錯誤',
+          'auth/invalid-email':     '電子郵件格式不正確',
+          'auth/invalid-credential':'帳號或密碼錯誤'
         };
         App.setAuthMsg(msgs[err.code] || '登入失敗：' + err.message);
       }
     },
+
     emailRegister: async function(email, password) {
       try {
         await createUserWithEmailAndPassword(auth, email, password);
@@ -68,19 +129,54 @@
       } catch (err) {
         const msgs = {
           'auth/email-already-in-use': '此電子郵件已被使用',
-          'auth/weak-password': '密碼至少需要 6 個字元',
-          'auth/invalid-email': '電子郵件格式不正確'
+          'auth/weak-password':        '密碼至少需要 6 個字元',
+          'auth/invalid-email':        '電子郵件格式不正確'
         };
         App.setAuthMsg(msgs[err.code] || '建立失敗：' + err.message);
       }
     },
+
     logout: async function() {
+      clearUserDocCache();
+      this.currentRole = "user";
+      this.currentPlan = "free";
       try { await signOut(auth); } catch (_) {}
+    },
+
+    // 供外部呼叫：強制重新讀取 Firestore 資料
+    refreshUserDoc: async function() {
+      clearUserDocCache();
+      if (this.currentUser) {
+        const data = await getUserDoc(this.currentUser.uid);
+        if (data) {
+          this.currentRole = data.role || "user";
+          this.currentPlan = data.plan || "free";
+        }
+      }
     }
   };
 
-  onAuthStateChanged(auth, function(user) {
+  // ── 登入狀態監聽（核心）─────────────────────────────────────────
+  onAuthStateChanged(auth, async function(user) {
     window.FirebaseAuth.currentUser = user || null;
+
+    if (user) {
+      try {
+        // 同步 Firestore 文件（首次建立 or 更新 lastLogin）
+        const data = await syncUserDoc(user);
+        if (data) {
+          window.FirebaseAuth.currentRole = data.role || "user";
+          window.FirebaseAuth.currentPlan = data.plan || "free";
+          console.log("[Auth] role:", data.role, "| plan:", data.plan);
+        }
+      } catch (err) {
+        console.error("[Auth] Firestore sync error:", err.message);
+      }
+    } else {
+      window.FirebaseAuth.currentRole = "user";
+      window.FirebaseAuth.currentPlan = "free";
+    }
+
     if (window.App && typeof App.fetchUserStatus === 'function') {
       App.fetchUserStatus();
     }
@@ -980,13 +1076,23 @@
       // "dev2@example.com",
     ],
 
-    // ── 統一 isPro 判斷（isDev || user.plan === "pro"）─────────
+    // ── 統一 isPro 判斷（Firestore role/plan > DEV_EMAILS > server plan）
     getIsPro: function() {
-      var fbUser = window.FirebaseAuth ? window.FirebaseAuth.currentUser : null;
-      if (fbUser && fbUser.email && this.DEV_EMAILS.indexOf(fbUser.email) !== -1) {
-        return true; // 開發者帳號永遠是 Pro
-      }
+      var fa = window.FirebaseAuth;
+      // 1. Firestore 說是 pro 或 admin → 直接給 Pro
+      if (fa && (fa.currentPlan === "pro" || fa.currentRole === "pro" || fa.currentRole === "admin")) return true;
+      // 2. DEV_EMAILS 快速開發白名單
+      if (fa && fa.currentUser && fa.currentUser.email && this.DEV_EMAILS.indexOf(fa.currentUser.email) !== -1) return true;
+      // 3. 伺服器回傳的 plan（Firestore via server.js）
       return !!(this.user && this.user.plan === "pro");
+    },
+
+    // ── 是否為 Admin
+    getIsAdmin: function() {
+      var fa = window.FirebaseAuth;
+      if (fa && fa.currentRole === "admin") return true;
+      if (fa && fa.currentUser && fa.currentUser.email && this.DEV_EMAILS.indexOf(fa.currentUser.email) !== -1) return true;
+      return false;
     },
     showFriendlyMessage: function(message, type) {
       const container = document.getElementById("toastContainer");
@@ -1101,10 +1207,15 @@
       if (authArea) {
         if (fbUser) {
           var fbUser2 = window.FirebaseAuth ? window.FirebaseAuth.currentUser : null;
-          var isDev = fbUser2 && fbUser2.email && this.DEV_EMAILS.indexOf(fbUser2.email) !== -1;
-          var proHtml = !isPro
-            ? "<button class=\"btn-pro\" onclick=\"App.switchView('pricing')\">升級 Pro</button>"
-            : "<span style=\"font-size:12px; font-weight:bold; color:#ff2d55; margin-right:12px;\">" + (isDev ? "DEV ✦" : "PRO") + "</span>";
+          var isAdmin = this.getIsAdmin();
+          var proHtml = "";
+          if (isAdmin) {
+            proHtml = "<a href='/admin' style=\"font-size:12px; font-weight:bold; color:#ff9f0a; margin-right:8px; text-decoration:none;\" title=\"管理後台\">⚙ ADMIN</a>";
+          } else if (!isPro) {
+            proHtml = "<button class=\"btn-pro\" onclick=\"App.switchView('pricing')\">升級 Pro</button>";
+          } else {
+            proHtml = "<span style=\"font-size:12px; font-weight:bold; color:#ff2d55; margin-right:12px;\">PRO</span>";
+          }
           var initial = fbUser.displayName ? fbUser.displayName[0] : (fbUser.email ? fbUser.email[0].toUpperCase() : "U");
           var avatar = fbUser.photoURL
             ? "<img src=\"" + fbUser.photoURL + "\" class=\"user-avatar\" onclick=\"window.FirebaseAuth && window.FirebaseAuth.logout()\" title=\"點擊登出\">"

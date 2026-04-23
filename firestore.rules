@@ -1,0 +1,62 @@
+// ============================================================
+// BinTools Firestore Security Rules
+// 設定方式：
+//   Firebase Console → Firestore Database → Rules → 貼上以下內容
+// ============================================================
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── 輔助函式 ──────────────────────────────────────────────
+    // 判斷是否登入
+    function isLoggedIn() {
+      return request.auth != null;
+    }
+
+    // 判斷是否為本人
+    function isOwner(uid) {
+      return isLoggedIn() && request.auth.uid == uid;
+    }
+
+    // 從 Firestore 讀取角色（admin 判斷）
+    function isAdmin() {
+      return isLoggedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+    }
+
+    // ── users collection ──────────────────────────────────────
+    match /users/{uid} {
+      // 讀取：本人 or admin
+      allow read: if isOwner(uid) || isAdmin();
+
+      // 建立：只有本人可以建立自己的文件
+      //        且 role 只能設為 "user"（防止自己設成 admin）
+      allow create: if isOwner(uid) &&
+                       request.resource.data.role == "user" &&
+                       request.resource.data.uid == uid;
+
+      // 更新：
+      //  - 本人可更新 lastLogin、name、photoURL（不能改 role / plan）
+      //  - admin 可更新任何欄位（包含 role / plan）
+      allow update: if isAdmin() ||
+                    (isOwner(uid) &&
+                     !("role" in request.resource.data.diff(resource.data).affectedKeys()) &&
+                     !("plan" in request.resource.data.diff(resource.data).affectedKeys()));
+
+      // 刪除：只有 admin 可以刪除
+      allow delete: if isAdmin();
+    }
+
+    // ── 未來其他 collection 預留 ──────────────────────────────
+    // match /orders/{orderId} {
+    //   allow read, write: if isOwner(resource.data.uid) || isAdmin();
+    // }
+
+    // 其他所有路徑：拒絕
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
