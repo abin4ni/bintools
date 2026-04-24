@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>關於 BinTools - 我們的故事與理念 | 專業內容生成平台</title>
+<meta name="description" content="BinTools 是一個為創作者、工程師與行銷人員打造的免費內容生成工具平台。了解我們的誕生故事、核心理念，以及我們如何幫助你打造更好的視覺內容。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-main:#000000; --text-main:#f5f5f7; --text-muted:rgba(255,255,255,0.55);
+    --glass-bg:rgba(255,255,255,0.05); --glass-border:rgba(255,255,255,0.10);
+    --glass-border-hover:rgba(255,255,255,0.20);
+    --apple-blue:#0A84FF; --apple-blue-hover:#0071e3;
+    --font:Inter,-apple-system,BlinkMacSystemFont,sans-serif;
+    --ease-spring:cubic-bezier(0.34,1.56,0.64,1);
+    --ease-out:cubic-bezier(0.22,1,0.36,1);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--bg-main);color:var(--text-main);font-family:var(--font);line-height:1.6;overflow-x:hidden;display:flex;flex-direction:column;min-height:100vh;}
+
+  /* NAV */
+  .nav{position:fixed;top:0;width:100%;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:0 40px;height:60px;background:rgba(0,0,0,0.72);backdrop-filter:blur(20px);border-bottom:1px solid var(--glass-border);}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:20px;color:#fff;text-decoration:none;}
+  .b-logo{width:30px;height:30px;background:#fff;color:#000;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;}
+  .nav-links{display:flex;gap:24px;}
+  .nav-links a{color:var(--text-muted);text-decoration:none;font-size:14px;font-weight:500;transition:color 0.25s;}
+  .nav-links a:hover, .nav-links a.active{color:#fff;}
+  .btn-primary{background:var(--apple-blue);color:#fff;text-decoration:none;padding:8px 20px;border-radius:20px;font-size:14px;font-weight:600;transition:0.25s;}
+  .btn-primary:hover{background:var(--apple-blue-hover);transform:scale(1.05);}
+
+  /* HERO */
+  .hero{padding:140px 20px 80px;text-align:center;position:relative;overflow:hidden;}
+  .hero-glow{position:absolute;inset:0;pointer-events:none;background:
+    radial-gradient(ellipse 60% 50% at 50% 0%,rgba(10,132,255,0.14) 0%,transparent 70%),
+    radial-gradient(ellipse 40% 40% at 85% 60%,rgba(120,80,255,0.08) 0%,transparent 60%);}
+  .hero-content{position:relative;z-index:1;}
+  .hero-label{display:inline-flex;align-items:center;gap:6px;background:rgba(10,132,255,0.1);border:1px solid rgba(10,132,255,0.25);color:#60aaff;font-size:12px;font-weight:600;letter-spacing:0.08em;padding:5px 14px;border-radius:980px;margin-bottom:24px;text-transform:uppercase;}
+  .hero h1{font-size:clamp(36px,5vw,60px);font-weight:700;letter-spacing:-1.5px;margin-bottom:20px;background:linear-gradient(135deg,#fff 0%,#c0c0c8 60%,#7878a0 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.1;}
+  .hero p{font-size:18px;color:var(--text-muted);max-width:600px;margin:0 auto;line-height:1.75;}
+
+  /* SCROLL REVEAL */
+  .reveal{opacity:0;transform:translateY(28px);transition:opacity 0.7s var(--ease-out),transform 0.7s var(--ease-out);}
+  .reveal.visible{opacity:1;transform:none;}
+  .delay-1{transition-delay:0.1s;} .delay-2{transition-delay:0.2s;} .delay-3{transition-delay:0.3s;}
+
+  /* CONTENT LAYOUT */
+  .container{max-width:860px;margin:0 auto;padding:0 28px;}
+  .container-wide{max-width:1100px;margin:0 auto;padding:0 28px;}
+  section{padding:72px 0;}
+  .section-label{font-size:11px;font-weight:700;letter-spacing:0.14em;color:var(--apple-blue);text-transform:uppercase;margin-bottom:12px;}
+  .section-title{font-size:clamp(26px,3.5vw,38px);font-weight:700;letter-spacing:-0.8px;margin-bottom:16px;line-height:1.2;}
+  .section-body{font-size:16px;color:var(--text-muted);line-height:1.85;}
+  .section-body p{margin-bottom:18px;}
+  .section-body p:last-child{margin-bottom:0;}
+
+  /* STORY CARD */
+  .story-card{background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:24px;padding:48px;backdrop-filter:blur(20px);margin-bottom:24px;}
+  .story-card h3{font-size:20px;font-weight:700;margin-bottom:16px;}
+
+  /* MISSION GRID */
+  .mission-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:48px;}
+  .mission-card{background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:20px;padding:32px;transition:border-color 0.25s,transform 0.3s var(--ease-spring);}
+  .mission-card:hover{border-color:var(--glass-border-hover);transform:translateY(-4px);}
+  .mission-icon{font-size:32px;margin-bottom:16px;display:block;}
+  .mission-card h3{font-size:17px;font-weight:700;margin-bottom:10px;}
+  .mission-card p{font-size:14px;color:var(--text-muted);line-height:1.75;}
+
+  /* TOOLS GRID */
+  .tools-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:40px;}
+  .tool-card{background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:16px;padding:24px;text-align:center;transition:border-color 0.25s,transform 0.3s var(--ease-spring);}
+  .tool-card:hover{border-color:rgba(10,132,255,0.3);transform:translateY(-4px);}
+  .tool-card-icon{font-size:28px;margin-bottom:10px;display:block;}
+  .tool-card h4{font-size:14px;font-weight:700;margin-bottom:6px;}
+  .tool-card p{font-size:12px;color:var(--text-muted);line-height:1.6;}
+
+  /* DIVIDER */
+  .divider{height:1px;background:var(--glass-border);margin:0;}
+
+  /* VALUES LIST */
+  .values-list{list-style:none;margin-top:32px;display:flex;flex-direction:column;gap:16px;}
+  .values-list li{display:flex;gap:16px;align-items:flex-start;}
+  .values-list .v-icon{width:40px;height:40px;border-radius:12px;background:rgba(10,132,255,0.1);border:1px solid rgba(10,132,255,0.2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+  .values-list .v-text h4{font-size:15px;font-weight:700;margin-bottom:4px;}
+  .values-list .v-text p{font-size:14px;color:var(--text-muted);line-height:1.7;}
+
+  /* CONTACT STRIP */
+  .contact-strip{background:linear-gradient(135deg,rgba(10,132,255,0.1),rgba(120,80,255,0.06));border:1px solid rgba(10,132,255,0.18);border-radius:24px;padding:48px;text-align:center;}
+  .contact-strip h2{font-size:28px;font-weight:700;margin-bottom:12px;letter-spacing:-0.5px;}
+  .contact-strip p{font-size:15px;color:var(--text-muted);margin-bottom:28px;line-height:1.75;}
+  .contact-btn{display:inline-flex;align-items:center;gap:8px;background:var(--apple-blue);color:#fff;text-decoration:none;padding:12px 28px;border-radius:980px;font-size:15px;font-weight:600;transition:0.25s;}
+  .contact-btn:hover{background:var(--apple-blue-hover);transform:scale(1.04);}
+
+  /* FOOTER */
+  footer{border-top:1px solid var(--glass-border);padding:40px 20px;text-align:center;margin-top:auto;}
+  .f-links{display:flex;justify-content:center;gap:24px;margin-bottom:16px;flex-wrap:wrap;}
+  .f-links a{color:var(--text-muted);text-decoration:none;font-size:14px;transition:color 0.2s;}
+  .f-links a:hover{color:#fff;}
+  .copyright{color:rgba(255,255,255,0.25);font-size:12px;}
+
+  @media(max-width:768px){
+    .nav{padding:0 20px;} .nav-links{display:none;}
+    .hero{padding:120px 20px 60px;}
+    .mission-grid{grid-template-columns:1fr;}
+    .tools-grid{grid-template-columns:repeat(2,1fr);}
+    .story-card{padding:28px;}
+    .contact-strip{padding:32px 24px;}
+  }
+  @media(max-width:480px){
+    .tools-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="/" class="brand"><div class="b-logo">B</div> BinTools</a>
+  <div class="nav-links">
+    <a href="/#features">功能介紹</a>
+    <a href="/#pricing">方案價格</a>
+    <a href="/blog">教學文章</a>
+    <a href="/about" class="active">關於我們</a>
+  </div>
+  <a href="/app" class="btn-primary">進入工具區</a>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-content">
+    <div class="hero-label">✦ 關於我們</div>
+    <h1>用更好的工具，<br>說更好的故事。</h1>
+    <p>BinTools 誕生於一個簡單的信念：每個人都應該有能力創作出令人印象深刻的視覺內容，而不需要花費大量時間學習複雜的設計軟體。</p>
+  </div>
+</header>
+
+<!-- STORY -->
+<section>
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">我們的故事</div>
+      <h2 class="section-title">BinTools 是怎麼來的？</h2>
+    </div>
+
+    <div class="story-card reveal">
+      <h3>從一個讓人抓狂的下午開始</h3>
+      <div class="section-body">
+        <p>BinTools 的誕生，起源於一個讓人抓狂的下午。當時我正準備在 Instagram 分享一張數據比較表，試過 Canva、Excel 截圖、手繪圖示，花了整整兩個小時，做出來的結果卻依然差強人意——不是字體跑版，就是顏色格格不入，完全稱不上「值得分享的視覺」。</p>
+        <p>那一刻我意識到，對內容創作者來說，真正的痛點從來不是缺乏創意，而是缺少一個「開箱即用、結果就是專業」的工具。工程師有 GitHub，設計師有 Figma，但對於需要在兩者之間快速產出內容的人來說，幾乎什麼都沒有。</p>
+        <p>於是 BinTools 就這樣誕生了。</p>
+      </div>
+    </div>
+
+    <div class="story-card reveal">
+      <h3>為什麼叫 BinTools？</h3>
+      <div class="section-body">
+        <p>「Bin」在工程領域代表「Binary（二進位）」，也象徵著一個裝滿各種工具的工具箱。我們希望 BinTools 就是這樣一個地方：打開它，所有你需要的內容生成工具都在裡面，拿起來就能用，用完就是成品。</p>
+        <p>我們不是要取代 Photoshop 或 Figma。我們填補的是那個「你只需要一張好看的圖，但不想花三小時做設計」的空白地帶。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- MISSION -->
+<section>
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">核心理念</div>
+      <h2 class="section-title">我們相信的事</h2>
+      <p class="section-body">好的設計不應該是少數人的特權。以下是驅動我們每一個產品決策的核心價值。</p>
+    </div>
+
+    <div class="mission-grid">
+      <div class="mission-card reveal delay-1">
+        <span class="mission-icon">⚡</span>
+        <h3>速度就是尊重</h3>
+        <p>你的時間比任何工具都珍貴。BinTools 的每一個功能都以「最少步驟、最快出結果」為設計準則。貼上資料，點一個按鈕，就是成品。</p>
+      </div>
+      <div class="mission-card reveal delay-2">
+        <span class="mission-icon">🎨</span>
+        <h3>品質不需要妥協</h3>
+        <p>免費不代表將就。我們的表格渲染採用 Canvas 技術，程式碼截圖支援真正的語法高亮，動畫輸出可達 1080p 60fps——這些都是我們認為理所當然的標準。</p>
+      </div>
+      <div class="mission-card reveal delay-1">
+        <span class="mission-icon">🔓</span>
+        <h3>免費優先</h3>
+        <p>BinTools 的核心功能永遠免費。我們相信好工具應該讓更多人受益，而不是鎖在付費牆後面。廣告與進階功能的收入，讓我們得以維持這個承諾。</p>
+      </div>
+      <div class="mission-card reveal delay-2">
+        <span class="mission-icon">🔧</span>
+        <h3>工程師的審美</h3>
+        <p>我們熱愛 Apple 的設計語言——那種「少即是多」、「細節決定一切」的哲學。BinTools 的每個介面都追求這種精準與克制的美感，讓工具本身退到背景，讓你的內容站到舞台中央。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TOOLS -->
+<section>
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">我們的工具</div>
+      <h2 class="section-title">六個工具，一個目標</h2>
+      <p class="section-body">每一個工具都針對一個真實的內容創作痛點而設計，不多也不少。</p>
+    </div>
+    <div class="tools-grid">
+      <div class="tool-card reveal delay-1">
+        <span class="tool-card-icon">📊</span>
+        <h4>表格海報生成器</h4>
+        <p>Excel / CSV 一鍵轉為高質感毛玻璃風格海報，支援多種主題與 4K 輸出。</p>
+      </div>
+      <div class="tool-card reveal delay-2">
+        <span class="tool-card-icon">💻</span>
+        <h4>程式碼海報生成器</h4>
+        <p>將程式碼片段裝入 macOS 風格視窗，自動語法高亮，20+ 語言支援。</p>
+      </div>
+      <div class="tool-card reveal delay-3">
+        <span class="tool-card-icon">🎬</span>
+        <h4>動態展演生成器</h4>
+        <p>為靜態圖片加入 Apple 彈性動畫，輸出可去背的 WebM 影片，直接套用剪輯軟體。</p>
+      </div>
+      <div class="tool-card reveal delay-1">
+        <span class="tool-card-icon">🔳</span>
+        <h4>QR Code 生成器</h4>
+        <p>自訂顏色、尺寸與容錯等級，一鍵下載高解析度 PNG，完全免費。</p>
+      </div>
+      <div class="tool-card reveal delay-2">
+        <span class="tool-card-icon">✂️</span>
+        <h4>社群尺寸裁切器</h4>
+        <p>支援 IG、YouTube、TikTok、Twitter 等平台的標準比例，智慧置中裁切。</p>
+      </div>
+      <div class="tool-card reveal delay-3">
+        <span class="tool-card-icon">🍅</span>
+        <h4>專注計時器</h4>
+        <p>內建 Pomodoro 工作法的全螢幕計時器，讓你在使用工具的同時保持專注節奏。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- VALUES -->
+<section>
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">我們的承諾</div>
+      <h2 class="section-title">你可以對我們期待什麼</h2>
+    </div>
+    <ul class="values-list">
+      <li class="reveal delay-1">
+        <div class="v-icon">🚀</div>
+        <div class="v-text">
+          <h4>持續更新</h4>
+          <p>BinTools 不是一個做完就放著的專案。我們根據用戶的真實使用回饋持續迭代，每一次更新都在讓工具更接近「完美使用體驗」。你看到的每一個功能，都是某個真實痛點的解答。</p>
+        </div>
+      </li>
+      <li class="reveal delay-2">
+        <div class="v-icon">🔒</div>
+        <div class="v-text">
+          <h4>你的資料屬於你</h4>
+          <p>你上傳到 BinTools 的圖片、表格資料在生成完成後不會被永久保留。我們不販售你的個人資料，也不會用你的內容訓練任何 AI 模型。詳細內容請參閱我們的隱私權政策。</p>
+        </div>
+      </li>
+      <li class="reveal delay-3">
+        <div class="v-icon">💬</div>
+        <div class="v-text">
+          <h4>真人在背後</h4>
+          <p>BinTools 由一個對設計與工程充滿熱情的個人開發者維護。你寄出的每一封 feedback email 都會被親自閱讀與回覆。我們不是無臉的企業，我們是真實的人在做真實的事。</p>
+        </div>
+      </li>
+      <li class="reveal">
+        <div class="v-icon">📈</div>
+        <div class="v-text">
+          <h4>透明的商業模式</h4>
+          <p>BinTools 透過 Google AdSense 廣告與 Pro 付費方案維持營運。免費版功能不會無故縮水，廣告不會干擾你的核心工作流程。我們的目標是讓工具本身足夠好，讓你願意主動升級——而不是逼你升級。</p>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- CONTACT -->
+<section>
+  <div class="container">
+    <div class="contact-strip reveal">
+      <h2>有想法？來聊聊。</h2>
+      <p>無論是功能建議、bug 回報、合作邀約，或是單純想說聲謝謝——我們都很樂意聽。<br>通常在 24-48 小時內回覆。</p>
+      <a href="/contact" class="contact-btn">✉️ 聯絡我們</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="f-links">
+    <a href="/#features">功能介紹</a>
+    <a href="/#pricing">方案價格</a>
+    <a href="/blog">教學文章</a>
+    <a href="/about" style="color:#fff;">關於我們</a>
+    <a href="/privacy">Privacy Policy</a>
+    <a href="/terms">Terms of Service</a>
+    <a href="/contact">Contact</a>
+  </div>
+  <div class="copyright">&copy; 2024 BinTools. All rights reserved. Designed for Productivity.</div>
+</footer>
+
+<script>
+  // Scroll Reveal
+  var io = new IntersectionObserver(function(entries) {
+    entries.forEach(function(e) {
+      if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(function(el) { io.observe(el); });
+
+  // Nav scroll effect
+  var nav = document.querySelector('.nav');
+  window.addEventListener('scroll', function() {
+    nav.style.background = window.scrollY > 60 ? 'rgba(0,0,0,0.9)' : 'rgba(0,0,0,0.72)';
+  }, { passive: true });
+</script>
+</body>
+</html>

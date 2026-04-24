@@ -178,6 +178,7 @@
     <a href="#features">功能介紹</a>
     <a href="#pricing">方案價格</a>
     <a href="/blog">教學文章</a>
+    <a href="/about">關於我們</a>
   </div>
   <a href="./app" class="btn-primary">進入工具區</a>
 </nav>
@@ -448,6 +449,7 @@
     <a href="#features">功能介紹</a>
     <a href="#pricing">方案價格</a>
     <a href="/blog">教學文章</a>
+    <a href="/about">關於我們</a>
     <a href="/privacy">Privacy Policy</a>
     <a href="/terms">Terms of Service</a>
     <a href="/contact">Contact</a>
@@ -524,14 +526,49 @@
       if (m) m.classList.remove('open');
     },
 
-    handleProCTA: function() {
+    handleProCTA: async function() {
       var btn = document.getElementById('proModalCta');
       if (!btn || btn.disabled) return;
-      btn.textContent = '✓ 已加入候補名單！';
-      btn.style.background = 'linear-gradient(135deg,#34c759 0%,#28a745 100%)';
+
       btn.disabled = true;
-      console.log('[Pro] user joined waitlist');
-      setTimeout(function() { App.closeProModal(); }, 2000);
+      btn.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;vertical-align:middle;margin-right:6px;"></span>前往付款頁面...';
+      if (!document.querySelector('#spinKeyframe')) {
+        var s = document.createElement('style'); s.id='spinKeyframe';
+        s.textContent='@keyframes spin{to{transform:rotate(360deg)}}';
+        document.head.appendChild(s);
+      }
+
+      try {
+        var response = await fetch('/api/create-checkout-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: '' })
+        });
+        var payload = await response.json();
+
+        if (response.status === 503) {
+          // Stripe 尚未設定 → 候補名單模式
+          btn.textContent = '✓ 已加入候補名單！';
+          btn.style.background = 'linear-gradient(135deg,#34c759,#28a745)';
+          console.log('[Pro] waitlist joined (Stripe not yet configured)');
+          setTimeout(function() { App.closeProModal(); }, 2000);
+          return;
+        }
+
+        if (!response.ok || !payload.success || !payload.data || !payload.data.url) {
+          throw new Error(payload.error || '建立付款頁面失敗');
+        }
+
+        console.log('[Pro] redirecting to Stripe checkout');
+        window.location.href = payload.data.url;
+
+      } catch (err) {
+        console.error('[Pro] checkout error:', err.message);
+        btn.textContent = '升級 Pro 方案';
+        btn.style.background = '';
+        btn.disabled = false;
+        alert('前往付款頁面失敗，請稍後再試：' + err.message);
+      }
     }
   };
 
