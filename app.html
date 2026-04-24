@@ -968,102 +968,67 @@
    * =========================================================== */
   const UserState = {
     FREE_DAILY_LIMIT: 3,
-    FREE_MAX_RES_W: 1920,
-    FREE_MAX_RES_H: 1080,
     FREE_4K_TRIAL_KEY: "bintools_4k_used",
     STORAGE_KEY: "bintools_user_state",
 
-    // 讀取 localStorage 狀態
     _load: function() {
-      try {
-        var raw = localStorage.getItem(this.STORAGE_KEY);
-        return raw ? JSON.parse(raw) : {};
-      } catch (_) { return {}; }
+      try { var r = localStorage.getItem(this.STORAGE_KEY); return r ? JSON.parse(r) : {}; } catch (_) { return {}; }
     },
-
-    // 寫入 localStorage
     _save: function(data) {
       try { localStorage.setItem(this.STORAGE_KEY, JSON.stringify(data)); } catch (_) {}
     },
+    _today: function() { return new Date().toISOString().split("T")[0]; },
 
-    // 今日日期 key
-    _today: function() {
-      return new Date().toISOString().split("T")[0];
-    },
-
-    // 取得今日使用次數
     getTodayUsage: function() {
       var s = this._load();
       if (!s.usageDate || s.usageDate !== this._today()) return 0;
       return typeof s.usageCount === "number" ? s.usageCount : 0;
     },
 
-    // 4K 體驗次數是否已用過
     has4KTrial: function() {
       try { return !!localStorage.getItem(this.FREE_4K_TRIAL_KEY); } catch (_) { return true; }
     },
-
-    // 標記 4K 體驗已使用
     mark4KTrialUsed: function() {
       try { localStorage.setItem(this.FREE_4K_TRIAL_KEY, "1"); } catch (_) {}
-      console.log("[UserState] 4K trial marked as used");
     },
 
-    // 增加一次使用次數
     incrementUsage: function() {
-      var s = this._load();
-      var today = this._today();
-      if (!s.usageDate || s.usageDate !== today) {
-        s.usageDate = today;
-        s.usageCount = 0;
-      }
+      var s = this._load(), today = this._today();
+      if (!s.usageDate || s.usageDate !== today) { s.usageDate = today; s.usageCount = 0; }
       s.usageCount = (s.usageCount || 0) + 1;
       this._save(s);
-      console.log("[UserState] usage today:", s.usageCount, "/", this.FREE_DAILY_LIMIT);
+      console.log("[UserState] guest usage today:", s.usageCount, "/", this.FREE_DAILY_LIMIT);
       return s.usageCount;
     },
 
-    // 檢查是否可以下載
-    canDownload: function(isPro) {
-      if (isPro) return true;
+    // ── role: "guest" | "member" | "admin" ──────────────────────
+    // 只有 guest 才有限制
+    canDownload: function(role) {
+      if (role !== "guest") return true;
       return this.getTodayUsage() < this.FREE_DAILY_LIMIT;
     },
 
-    // 解析度限制邏輯：
-    //   Pro      → 不限
-    //   免費首次用 4K → 允許並標記
-    //   免費已用 4K → clamp 到 1920×1080
-    clampResolution: function(isPro, w, h) {
-      if (isPro) return { w: w, h: h };
+    clampResolution: function(role, w, h) {
+      // member / admin 完全不限
+      if (role !== "guest") return { w: w, h: h };
       var is4K = (w > 1920 || h > 1080);
-      if (!is4K) return { w: w, h: h }; // 1080p 以下完全不限制
+      if (!is4K) return { w: w, h: h };
       if (!this.has4KTrial()) {
-        // 首次 4K：允許並標記
         this.mark4KTrialUsed();
-        App.showFriendlyMessage("🎉 免費 4K 體驗額度已啟用！升級 Pro 可永久解鎖 ⬆", "success");
-        console.log("[UserState] 4K trial granted:", w + "x" + h);
+        if (window.App) App.showFriendlyMessage("🎉 訪客 4K 體驗額度已啟用！登入後永久解鎖 ⬆", "success");
+        console.log("[UserState] guest 4K trial granted:", w + "x" + h);
         return { w: w, h: h };
       }
-      // 已用過 4K 體驗：clamp 到 1080p
       var ratio = w / h;
-      var clampW = ratio >= 1 ? 1920 : Math.round(1080 * ratio);
-      var clampH = ratio >= 1 ? Math.round(1920 / ratio) : 1080;
-      App.showFriendlyMessage("免費版 4K 體驗已使用，已降至 1080p。升級 Pro 永久解鎖 4K ⬆");
-      console.log("[UserState] 4K trial exhausted, clamped:", w + "x" + h, "→", clampW + "x" + clampH);
-      return { w: clampW, h: clampH };
+      var cW = ratio >= 1 ? 1920 : Math.round(1080 * ratio);
+      var cH = ratio >= 1 ? Math.round(1920 / ratio) : 1080;
+      if (window.App) App.showFriendlyMessage("訪客 4K 體驗已使用，已降至 1080p。登入後免費解鎖 4K ⬆");
+      console.log("[UserState] guest 4K clamped:", w + "x" + h, "→", cW + "x" + cH);
+      return { w: cW, h: cH };
     },
 
-    // ── Firebase 接口（預留） ──
-    syncFromFirebase: async function(uid) {
-      console.log("[UserState] Firebase sync placeholder, uid:", uid);
-      return null;
-    },
-
-    // ── Stripe 接口（預留） ──
-    openStripeCheckout: async function() {
-      console.log("[UserState] Stripe checkout placeholder");
-      return null;
-    }
+    syncFromFirebase: async function(uid) { console.log("[UserState] Firebase sync placeholder, uid:", uid); return null; },
+    openStripeCheckout: async function() { console.log("[UserState] Stripe checkout placeholder"); return null; }
   };
 
   const App = {
@@ -1076,24 +1041,22 @@
       // "dev2@example.com",
     ],
 
-    // ── 統一 isPro 判斷（Firestore role/plan > DEV_EMAILS > server plan）
-    getIsPro: function() {
+    // ── 統一角色判斷："guest" | "member" | "admin" ─────────────
+    // guest  = 未登入
+    // member = 已登入（免費無限使用）
+    // admin  = DEV_EMAILS 或 Firestore role=admin
+    getRole: function() {
       var fa = window.FirebaseAuth;
-      // 1. Firestore 說是 pro 或 admin → 直接給 Pro
-      if (fa && (fa.currentPlan === "pro" || fa.currentRole === "pro" || fa.currentRole === "admin")) return true;
-      // 2. DEV_EMAILS 快速開發白名單
-      if (fa && fa.currentUser && fa.currentUser.email && this.DEV_EMAILS.indexOf(fa.currentUser.email) !== -1) return true;
-      // 3. 伺服器回傳的 plan（Firestore via server.js）
-      return !!(this.user && this.user.plan === "pro");
+      if (!fa || !fa.currentUser) return "guest";
+      // admin 判斷：DEV_EMAILS 或 Firestore role
+      if (fa.currentRole === "admin") return "admin";
+      if (fa.currentUser.email && this.DEV_EMAILS.indexOf(fa.currentUser.email) !== -1) return "admin";
+      return "member";
     },
 
-    // ── 是否為 Admin
-    getIsAdmin: function() {
-      var fa = window.FirebaseAuth;
-      if (fa && fa.currentRole === "admin") return true;
-      if (fa && fa.currentUser && fa.currentUser.email && this.DEV_EMAILS.indexOf(fa.currentUser.email) !== -1) return true;
-      return false;
-    },
+    // 向下相容：保留 getIsPro / getIsAdmin 供舊邏輯使用
+    getIsPro: function() { var r = this.getRole(); return r === "admin" || r === "member" || (this.user && this.user.plan === "pro"); },
+    getIsAdmin: function() { return this.getRole() === "admin"; },
     showFriendlyMessage: function(message, type) {
       const container = document.getElementById("toastContainer");
       if (!container) return;
@@ -1202,41 +1165,43 @@
     },
     updateAuthUI: function() {
       var authArea = document.getElementById("authArea");
-      var isPro = this.getIsPro();
+      var role = this.getRole();
       var fbUser = window.FirebaseAuth ? window.FirebaseAuth.currentUser : null;
+
       if (authArea) {
         if (fbUser) {
-          var fbUser2 = window.FirebaseAuth ? window.FirebaseAuth.currentUser : null;
-          var isAdmin = this.getIsAdmin();
-          var proHtml = "";
-          if (isAdmin) {
-            proHtml = "<a href='/admin' style=\"font-size:12px; font-weight:bold; color:#ff9f0a; margin-right:8px; text-decoration:none;\" title=\"管理後台\">⚙ ADMIN</a>";
-          } else if (!isPro) {
-            proHtml = "<button class=\"btn-pro\" onclick=\"App.switchView('pricing')\">升級 Pro</button>";
+          // 角色徽章
+          var badge = "";
+          if (role === "admin") {
+            badge = "<a href='/admin' style=\"font-size:12px;font-weight:bold;color:#ff9f0a;margin-right:8px;text-decoration:none;\" title='管理後台'>⚙ ADMIN</a>";
           } else {
-            proHtml = "<span style=\"font-size:12px; font-weight:bold; color:#ff2d55; margin-right:12px;\">PRO</span>";
+            badge = "<span style=\"font-size:12px;font-weight:500;color:#34c759;margin-right:8px;\">✓ 已登入</span>";
           }
           var initial = fbUser.displayName ? fbUser.displayName[0] : (fbUser.email ? fbUser.email[0].toUpperCase() : "U");
           var avatar = fbUser.photoURL
             ? "<img src=\"" + fbUser.photoURL + "\" class=\"user-avatar\" onclick=\"window.FirebaseAuth && window.FirebaseAuth.logout()\" title=\"點擊登出\">"
             : "<div class=\"user-avatar\" style=\"background:var(--apple-blue);display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;cursor:pointer;\" onclick=\"window.FirebaseAuth && window.FirebaseAuth.logout()\" title=\"點擊登出\">" + initial + "</div>";
-          authArea.innerHTML = proHtml + avatar;
+          authArea.innerHTML = badge + avatar;
         } else {
           authArea.innerHTML = "<button class=\"btn-outline\" onclick=\"App.openAuthModal()\">登入 / 註冊</button>";
         }
       }
 
-      var limitText = isPro ? "無限" : (UserState.getTodayUsage() + "/" + UserState.FREE_DAILY_LIMIT);
+      // 使用次數顯示：只有 guest 才有限制
+      var limitText = role === "guest"
+        ? (UserState.getTodayUsage() + "/" + UserState.FREE_DAILY_LIMIT + " 次")
+        : "無限制";
       var usageTable = document.getElementById("usageTextTable");
       var usageAnim  = document.getElementById("usageTextAnim");
       if (usageTable) usageTable.innerText = "今日額度: " + limitText;
       if (usageAnim)  usageAnim.innerText  = "今日額度: " + limitText;
 
+      // 廣告與 upsell：只對 guest 顯示
       document.querySelectorAll(".ad-banner").forEach(function(el) {
-        el.style.display = isPro ? "none" : "flex";
+        el.style.display = role === "guest" ? "flex" : "none";
       });
       document.querySelectorAll(".pro-upsell").forEach(function(el) {
-        el.style.display = isPro ? "none" : "inline-block";
+        el.style.display = role === "guest" ? "inline-block" : "none";
       });
     },
     switchView: function(viewId) {
@@ -1327,14 +1292,14 @@
       const btn = evt && evt.currentTarget ? evt.currentTarget : null;
       if (!formatSelect || !btn) return;
 
-      // ── 免費額度檢查 ──────────────────────────────────────────
-      const isPro = this.getIsPro();
-      if (!UserState.canDownload(isPro)) {
+      // ── 權限檢查：只有 guest 受限 ───────────────────────────
+      const role = this.getRole();
+      if (!UserState.canDownload(role)) {
         this.showFriendlyMessage(
-          "今日免費額度（" + UserState.FREE_DAILY_LIMIT + " 次）已用完，請明天再試或升級 Pro 🚀",
+          "訪客每日限制 " + UserState.FREE_DAILY_LIMIT + " 次，請登入解鎖無限使用 🚀",
           "error"
         );
-        console.log("[App] daily limit reached, usage:", UserState.getTodayUsage());
+        console.log("[App] guest daily limit reached:", UserState.getTodayUsage());
         return;
       }
 
@@ -1393,8 +1358,8 @@
         a.click();
         window.URL.revokeObjectURL(url);
 
-        // ── 下載成功：更新 localStorage 次數 ────────────────────
-        if (!isPro) {
+        // ── 下載成功：只有 guest 累計次數 ────────────────────────
+        if (role === "guest") {
           UserState.incrementUsage();
         }
 
@@ -1593,9 +1558,9 @@
       var outW = parseInt(resParts[0]) || 1920;
       var outH = parseInt(resParts[1]) || 1080;
 
-      // ── 免費用戶解析度限制（訊息由 clampResolution 內部處理）──
-      var _isPro = window.App ? App.getIsPro() : false;
-      var _clamped = UserState.clampResolution(_isPro, outW, outH);
+      // ── 解析度限制：只有 guest 受限 ──
+      var _role = window.App ? App.getRole() : "guest";
+      var _clamped = UserState.clampResolution(_role, outW, outH);
       outW = _clamped.w;
       outH = _clamped.h;
 

@@ -190,12 +190,12 @@
   <div class="hero-blob hero-blob-2"></div>
   <div class="hero-blob hero-blob-3"></div>
   <div class="hero-content">
-    <div class="hero-badge">✦ 免安裝，即刻可用</div>
-    <h1>資料呈現，<br>從未如此優雅。</h1>
-    <p>將繁雜的數據與程式碼，一鍵轉化為頂級質感的 Apple 風格海報與 60fps 動態展演短影片。專為創作者與專業人士打造。</p>
+    <div class="hero-badge">✦ 登入即可免費無限使用</div>
+    <h1>登入後，<br>解鎖全部功能。</h1>
+    <p>BinTools 所有工具對已登入用戶完全免費、無限次使用。不需要信用卡，不需要下載軟體，登入後立即開始。</p>
     <div class="hero-buttons">
-      <a href="./app" class="btn-primary btn-primary-large">免費開始使用</a>
-      <a href="#pricing" class="btn-secondary">查看方案</a>
+      <a href="./app" class="btn-primary btn-primary-large" id="heroMainCta">立即登入免費使用</a>
+      <a href="#pricing" class="btn-secondary">了解方案差異</a>
     </div>
     <div class="hero-stats">
       <div class="hero-stat"><div class="hero-stat-num">6+</div><div class="hero-stat-lbl">專業工具</div></div>
@@ -373,13 +373,13 @@
 <section style="max-width:860px; margin:0 auto 120px; padding:0 24px;" class="reveal">
   <div style="background:linear-gradient(135deg,rgba(10,132,255,0.12) 0%,rgba(120,80,255,0.08) 100%); border:1px solid rgba(10,132,255,0.2); border-radius:28px; padding:56px 40px; text-align:center;">
     <div style="font-size:40px; margin-bottom:16px;">🚀</div>
-    <h2 style="font-size:clamp(26px,4vw,38px); font-weight:700; letter-spacing:-1px; margin-bottom:16px;">現在就開始，完全免費</h2>
-    <p style="font-size:16px; color:var(--text-muted); max-width:480px; margin:0 auto 36px; line-height:1.7;">不需要信用卡，不需要下載軟體。立即體驗 6 項專業工具，感受內容創作的新方式。</p>
+    <h2 style="font-size:clamp(26px,4vw,38px); font-weight:700; letter-spacing:-1px; margin-bottom:16px;">登入，立刻解鎖全部功能</h2>
+    <p style="font-size:16px; color:var(--text-muted); max-width:480px; margin:0 auto 36px; line-height:1.7;">不需要信用卡，不需要下載。Google 帳號一鍵登入，所有工具無限次免費使用，現在就開始。</p>
     <div style="display:flex; justify-content:center; gap:16px; flex-wrap:wrap;">
-      <a href="./app" class="btn-primary btn-primary-large" style="font-size:17px; padding:16px 36px;">免費開始使用 →</a>
-      <a href="#pricing" class="btn-secondary" style="font-size:16px;">查看 Pro 方案</a>
+      <a href="./app" class="btn-primary btn-primary-large" style="font-size:17px; padding:16px 36px;">登入解鎖全部功能 →</a>
+      <a href="#pricing" class="btn-secondary" style="font-size:16px;">了解方案差異</a>
     </div>
-    <p style="font-size:12px; color:rgba(255,255,255,0.3); margin-top:20px;">免費版每日 3 次下載 · 無需綁定信用卡 · 隨時可用</p>
+    <p style="font-size:12px; color:rgba(255,255,255,0.3); margin-top:20px;">Google 帳號一鍵登入 · 完全免費 · 無需信用卡</p>
   </div>
 </section>
 
@@ -391,31 +391,34 @@
     <p class="section-sub reveal">免費方案即可體驗全部工具，Pro 方案解鎖頂級畫質與無限下載。</p>
     <div class="pricing">
       <div class="price-card reveal reveal-delay-1">
-        <div class="p-plan">Free</div>
+        <div class="p-plan">訪客（未登入）</div>
         <div class="p-price">$0 <span>/ 永久</span></div>
         <ul class="p-list">
           <li>每日 3 次下載額度</li>
-          <li>最高 720p 30fps 畫質</li>
+          <li>最高 1080p 畫質</li>
           <li>全部 6 項工具可用</li>
-          <li class="disabled">去除浮水印</li>
-          <li class="disabled">商業授權</li>
+          <li class="disabled">無限次使用</li>
+          <li class="disabled">4K 解析度（僅體驗一次）</li>
         </ul>
-        <a href="./app" class="p-btn p-btn-free">免費開始使用</a>
+        <a href="./app" class="p-btn p-btn-free">進入工具區</a>
       </div>
-      <div class="price-card pro reveal reveal-delay-2">
-        <div class="badge">最受歡迎</div>
-        <div class="p-plan">Pro</div>
-        <div class="p-price">$9.9 <span>/ 月</span></div>
+      <div class="price-card pro reveal reveal-delay-2" style="border-color:rgba(52,199,89,0.4); background:linear-gradient(160deg,rgba(52,199,89,0.06) 0%,rgba(0,200,150,0.04) 100%);">
+        <div class="badge" style="background:linear-gradient(135deg,#34c759,#00c896); color:#fff;">免費</div>
+        <div class="p-plan">會員（已登入）</div>
+        <div class="p-price">$0 <span>/ 永久免費</span></div>
         <ul class="p-list">
-          <li>無限制下載次數</li>
-          <li>解鎖 4K 60fps 頂級畫質</li>
-          <li>完全去除浮水印</li>
-          <li>商用授權與去背影片</li>
-          <li>優先客服支援</li>
+          <li>無限次下載，無任何限制</li>
+          <li>解鎖 4K 解析度輸出</li>
+          <li>所有工具完整功能</li>
+          <li>Google 帳號一鍵登入</li>
+          <li>個人使用紀錄保存</li>
         </ul>
-        <button class="p-btn p-btn-pro" onclick="App.openProModal()">升級 Pro 方案</button>
+        <a href="./app" class="p-btn" style="background:linear-gradient(135deg,#34c759,#28a745);color:#fff;box-shadow:0 4px 20px rgba(52,199,89,0.28);">登入解鎖全部功能</a>
       </div>
     </div>
+    <p style="text-align:center;font-size:13px;color:var(--text-muted);margin-top:20px;">
+      Pro 方案（更高畫質、商業授權）<strong style="color:var(--text-main);">即將推出</strong>，目前所有功能對會員完全免費。
+    </p>
   </div>
 </section>
 
