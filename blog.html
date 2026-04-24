@@ -4,105 +4,556 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>教學與設計技巧 - BinTools 專業內容生成平台</title>
-<meta name="description" content="探索如何利用 BinTools 提升您的社群視覺與工作效率。包含 IG 貼文生成教學、Canva 替代方案與 Apple 彈窗影片製作技巧。">
+<meta name="description" content="探索 IG 排版教學、Excel 表格轉圖片、免費製作排行榜圖片與價格比較圖的完整方法。BinTools 幫你快速產出高質感社群內容。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
 <style>
   :root {
-    --bg-main: #000000; --text-main: #f5f5f7; --text-muted: rgba(255,255,255,0.6);
-    --glass-bg: rgba(255, 255, 255, 0.05); --glass-border: rgba(255, 255, 255, 0.1);
-    --apple-blue: #0A84FF; --apple-blue-hover: #0071e3;
-    --font-display: 'Inter', sans-serif;
+    --bg-main:#000; --text-main:#f5f5f7; --text-muted:rgba(255,255,255,0.62);
+    --glass-bg:rgba(255,255,255,0.05); --glass-border:rgba(255,255,255,0.1);
+    --apple-blue:#0A84FF; --apple-blue-hover:#0071e3;
+    --font:'Inter',sans-serif;
   }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: var(--bg-main); color: var(--text-main); font-family: var(--font-display); line-height: 1.5; overflow-x: hidden; display: flex; flex-direction: column; min-height: 100vh;}
-  
-  /* Navbar */
-  .nav { position: fixed; top: 0; width: 100%; z-index: 100; display: flex; justify-content: space-between; align-items: center; padding: 0 40px; height: 60px; background: rgba(0,0,0,0.7); backdrop-filter: blur(20px); border-bottom: 1px solid var(--glass-border); }
-  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 20px; color: #fff; text-decoration: none;}
-  .b-logo { width: 30px; height: 30px; background: #fff; color: #000; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800;}
-  .nav-links { display: flex; gap: 24px; }
-  .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.3s; }
-  .nav-links a:hover { color: #fff; }
-  .btn-primary { background: var(--apple-blue); color: #fff; text-decoration: none; padding: 8px 20px; border-radius: 20px; font-size: 14px; font-weight: 600; transition: 0.3s; }
-  .btn-primary:hover { background: var(--apple-blue-hover); transform: scale(1.05); }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg-main);color:var(--text-main);font-family:var(--font);line-height:1.6;overflow-x:hidden;display:flex;flex-direction:column;min-height:100vh;}
+  .nav{position:fixed;top:0;width:100%;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:0 40px;height:60px;background:rgba(0,0,0,0.75);backdrop-filter:blur(20px);border-bottom:1px solid var(--glass-border);}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:20px;color:#fff;text-decoration:none;}
+  .b-logo{width:30px;height:30px;background:#fff;color:#000;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;}
+  .nav-links{display:flex;gap:24px;}
+  .nav-links a{color:var(--text-muted);text-decoration:none;font-size:14px;font-weight:500;transition:color 0.3s;}
+  .nav-links a:hover{color:#fff;}
+  .btn-primary{background:var(--apple-blue);color:#fff;text-decoration:none;padding:8px 20px;border-radius:20px;font-size:14px;font-weight:600;transition:0.3s;}
+  .btn-primary:hover{background:var(--apple-blue-hover);transform:scale(1.05);}
 
-  /* Hero Section */
-  .hero { text-align: center; padding: 150px 20px 60px; position: relative; }
-  .hero h1 { font-size: 48px; font-weight: 700; letter-spacing: -1px; margin-bottom: 24px; background: linear-gradient(135deg, #fff 0%, #a5a5a5 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-  .hero p { font-size: 20px; color: var(--text-muted); max-width: 700px; margin: 0 auto; }
+  /* Hero */
+  .hero{text-align:center;padding:140px 20px 56px;}
+  .hero h1{font-size:clamp(32px,5vw,48px);font-weight:700;letter-spacing:-1px;margin-bottom:20px;background:linear-gradient(135deg,#fff 0%,#a5a5a5 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+  .hero p{font-size:18px;color:var(--text-muted);max-width:680px;margin:0 auto;}
 
-  /* Blog Content */
-  .blog-container { max-width: 900px; margin: 0 auto; padding: 0 32px 100px; flex: 1; }
-  article { background: var(--glass-bg); padding: 40px; border-radius: 24px; border: 1px solid var(--glass-border); margin-bottom: 40px; backdrop-filter: blur(20px); }
-  article h2 { font-size: 28px; color: #fff; margin-bottom: 16px; font-weight: 700; line-height: 1.3;}
-  article .excerpt { color: var(--apple-blue); font-size: 15px; margin-bottom: 24px; font-weight: 500; }
-  article .content { color: var(--text-muted); line-height: 1.8; font-size: 16px; }
+  /* Blog list */
+  .blog-container{max-width:860px;margin:0 auto;padding:0 24px 100px;flex:1;}
+  .blog-index{display:flex;flex-direction:column;gap:12px;margin-bottom:60px;}
+  .blog-index a{display:flex;align-items:center;gap:12px;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:14px;padding:16px 22px;text-decoration:none;color:var(--text-main);font-size:15px;font-weight:500;transition:border-color 0.2s,background 0.2s;}
+  .blog-index a:hover{border-color:rgba(10,132,255,0.4);background:rgba(10,132,255,0.05);}
+  .blog-index .idx-num{font-size:12px;font-weight:700;color:var(--apple-blue);background:rgba(10,132,255,0.1);border-radius:6px;padding:2px 8px;flex-shrink:0;}
+
+  /* Article */
+  .post{background:var(--glass-bg);padding:48px;border-radius:24px;border:1px solid var(--glass-border);margin-bottom:48px;backdrop-filter:blur(20px);}
+  .post-meta{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap;}
+  .post-tag{font-size:11px;font-weight:700;letter-spacing:0.08em;background:rgba(10,132,255,0.12);border:1px solid rgba(10,132,255,0.25);color:var(--apple-blue);padding:3px 10px;border-radius:6px;text-transform:uppercase;}
+  .post-date{font-size:12px;color:var(--text-muted);}
+  .post h2{font-size:clamp(22px,3vw,30px);color:#fff;font-weight:700;line-height:1.25;margin-bottom:12px;letter-spacing:-0.5px;}
+  .post .lead{color:var(--apple-blue);font-size:16px;font-weight:500;margin-bottom:28px;line-height:1.65;}
+
+  /* Article body typography */
+  .post-body{color:var(--text-muted);line-height:1.85;font-size:16px;}
+  .post-body p{margin-bottom:18px;}
+  .post-body h3{font-size:20px;font-weight:700;color:#fff;margin:36px 0 14px;padding-left:14px;border-left:3px solid var(--apple-blue);}
+  .post-body h4{font-size:16px;font-weight:700;color:var(--text-main);margin:24px 0 10px;}
+  .post-body ul,.post-body ol{padding-left:22px;margin-bottom:18px;}
+  .post-body li{margin-bottom:10px;line-height:1.75;}
+  .post-body strong{color:var(--text-main);font-weight:600;}
+  .post-body a{color:var(--apple-blue);text-decoration:none;}
+  .post-body a:hover{text-decoration:underline;}
+
+  /* Tip / CTA box */
+  .tip-box{background:rgba(10,132,255,0.07);border:1px solid rgba(10,132,255,0.2);border-radius:14px;padding:20px 24px;margin:24px 0;}
+  .tip-box strong{color:var(--apple-blue);display:block;margin-bottom:6px;font-size:14px;text-transform:uppercase;letter-spacing:0.06em;}
+  .tip-box p{margin:0;font-size:15px;}
+  .cta-box{background:linear-gradient(135deg,rgba(10,132,255,0.1),rgba(120,80,255,0.06));border:1px solid rgba(10,132,255,0.22);border-radius:16px;padding:28px 32px;margin:32px 0 0;text-align:center;}
+  .cta-box h4{font-size:18px;font-weight:700;color:#fff;margin-bottom:8px;}
+  .cta-box p{font-size:14px;color:var(--text-muted);margin-bottom:18px;}
+  .cta-btn{display:inline-block;background:var(--apple-blue);color:#fff;text-decoration:none;padding:11px 28px;border-radius:980px;font-size:14px;font-weight:600;transition:0.25s;}
+  .cta-btn:hover{background:var(--apple-blue-hover);transform:scale(1.04);}
+
+  /* Steps */
+  .steps{list-style:none;padding:0;margin-bottom:18px;counter-reset:step;}
+  .steps li{counter-increment:step;display:flex;gap:14px;margin-bottom:16px;align-items:flex-start;}
+  .steps li::before{content:counter(step);min-width:28px;height:28px;background:var(--apple-blue);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;margin-top:1px;}
+
+  /* Divider */
+  .post-divider{height:1px;background:var(--glass-border);margin:48px 0;}
 
   /* Footer */
-  footer { border-top: 1px solid var(--glass-border); padding: 40px 20px; text-align: center; margin-top: auto;}
-  .f-links { display: flex; justify-content: center; gap: 24px; margin-bottom: 20px; flex-wrap: wrap; }
-  .f-links a { color: var(--text-muted); text-decoration: none; font-size: 14px; transition: 0.2s; }
-  .f-links a:hover { color: #fff; }
-  .copyright { color: rgba(255,255,255,0.3); font-size: 12px; }
+  footer{border-top:1px solid var(--glass-border);padding:40px 20px;text-align:center;margin-top:auto;}
+  .f-links{display:flex;justify-content:center;gap:24px;margin-bottom:16px;flex-wrap:wrap;}
+  .f-links a{color:var(--text-muted);text-decoration:none;font-size:14px;transition:0.2s;}
+  .f-links a:hover{color:#fff;}
+  .copyright{color:rgba(255,255,255,0.25);font-size:12px;}
 
-  @media (max-width: 768px) {
-    .nav-links { display: none; }
-    .hero h1 { font-size: 36px; }
+  @media(max-width:768px){
+    .nav-links{display:none;} .nav{padding:0 20px;}
+    .post{padding:28px 20px;}
+    .hero h1{font-size:28px;}
   }
 </style>
 </head>
 <body>
 
-<!-- 導覽列 -->
 <nav class="nav">
   <a href="/" class="brand"><div class="b-logo">B</div> BinTools</a>
   <div class="nav-links">
     <a href="/#features">功能介紹</a>
     <a href="/#pricing">方案價格</a>
-    <a href="/blog" style="color: #fff;">教學文章</a>
+    <a href="/blog" style="color:#fff;">教學文章</a>
+    <a href="/about">關於我們</a>
   </div>
   <a href="/app" class="btn-primary">進入工具區</a>
 </nav>
 
-<!-- 頁首 -->
 <header class="hero">
-  <h1>精選教學與設計技巧</h1>
-  <p>探索如何利用 BinTools 提升您的社群視覺與工作效率。</p>
+  <h1>教學與設計技巧</h1>
+  <p>從 IG 排版到資料視覺化，這裡有最實用的內容創作教學，讓你的貼文從此不再普通。</p>
 </header>
 
-<!-- SEO 文章區塊 -->
 <main class="blog-container">
-  
-  <article>
-    <h2>1. 爆紅 IG 貼文生成器！如何用數據表格一鍵產出高質感 Instagram 貼文</h2>
-    <p class="excerpt">在這個視覺先行的時代，如何將生硬的數據轉化為吸睛的 IG 圖片？本文教您利用 BinTools 表格海報生成器，一秒搞定社群排版...</p>
-    <p class="content">經營 Instagram 最頭痛的就是製作圖表。傳統作法需要打開 Illustrator 或 Photoshop 慢慢拉表格，耗時又費力。現在，您只需要將 Excel 裡整理好的數據複製，貼進 BinTools 表格生成器中，選擇 Apple 經典的毛玻璃風格，就能產出 16:9 且帶有物理懸浮陰影的高級感圖片。這不僅能大幅縮短您的貼文製作時間，其乾淨俐落的 UI 風格，更是極受現代年輕族群喜愛的極簡美學，能有效提升貼文的點擊與收藏率。</p>
+
+  <!-- 文章目錄 -->
+  <nav class="blog-index" aria-label="文章目錄">
+    <a href="#post-1"><span class="idx-num">01</span>IG 圖文排版怎麼做？3 個免費工具推薦（含教學）</a>
+    <a href="#post-2"><span class="idx-num">02</span>Excel 表格怎麼變好看圖片？完整教學（附範例）</a>
+    <a href="#post-3"><span class="idx-num">03</span>Notion / Excel 資料轉 IG 貼文的方法（超簡單）</a>
+    <a href="#post-4"><span class="idx-num">04</span>免費製作「排行榜圖片」的方法（不用設計背景）</a>
+    <a href="#post-5"><span class="idx-num">05</span>如何製作「價格比較圖」？行銷人必學技巧</a>
+  </nav>
+
+  <!-- ===================================================== -->
+  <!-- 文章 01 -->
+  <!-- ===================================================== -->
+  <article class="post" id="post-1">
+    <div class="post-meta">
+      <span class="post-tag">IG 排版</span>
+      <span class="post-date">2025 年 4 月</span>
+      <span class="post-date">閱讀約 5 分鐘</span>
+    </div>
+    <h2>IG 圖文排版怎麼做？3 個免費工具推薦（含教學）</h2>
+    <p class="lead">想讓 IG 貼文更吸睛，但不會用 Photoshop？這篇文章整理了 3 個完全免費的圖文設計工具，就算零基礎也能做出讓人忍不住按讚的排版。</p>
+
+    <div class="post-body">
+      <p>你有沒有這樣的經驗：辛苦整理好一份數據或資訊，想分享到 Instagram，結果不是截圖醜到不行，就是花了大半天用 Canva 拼貼卻還是不夠專業？其實，<strong>IG 圖文排版沒有你想的那麼難</strong>，問題往往出在「用錯工具」。</p>
+
+      <p>這篇文章會介紹 3 個適合新手的免費工具，並且一步一步教你怎麼做出高質感的 IG 圖文貼文。</p>
+
+      <h3>為什麼 IG 排版這麼重要？</h3>
+      <p>Instagram 是一個以視覺為主的平台，研究顯示用戶平均只花 <strong>2 至 3 秒</strong>決定要不要停下來看一則貼文。如果你的圖片不夠吸睛，再好的內容也很難被看見。</p>
+      <p>特別是近年流行的「知識型貼文」，也就是用圖片呈現數據、排行、比較表或教學步驟，這類型的 IG 貼文往往有更高的儲存率和分享率，對帳號成長非常有幫助。</p>
+
+      <h3>工具一：BinTools 表格海報生成器（最快速）</h3>
+      <p><strong>適合：</strong>需要呈現數據比較、排行榜、價格表等表格型內容</p>
+      <p><a href="/app" target="_blank">BinTools</a> 是一個專為內容創作者設計的免費工具，它最大的優點是：<strong>你只需要貼上資料，它就能幫你生成高質感的毛玻璃風格圖片</strong>，完全不需要任何設計背景。</p>
+
+      <h4>使用步驟：</h4>
+      <ol class="steps">
+        <li>開啟 BinTools，點選「表格海報生成器」</li>
+        <li>在文字貼上區輸入你的資料（Tab 鍵分欄、Enter 鍵換列），或直接上傳 Excel / CSV 檔</li>
+        <li>選擇你喜歡的主題（Keynote 風格、毛玻璃、暗色系等）</li>
+        <li>調整字體大小、背景圖案</li>
+        <li>點擊「匯入並預覽」確認效果</li>
+        <li>下載圖片，直接上傳到 IG</li>
+      </ol>
+
+      <p>整個過程大概只需要 <strong>3 到 5 分鐘</strong>，不需要學任何設計技巧。而且因為是 Canvas 直接渲染，畫質非常清晰，放大到 4K 也不會模糊。</p>
+
+      <div class="tip-box">
+        <strong>💡 小技巧</strong>
+        <p>IG 正方形貼文最適合用 1:1 比例，但如果你要做「圖文輪播」，可以考慮 4:5 直式比例，視覺上更佔版面，讓用戶更願意左滑閱讀。</p>
+      </div>
+
+      <h3>工具二：Canva（最多樣化）</h3>
+      <p><strong>適合：</strong>需要加入圖片、插圖、複雜排版的貼文</p>
+      <p>Canva 是目前最廣泛使用的免費圖文設計工具，內建數千個模板，幾乎所有風格都有。缺點是免費版有部分元素需要付費，而且當你需要製作「資料表格」時，Canva 的排版工具比較不靈活，容易跑版。</p>
+      <p><strong>最適合的使用場景：</strong>名言卡片、活動宣傳、品牌介紹、有照片的貼文。</p>
+
+      <h3>工具三：Adobe Express（免費的 Adobe 出品）</h3>
+      <p><strong>適合：</strong>需要品牌一致性、已有 Adobe 帳號的用戶</p>
+      <p>Adobe Express 是 Adobe 推出的免費版設計工具，比 Photoshop 簡單許多，內建大量模板，字體選擇也比 Canva 更豐富。如果你重視字體排印（Typography）的細節，這個工具很適合你。</p>
+
+      <h3>三個工具怎麼選？</h3>
+      <p>簡單說：</p>
+      <ul>
+        <li><strong>要快、要專業感、資料型內容</strong> → 用 BinTools</li>
+        <li><strong>要模板多、彈性高</strong> → 用 Canva</li>
+        <li><strong>重視字體與品牌一致性</strong> → 用 Adobe Express</li>
+      </ul>
+      <p>很多創作者的最佳實踐是：用 BinTools 做資料圖，用 Canva 做宣傳圖，兩者搭配使用，效率最高。</p>
+
+      <h3>IG 圖文排版的 3 個設計原則</h3>
+      <p>工具只是輔助，真正讓圖片好看的是這三個設計原則：</p>
+      <ol>
+        <li><strong>留白大一點</strong>：很多新手會把圖片塞得太滿，反而讓人覺得雜亂。適當的留白讓圖片呼吸更順暢。</li>
+        <li><strong>字體不要超過 2 種</strong>：標題一種、內文一種，保持一致性。字體種類越多，看起來越不專業。</li>
+        <li><strong>顏色控制在 3 種以內</strong>：主色、輔助色、底色，超過三種顏色的設計很容易顯得花俏。</li>
+      </ol>
+
+      <h3>結論</h3>
+      <p>IG 圖文設計不需要花大錢買軟體，也不需要學習複雜的設計技巧。<strong>選對工具，搭配基本的設計原則，任何人都可以做出值得分享的視覺內容。</strong></p>
+      <p>如果你的內容以資料、表格、比較為主，我推薦直接從 BinTools 開始，第一次使用大概 5 分鐘就能上手，效果比花幾個小時修 Canva 版型好很多。</p>
+    </div>
+
+    <div class="cta-box">
+      <h4>🎨 立即試試 BinTools 表格海報生成器</h4>
+      <p>免費、免下載、免設計背景，貼上資料 3 分鐘就能生成專業 IG 圖片。</p>
+      <a href="/app" class="cta-btn">免費開始使用 →</a>
+    </div>
   </article>
 
-  <article>
-    <h2>2. 尋找免費 Canva 替代工具？試試專注於數據與程式碼呈現的生成器</h2>
-    <p class="excerpt">Canva 雖然強大，但在處理程式碼區塊和標準格線數據時往往力不從心。了解 BinTools 如何在特定領域提供更完美的解決方案...</p>
-    <p class="content">許多行銷人員習慣使用 Canva 進行設計，但當遇到需要展示「工程師程式碼」或「精密數據比較表」時，Canva 的排版常常會跑版，或是字體不夠專業。BinTools 正是為此而生的垂直利基工具。我們的程式碼海報生成器內建了 Atom One Dark 等經典開發者主題，能自動辨識語法並高亮。而表格工具更能直接控制「列寬」與「行距」，配合 Fira Code 等等寬字體，能產出絕對不跑版、專屬於科技與專業感的高質感視覺素材。</p>
+  <div class="post-divider"></div>
+
+  <!-- ===================================================== -->
+  <!-- 文章 02 -->
+  <!-- ===================================================== -->
+  <article class="post" id="post-2">
+    <div class="post-meta">
+      <span class="post-tag">圖文設計</span>
+      <span class="post-date">2025 年 4 月</span>
+      <span class="post-date">閱讀約 6 分鐘</span>
+    </div>
+    <h2>Excel 表格怎麼變好看圖片？完整教學（附範例）</h2>
+    <p class="lead">Excel 截圖放到社群媒體，效果往往慘不忍睹。這篇文章教你如何把平凡的表格資料，一鍵轉換成讓人眼睛一亮的高質感圖片。</p>
+
+    <div class="post-body">
+      <p>很多人在整理好 Excel 資料之後，第一個直覺就是「截圖貼上去」。但 Excel 截圖有幾個致命問題：背景白得刺眼、字體不夠美觀、格線太粗、完全沒有設計感。放到 IG 或 Line 群組，立刻就暴露了「這是用 Excel 做的」。</p>
+      <p>其實，只要多花 3 到 5 分鐘，你就能把同樣的資料轉換成完全不同等級的視覺呈現。</p>
+
+      <h3>為什麼 Excel 截圖看起來不專業？</h3>
+      <p>Excel 的本質是試算表工具，不是設計工具。它的預設視覺是為了「方便計算」而設計的，不是為了「視覺呈現」。所以當你直接截圖，你得到的是：</p>
+      <ul>
+        <li>純白背景，在深色螢幕上非常刺眼</li>
+        <li>預設的 Calibri 字體，不夠優雅</li>
+        <li>框線太明顯，整體顯得雜亂</li>
+        <li>沒有陰影、沒有圓角，缺乏現代感</li>
+      </ul>
+      <p>解決方法很簡單：<strong>把資料從 Excel 複製出來，用專門的視覺工具重新渲染</strong>。</p>
+
+      <h3>方法一：直接上傳 Excel 到 BinTools（最快）</h3>
+      <p>這是目前我用過最省時的方法，特別適合不想浪費時間在設計上的人。</p>
+
+      <ol class="steps">
+        <li>開啟 <a href="/app" target="_blank">BinTools</a>，選擇「表格海報生成器」</li>
+        <li>點選「上傳檔案」，直接把你的 .xlsx 或 .csv 檔案拖進去</li>
+        <li>系統會自動解析表格內容，你可以在右側即時預覽</li>
+        <li>在左側「表格樣式」選擇主題，例如「Keynote 簡報風」或「Glass 毛玻璃」</li>
+        <li>選擇背景圖案（有 macOS Big Sur、Monterey、Tahoe 波浪等多種選擇）</li>
+        <li>調整字體大小和行距</li>
+        <li>點擊「匯入並預覽」→ 確認效果後下載</li>
+      </ol>
+
+      <div class="tip-box">
+        <strong>📌 注意事項</strong>
+        <p>上傳前建議先清理 Excel 檔案，把不需要的欄位刪除，只保留你想展示的資料。欄位越精簡，生成的圖片越乾淨好看。</p>
+      </div>
+
+      <h3>方法二：複製貼上（適合隨時使用）</h3>
+      <p>如果你不想上傳整個 Excel 檔案，也可以直接用「文字貼上」模式：</p>
+      <ol class="steps">
+        <li>在 Excel 中選取你要的儲存格範圍</li>
+        <li>複製（Ctrl+C）</li>
+        <li>開啟 BinTools，切換到「文字貼上」標籤</li>
+        <li>直接貼上（Ctrl+V），資料會自動依照 Tab 分欄格式排列</li>
+        <li>接著照方法一的步驟選擇樣式和下載</li>
+      </ol>
+      <p>這個方法不需要儲存額外的檔案，非常方便。</p>
+
+      <h3>讓表格圖片更好看的 4 個細節</h3>
+      <h4>1. 選對主題</h4>
+      <p>如果你的 IG 版面是深色系，建議選「Glass 毛玻璃」或「Dark 深色」主題；如果是白色/淺色版面，「Keynote 簡報」或「Modern 圓角」效果更好。</p>
+
+      <h4>2. 背景選漸層</h4>
+      <p>純色背景雖然乾淨，但容易顯得單調。建議選「macOS Tahoe 藍浪」或「玫瑰紫藍漸層」這類帶有微妙色彩變化的背景，立刻提升視覺層次。</p>
+
+      <h4>3. 適當調整行距</h4>
+      <p>行距設定得寬一點（建議 26px 以上），讓每一行資料有足夠的「呼吸空間」，閱讀起來更輕鬆。</p>
+
+      <h4>4. 開啟斑馬紋</h4>
+      <p>如果你的資料行數比較多（超過 5 行），開啟「交替行顏色」功能，奇偶行用不同底色，讓視線更容易追蹤。</p>
+
+      <h3>輸出格式怎麼選？</h3>
+      <ul>
+        <li><strong>PNG</strong>：畫質最好，適合貼到 IG、Twitter、投影片</li>
+        <li><strong>JPG</strong>：檔案較小，適合需要快速傳輸的場合</li>
+      </ul>
+      <p>如果你的背景是透明的（例如要疊在影片上），記得選 PNG 格式並開啟「透明背景」選項。</p>
+
+      <h3>結論：3 分鐘讓你的表格脫胎換骨</h3>
+      <p>從此之後，你不需要再對著 Excel 截圖的醜陋外觀嘆氣。只要把資料貼到 BinTools，調整幾個設定，<strong>3 分鐘內就能輸出一張讓人以為是設計師做的表格圖片</strong>。</p>
+    </div>
+
+    <div class="cta-box">
+      <h4>📊 上傳你的 Excel，立即生成高質感圖片</h4>
+      <p>支援 .xlsx、.csv，登入後完全免費，無限次使用。</p>
+      <a href="/app" class="cta-btn">立即試用 →</a>
+    </div>
   </article>
 
-  <article>
-    <h2>3. 短影片教學：如何用 Apple 風格彈窗特效為你的簡報加分</h2>
-    <p class="excerpt">靜態圖片已經不夠看，本文將詳細拆解如何利用動態展演生成器，製作出 60fps 絲滑彈窗 WebM 影片，直接套用剪輯軟體...</p>
-    <p class="content">在 YouTube Shorts 或 TikTok 上，帶有微縮放與回彈的「Apple 彈窗動畫」是最受歡迎的特效之一。如果您想在剪輯軟體中純手工拉出這種具有物理慣性（Overshoot）的曲線，通常需要花費大量的時間調整關鍵幀。透過 BinTools 的動態展演生成器，您只需上傳一張圖片，系統便會利用雲端渲染技術，直接生成完美的 60fps 特效。若您使用的是專業剪輯軟體如 Premiere Pro，建議匯出時選擇「WebM 格式」並搭配「透明背景」，拉入時間軸後就能直接完成去背，免去綠幕去背的瑕疵！</p>
+  <div class="post-divider"></div>
+
+  <!-- ===================================================== -->
+  <!-- 文章 03 -->
+  <!-- ===================================================== -->
+  <article class="post" id="post-3">
+    <div class="post-meta">
+      <span class="post-tag">免費工具</span>
+      <span class="post-date">2025 年 4 月</span>
+      <span class="post-date">閱讀約 5 分鐘</span>
+    </div>
+    <h2>Notion / Excel 資料轉 IG 貼文的方法（超簡單）</h2>
+    <p class="lead">你在 Notion 整理了滿滿的資料，卻不知道怎麼把它變成 IG 貼文？這篇教你最簡單的方法，從複製到發文，全程不超過 10 分鐘。</p>
+
+    <div class="post-body">
+      <p>Notion 是許多知識工作者最愛用的整理工具，裡面記錄了大量有價值的資訊、清單、比較表和資料庫。Excel 也是同樣的狀況——明明有很棒的數據，但礙於視覺呈現太無聊，一直放在電腦裡沒有辦法對外分享。</p>
+      <p>今天我要告訴你一個 <strong>完全免費、不需要設計技巧</strong> 的方法，讓你的 Notion 或 Excel 資料直接變成適合 IG 發布的圖片。</p>
+
+      <h3>從 Notion 匯出資料的正確方式</h3>
+      <p>很多人不知道，Notion 的資料庫可以直接匯出成 CSV 格式，非常適合轉換成圖片。</p>
+
+      <ol class="steps">
+        <li>開啟你的 Notion 資料庫頁面</li>
+        <li>點右上角的「⋯」選單</li>
+        <li>選擇「Export」→「Export as CSV」</li>
+        <li>下載後你會得到一個 .csv 檔案</li>
+        <li>開啟 <a href="/app" target="_blank">BinTools</a>，上傳這個 CSV 檔案，即可自動解析</li>
+      </ol>
+
+      <div class="tip-box">
+        <strong>💡 Notion 小技巧</strong>
+        <p>在匯出前，先在 Notion 裡調整好欄位的「顯示順序」，把你想在圖片上呈現的欄位放在最前面，並隱藏不需要的欄位（例如建立時間、ID 等）。這樣匯出的 CSV 就已經是你需要的格式了。</p>
+      </div>
+
+      <h3>從 Excel 複製資料（更快的方法）</h3>
+      <p>如果你不想存成 CSV，也可以直接在 Excel 或 Google Sheets 裡選取資料後複製，然後貼到 BinTools 的「文字貼上」區域。</p>
+      <p>因為 Excel 和 Google Sheets 複製的資料是以 <strong>Tab 分隔欄位、Enter 換列</strong> 的格式，BinTools 能夠完整識別這個格式，不需要做任何額外的轉換。</p>
+
+      <h3>哪種資料最適合做成 IG 貼文？</h3>
+      <p>不是所有資料都適合做成 IG 圖片，以下這幾類效果最好：</p>
+      <ul>
+        <li><strong>排行榜</strong>：前 5 名、前 10 名，加上排名數字和分數，視覺上非常直覺</li>
+        <li><strong>比較表</strong>：A vs B、免費 vs 付費、功能對比，清楚呈現差異</li>
+        <li><strong>步驟清單</strong>：把流程拆解成 3 至 6 個步驟，適合教學類內容</li>
+        <li><strong>數據摘要</strong>：把一份報告的重點數字提煉成 4 至 6 個關鍵指標</li>
+      </ul>
+
+      <h3>資料整理的黃金原則：少就是多</h3>
+      <p>在把資料轉換成 IG 圖片之前，有一個非常重要的原則：<strong>刪除所有「不夠重要」的資訊</strong>。</p>
+      <p>IG 圖片的閱讀距離往往很近，螢幕尺寸有限，如果你把 20 個欄位全部塞進去，不但擠，而且根本沒有人有耐心看完。建議：</p>
+      <ul>
+        <li>欄位控制在 3 至 5 個</li>
+        <li>每個欄位的文字盡量簡短（4 至 8 個字最理想）</li>
+        <li>資料行數不要超過 8 至 10 行</li>
+      </ul>
+
+      <h3>生成圖片後，IG 發文的最佳實踐</h3>
+      <h4>加上有價值的圖說文字</h4>
+      <p>圖片只是入口，好的圖說才是留住讀者的關鍵。圖說第一句要能讓人想繼續看，例如「很多人不知道這件事，但它可能正在影響你的效率…」</p>
+
+      <h4>第一張圖最重要</h4>
+      <p>如果你做的是輪播貼文，第一張圖決定用戶要不要滑下去。建議第一張放「結論或懸念」，讓人有動力繼續看。</p>
+
+      <h4>加上品牌標誌</h4>
+      <p>即使是免費工具生成的圖，也建議在角落放上你的帳號 ID，讓圖片被分享時也能帶回流量。</p>
+
+      <h3>結論</h3>
+      <p>Notion 和 Excel 裡的資料，往往比你想像的更有分享價值，只是缺少一個讓它「好看」的步驟。<strong>用 BinTools 作為這個「翻譯工具」，讓你的資料從私人筆記變成值得分享的公開內容</strong>，整個過程真的不超過 10 分鐘。</p>
+    </div>
+
+    <div class="cta-box">
+      <h4>🚀 把你的 Notion 資料變成 IG 圖片</h4>
+      <p>支援 CSV 上傳與文字直接貼上，3 分鐘出圖，完全免費。</p>
+      <a href="/app" class="cta-btn">現在試試看 →</a>
+    </div>
+  </article>
+
+  <div class="post-divider"></div>
+
+  <!-- ===================================================== -->
+  <!-- 文章 04 -->
+  <!-- ===================================================== -->
+  <article class="post" id="post-4">
+    <div class="post-meta">
+      <span class="post-tag">免費工具</span>
+      <span class="post-date">2025 年 4 月</span>
+      <span class="post-date">閱讀約 5 分鐘</span>
+    </div>
+    <h2>免費製作「排行榜圖片」的方法（不用設計背景）</h2>
+    <p class="lead">排行榜是社群媒體上最受歡迎的圖文格式之一，因為人天生對「名次」充滿好奇。這篇文章教你不用任何設計背景，免費做出讓人想分享的排行榜圖片。</p>
+
+    <div class="post-body">
+      <p>你一定看過這種 IG 貼文：前 5 名的某某排行榜，搭配乾淨的圖表設計，底下留言區熱烈討論「我以為XX排第一！」這類內容往往能帶來遠高於平均的互動率。</p>
+      <p>原因很簡單：排行榜的資訊結構清晰、有懸念、讓人有強烈意見想發表。<strong>如果你有任何領域的數據或評比，製作成排行榜圖片絕對值得一試。</strong></p>
+
+      <h3>排行榜圖片為什麼效果這麼好？</h3>
+      <p>從社群心理學的角度來看，排行榜至少滿足了三種人類本能：</p>
+      <ul>
+        <li><strong>好奇心</strong>：第一名是誰？我猜的對嗎？</li>
+        <li><strong>認同感</strong>：「對啊我最愛這個！」→ 留言</li>
+        <li><strong>反駁衝動</strong>：「不對吧，應該是XX才對！」→ 也會留言</li>
+      </ul>
+      <p>這三種反應都會產生互動，而 Instagram 的演算法非常吃互動數，所以排行榜內容往往能觸及比平常多幾倍的人。</p>
+
+      <h3>用 BinTools 製作排行榜圖片，5 步驟搞定</h3>
+
+      <ol class="steps">
+        <li>
+          <div><strong>準備你的排行榜資料</strong><br>先決定要做什麼排行（城市、品牌、歌手、產品…），整理成一個表格，通常包含：排名、名稱、分數或關鍵數字。</div>
+        </li>
+        <li>
+          <div><strong>開啟 BinTools 表格工具</strong><br>前往 <a href="/app" target="_blank">bintools.app</a>，選擇「表格海報生成器」。</div>
+        </li>
+        <li>
+          <div><strong>使用排行榜範本快速填入</strong><br>點選「🏆 排行榜」範本按鈕，系統會自動填入示範格式，你只需要替換成自己的資料。</div>
+        </li>
+        <li>
+          <div><strong>選擇合適的主題和背景</strong><br>排行榜建議選「Dark 深色」主題搭配「Monterey 深淵」背景，視覺上更有氣勢；或選「Keynote 簡報」主題搭配白色背景，走極簡路線。</div>
+        </li>
+        <li>
+          <div><strong>下載並發布</strong><br>確認預覽效果後，點擊「⬇ 下載圖片」，選擇 PNG 格式，直接上傳到 IG。</div>
+        </li>
+      </ol>
+
+      <h3>讓排行榜圖片更加分的 5 個技巧</h3>
+
+      <h4>技巧一：加入獎牌 Emoji</h4>
+      <p>在第 1、2、3 名前面加上 🥇🥈🥉，視覺上非常直覺，讓人一眼就知道名次高低，也讓圖片更活潑。</p>
+
+      <h4>技巧二：加入「較上週」變化欄位</h4>
+      <p>如果你的排行是定期更新的，可以加一欄「變化」，用 ↑↓→ 箭頭表示本週相較上週的升降，製造數據動態感，讓人想持續追蹤。</p>
+
+      <h4>技巧三：控制欄位數量</h4>
+      <p>排行榜最理想的欄位數是 2 至 4 個：排名 + 名稱 + 1 至 2 個關鍵數字。太多欄位會讓圖片看起來很擠，重點被稀釋。</p>
+
+      <h4>技巧四：用對比色強調第一名</h4>
+      <p>如果你的工具有支援的話，可以讓第一名那行用不同的底色或加粗字體，視覺重點更突出。</p>
+
+      <h4>技巧五：標注資料來源</h4>
+      <p>如果你的排行榜有引用外部數據，在圖片角落標注資料來源，可以增加可信度，也避免被質疑資料造假。</p>
+
+      <h3>哪些主題適合做排行榜？</h3>
+      <p>幾乎任何有「名次」概念的資料都可以：</p>
+      <ul>
+        <li>台灣最受歡迎的 Podcast 前 10 名</li>
+        <li>本月 IG 漲粉最快的帳號</li>
+        <li>各縣市平均薪資排行</li>
+        <li>最多人使用的 AI 工具排名</li>
+        <li>你自己的「個人書單 Top 5」</li>
+      </ul>
+      <p>排行榜內容不需要多麼嚴謹的數據來源，甚至「個人主觀評分」也完全可以，重點是讓讀者有機會表達意見。</p>
+
+      <h3>結論</h3>
+      <p>排行榜是社群媒體上「性價比最高」的內容格式之一：<strong>製作成本低、互動率高、擴散效果好</strong>。結合 BinTools 這類免費工具，你不需要設計背景，不需要會 Photoshop，只需要 5 分鐘，就能做出專業水準的排行榜圖片。</p>
+    </div>
+
+    <div class="cta-box">
+      <h4>🏆 立即製作你的排行榜圖片</h4>
+      <p>內建排行榜範本，點一下自動填入，調整資料後馬上下載。</p>
+      <a href="/app" class="cta-btn">免費試用 →</a>
+    </div>
+  </article>
+
+  <div class="post-divider"></div>
+
+  <!-- ===================================================== -->
+  <!-- 文章 05 -->
+  <!-- ===================================================== -->
+  <article class="post" id="post-5">
+    <div class="post-meta">
+      <span class="post-tag">圖文設計</span>
+      <span class="post-date">2025 年 4 月</span>
+      <span class="post-date">閱讀約 6 分鐘</span>
+    </div>
+    <h2>如何製作「價格比較圖」？行銷人必學技巧</h2>
+    <p class="lead">價格比較圖是電商、SaaS、自媒體行銷中最高轉換率的視覺素材之一。這篇文章教你從零開始，用免費工具做出有說服力的定價比較圖。</p>
+
+    <div class="post-body">
+      <p>你有沒有看過那種讓你「秒懂」各方案差異的比較表？一眼就能看出哪個方案適合自己，哪些功能你有哪些沒有，完全不需要費力閱讀長篇文字說明。這就是<strong>價格比較圖的力量</strong>。</p>
+      <p>對行銷人員來說，一張設計得當的價格比較圖，往往比一整頁的文字描述更有說服力。它能縮短用戶的決策時間，降低認知摩擦，直接提升轉換率。</p>
+
+      <h3>什麼是好的價格比較圖？</h3>
+      <p>一張有效的定價比較圖，必須同時做到以下三件事：</p>
+      <ul>
+        <li><strong>清楚</strong>：3 秒內就能理解各方案的差異</li>
+        <li><strong>引導</strong>：視覺設計上暗示「推薦方案」</li>
+        <li><strong>誠實</strong>：不隱藏缺點，建立信任感</li>
+      </ul>
+      <p>很多設計不好的比較表，常犯的錯誤是：資訊太多太密、沒有視覺重點、每個方案看起來都差不多，讓用戶更迷惑而不是更清晰。</p>
+
+      <h3>用 BinTools 製作定價比較圖的完整步驟</h3>
+
+      <ol class="steps">
+        <li>
+          <div><strong>整理你的比較資料</strong><br>先在紙上或 Notion 整理好要比較的項目，例如：月費、功能清單、使用限制、支援方式等。通常 3 至 4 個比較方案效果最好，太多反而讓人無法選擇。</div>
+        </li>
+        <li>
+          <div><strong>使用定價比較範本</strong><br>開啟 <a href="/app" target="_blank">BinTools</a>，選擇「表格海報生成器」，點選「💰 定價比較」範本，系統會自動填入 Free / Pro / 企業版的示範格式，你只需要替換成自己的資料。</div>
+        </li>
+        <li>
+          <div><strong>選擇適合的視覺主題</strong><br>定價比較圖建議選「Modern 圓角」或「Keynote 簡報」主題，視覺乾淨、數字清晰、適合商業場景。如果你的品牌走暗色風格，可以選「Dark 深色」主題。</div>
+        </li>
+        <li>
+          <div><strong>設定配色突顯推薦方案</strong><br>在「表格配色」中，選擇「海洋藍」或「森林綠」配色，並用「標題背景」顏色讓推薦方案欄位更突出。</div>
+        </li>
+        <li>
+          <div><strong>調整字體與輸出</strong><br>字體建議選「Noto Sans TC 思源黑體」，清晰易讀。確認預覽後，選 FHD（1920×1080）解析度下載 PNG 圖片。</div>
+        </li>
+      </ol>
+
+      <h3>讓比較圖更有說服力的設計技巧</h3>
+
+      <h4>技巧一：「推薦方案」視覺要最突出</h4>
+      <p>幾乎所有成功的定價頁面，都會讓「中間方案」或「推薦方案」在視覺上更加醒目，例如加上「最受歡迎」標籤、讓該欄位顏色更深、或加上邊框高亮。這個設計有兩個目的：讓猶豫不決的用戶有方向感，以及引導用戶選擇利潤較高的方案。</p>
+
+      <h4>技巧二：用「✓」和「✗」取代文字</h4>
+      <p>與其在每個格子裡寫「有」和「無」，不如直接用 ✓ 和 ✗ 符號，搭配綠色和灰色，視覺掃描速度快 3 倍以上。</p>
+
+      <h4>技巧三：把「節省金額」放在顯眼位置</h4>
+      <p>如果你的年繳方案比月繳划算，記得把「年繳省 XX%」這個資訊放在醒目位置。省錢是促進升級的強力動機。</p>
+
+      <h4>技巧四：數字要夠大、夠清晰</h4>
+      <p>價格是比較圖的核心，字體建議至少 24px，讓用戶不需要靠近螢幕也能一眼讀到。</p>
+
+      <h3>不同場景的比較圖設計建議</h3>
+
+      <h4>SaaS / 訂閱服務</h4>
+      <p>強調功能差異和使用次數限制，突顯「升級後能解鎖什麼」。重點欄位包括：API 次數、團隊人數、儲存空間、客服等級。</p>
+
+      <h4>電商產品比較</h4>
+      <p>強調規格差異，加入「適合誰」的欄位，幫助用戶對號入座。例如：「適合家庭使用 / 適合專業用戶」。</p>
+
+      <h4>自媒體課程比較</h4>
+      <p>強調「你能得到什麼」而不是「功能清單」，例如「影片堂數、是否包含逐字稿、能否重複觀看」。</p>
+
+      <h3>比較圖做好了，然後呢？</h3>
+      <p>一張好的比較圖，可以用在很多地方：</p>
+      <ul>
+        <li>放在官方網站的定價頁</li>
+        <li>貼到 IG、Facebook 或 Line 群組</li>
+        <li>作為電子郵件行銷的視覺主圖</li>
+        <li>嵌入 Notion 或 Notion Site 作為公開資訊頁</li>
+        <li>在 YouTube 影片說明或結尾使用</li>
+      </ul>
+      <p>同樣的資料，做成不同比例（1:1 IG 版、16:9 投影片版），可以最大化一次製作的使用價值。</p>
+
+      <h3>結論</h3>
+      <p>價格比較圖是行銷素材中「投資報酬率最高」的類型之一：<strong>製作時間短，使用場景多，轉換效果直接</strong>。用 BinTools 的定價比較範本，你不需要設計師，也不需要學 Figma，幾分鐘就能做出一張有說服力的比較圖，放到你的銷售頁或社群媒體上，立刻提升專業形象。</p>
+    </div>
+
+    <div class="cta-box">
+      <h4>💰 立即製作你的價格比較圖</h4>
+      <p>內建定價比較範本，一鍵套用，免費下載高解析度圖片。</p>
+      <a href="/app" class="cta-btn">免費製作 →</a>
+    </div>
   </article>
 
 </main>
 
-<!-- 頁尾 -->
 <footer>
   <div class="f-links">
     <a href="/#features">功能介紹</a>
     <a href="/#pricing">方案價格</a>
-    <a href="/#privacy">Privacy Policy</a>
-    <a href="/#terms">Terms of Service</a>
+    <a href="/blog" style="color:#fff;">教學文章</a>
+    <a href="/about">關於我們</a>
+    <a href="/privacy">Privacy Policy</a>
+    <a href="/terms">Terms of Service</a>
+    <a href="/contact">Contact</a>
   </div>
   <div class="copyright">&copy; 2024 BinTools. All rights reserved. Designed for Productivity.</div>
 </footer>
