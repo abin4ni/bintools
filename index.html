@@ -77,47 +77,175 @@ body::before{
 }
 
 /* ============================================================
-   NAV
+   NAV — Floating Glass Capsule
    ============================================================ */
-.nav{
-  position:fixed;top:0;width:100%;z-index:200;
-  display:flex;justify-content:space-between;align-items:center;
-  padding:0 40px;height:64px;
-  background:rgba(0,0,0,0.6);
-  backdrop-filter:blur(24px);
-  -webkit-backdrop-filter:blur(24px);
-  border-bottom:1px solid var(--border);
-  transition:background 0.4s;
+
+/* 進場動畫 */
+@keyframes navFadeIn {
+  from { opacity:0; transform:translateX(-50%) translateY(-12px); }
+  to   { opacity:1; transform:translateX(-50%) translateY(0); }
 }
-.nav.scrolled{background:rgba(0,0,0,0.88);}
-.brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:17px;color:var(--white);text-decoration:none;letter-spacing:-0.02em;}
-.b-logo{width:32px;height:32px;background:var(--white);color:var(--black);border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;}
-.nav-pill{
-  display:flex;align-items:center;gap:2px;
-  background:rgba(255,255,255,0.06);
-  border:1px solid var(--border);
-  border-radius:980px;
-  padding:4px;
-  backdrop-filter:blur(12px);
+
+.nav {
+  /* 浮起來：脫離全寬，改成置中膠囊 */
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 40px);
+  max-width: 1080px;
+  z-index: 200;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px 0 16px;
+  height: 52px;
+  border-radius: 980px;
+
+  /* Glassmorphism */
+  background: rgba(10, 10, 18, 0.55);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+
+  /* 邊框：雙層 — 外框 + 頂部高光 */
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  /* 懸浮陰影 */
+  box-shadow:
+    0 2px 0 rgba(255,255,255,0.06) inset,  /* 頂部亮線 */
+    0 8px 32px rgba(0, 0, 0, 0.45),
+    0 2px 8px  rgba(0, 0, 0, 0.3),
+    0 0 0 1px  rgba(255,255,255,0.04);       /* 外發光環 */
+
+  /* 進場動畫 */
+  animation: navFadeIn 0.55s cubic-bezier(0.22,1,0.36,1) both;
+
+  /* 不要 transition 覆蓋 background */
+  transition: background 0.35s, border-color 0.35s, box-shadow 0.35s;
 }
-.nav-pill a{
-  color:var(--muted);text-decoration:none;
-  font-size:13px;font-weight:500;font-family:var(--sans);
-  padding:7px 16px;border-radius:980px;
-  transition:color 0.2s,background 0.2s;
-  white-space:nowrap;
+
+/* 頂部玻璃高光線 (pseudo-element) */
+.nav::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 12%; right: 12%;
+  height: 1px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,255,255,0.30) 35%,
+    rgba(255,255,255,0.50) 50%,
+    rgba(255,255,255,0.30) 65%,
+    transparent 100%
+  );
+  pointer-events: none;
 }
-.nav-pill a:hover{color:var(--white);background:rgba(255,255,255,0.08);}
-.btn-cta{
-  display:inline-flex;align-items:center;gap:6px;
+
+/* 捲動後加深背景、略增陰影 */
+.nav.scrolled {
+  background: rgba(8, 8, 16, 0.78);
+  border-color: rgba(255,255,255,0.10);
+  box-shadow:
+    0 2px 0 rgba(255,255,255,0.05) inset,
+    0 12px 40px rgba(0, 0, 0, 0.6),
+    0 4px 12px  rgba(0, 0, 0, 0.4),
+    0 0 0 1px   rgba(255,255,255,0.03);
+}
+
+/* Brand */
+.brand {
+  display:flex;align-items:center;gap:10px;
+  font-weight:600;font-size:16px;
+  color:var(--white);text-decoration:none;
+  letter-spacing:-0.02em;
+  flex-shrink: 0;
+}
+.b-logo {
+  width:30px;height:30px;
   background:var(--white);color:var(--black);
-  text-decoration:none;padding:9px 20px;
-  border-radius:980px;font-size:13px;font-weight:600;
-  font-family:var(--sans);
-  transition:transform 0.2s var(--ease-spring),box-shadow 0.25s,opacity 0.2s;
+  border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:13px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
-.btn-cta:hover{transform:scale(1.04);box-shadow:0 4px 20px rgba(255,255,255,0.15);opacity:0.92;}
-.btn-cta:active{transform:scale(0.97);}
+
+/* Nav pill — 中間連結群組 */
+.nav-pill {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 980px;
+  padding: 3px;
+  backdrop-filter: blur(8px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.nav-pill a {
+  color: rgba(240,240,245,0.60);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--sans);
+  padding: 6px 14px;
+  border-radius: 980px;
+  transition: color 0.2s, background 0.2s;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
+.nav-pill a:hover {
+  color: rgba(240,240,245,1);
+  background: rgba(255,255,255,0.09);
+}
+
+/* CTA 按鈕 */
+.btn-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255,255,255,0.92);
+  color: #000;
+  text-decoration: none;
+  padding: 8px 18px;
+  border-radius: 980px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--sans);
+  letter-spacing: -0.01em;
+  flex-shrink: 0;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.6) inset,
+    0 4px 16px rgba(0,0,0,0.25),
+    0 1px 4px  rgba(0,0,0,0.15);
+  transition:
+    transform 0.22s var(--ease-spring),
+    box-shadow 0.25s,
+    background 0.2s,
+    opacity 0.2s;
+}
+.btn-cta:hover {
+  background: #fff;
+  transform: scale(1.05);
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.8) inset,
+    0 6px 24px rgba(255,255,255,0.18),
+    0 2px 8px  rgba(0,0,0,0.2);
+}
+.btn-cta:active { transform: scale(0.97); }
+
+/* RWD — 手機版縮小間距 */
+@media (max-width: 768px) {
+  .nav {
+    top: 10px;
+    width: calc(100% - 24px);
+    padding: 0 12px;
+    height: 48px;
+  }
+  .nav-pill { display: none; }
+  .brand span { font-size: 15px; }
+}
 
 /* ============================================================
    SCROLL REVEAL
@@ -133,7 +261,7 @@ body::before{
   position:relative;overflow:hidden;
   min-height:100vh;
   display:flex;flex-direction:column;
-  padding-top:64px;
+  padding-top:84px;
 }
 /* ambient glows */
 .hero-ambient{position:absolute;inset:0;pointer-events:none;z-index:0;}
