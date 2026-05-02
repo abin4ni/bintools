@@ -334,6 +334,62 @@
     .nav { padding: 0 16px; }
   }
 
+  /* ── TABLE POSTER: PRESET TEMPLATE SYSTEM ────────────────────── */
+  .tbl-preset-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 7px;
+    margin-bottom: 4px;
+  }
+  .tbl-preset-card {
+    cursor: pointer;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    overflow: hidden;
+    transition: border-color 0.18s, transform 0.15s, box-shadow 0.18s;
+    position: relative;
+    aspect-ratio: 16/9;
+    flex-shrink: 0;
+  }
+  .tbl-preset-card:hover {
+    transform: translateY(-2px) scale(1.03);
+    border-color: var(--apple-blue);
+    box-shadow: 0 6px 18px rgba(0,113,227,0.18);
+  }
+  .tbl-preset-card.active {
+    border-color: var(--apple-blue);
+    box-shadow: 0 0 0 3px rgba(0,113,227,0.22), 0 6px 18px rgba(0,113,227,0.15);
+  }
+  .tbl-preset-inner {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 5px 4px 4px;
+    pointer-events: none;
+  }
+  .tbl-preset-mini {
+    width: 86%;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5px;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .tbl-preset-mini-hd { height: 7px; border-radius: 2px 2px 0 0; opacity: 0.95; }
+  .tbl-preset-mini-r1 { height: 5px; opacity: 0.55; }
+  .tbl-preset-mini-r2 { height: 5px; opacity: 0.35; }
+  .tbl-preset-name {
+    font-size: 9px;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.3;
+    white-space: nowrap;
+  }
+
   /* --- QR CODE TOOL --- */
   .qr-output-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 300px; gap: 20px; }
   #qrCodeCanvas { border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
@@ -493,6 +549,110 @@
     <section class="hero" style="padding-bottom: 24px;"><h1>表格海報生成器</h1></section>
     <div class="tool-container">
       <div class="left-panel">
+
+        <!-- ★ 快速模板選擇 ★ -->
+        <div class="card">
+          <div class="card-title" style="margin-bottom:12px;">⚡ 快速模板</div>
+          <div class="tbl-preset-row" id="tblPresetRow">
+
+            <!-- 1. Keynote Light -->
+            <div class="tbl-preset-card active" id="preset-keynote-light" onclick="ToolTable.applyFullPreset('keynote-light')" title="Keynote Light">
+              <div class="tbl-preset-inner" style="background:linear-gradient(135deg,#a8bfd0 0%,#b8ccd8 50%,#d8cba8 100%);">
+                <div class="tbl-preset-mini" style="background:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
+                  <div class="tbl-preset-mini-hd" style="background:transparent; border-bottom:1.5px solid #1d1d1f;"></div>
+                  <div class="tbl-preset-mini-r1" style="background:#f5f5f7;"></div>
+                  <div class="tbl-preset-mini-r2" style="background:#fff;"></div>
+                </div>
+                <div class="tbl-preset-name" style="color:#fff; text-shadow:0 1px 3px rgba(0,0,0,0.4);">Keynote Light</div>
+              </div>
+            </div>
+
+            <!-- 2. Keynote Dark -->
+            <div class="tbl-preset-card" id="preset-keynote-dark" onclick="ToolTable.applyFullPreset('keynote-dark')" title="Keynote Dark">
+              <div class="tbl-preset-inner" style="background:linear-gradient(135deg,#080820 0%,#0a0a28 50%,#060618 100%);">
+                <div class="tbl-preset-mini" style="background:#1c1c2e; box-shadow:0 2px 6px rgba(0,0,0,0.5);">
+                  <div class="tbl-preset-mini-hd" style="background:#2c2c3e;"></div>
+                  <div class="tbl-preset-mini-r1" style="background:#1c1c2e;"></div>
+                  <div class="tbl-preset-mini-r2" style="background:#242434;"></div>
+                </div>
+                <div class="tbl-preset-name" style="color:rgba(255,255,255,0.85);">Keynote Dark</div>
+              </div>
+            </div>
+
+            <!-- 3. Glass Aurora -->
+            <div class="tbl-preset-card" id="preset-glass-aurora" onclick="ToolTable.applyFullPreset('glass-aurora')" title="Glass Aurora">
+              <div class="tbl-preset-inner" style="background:linear-gradient(135deg,#059669 0%,#7c3aed 60%,#0f172a 100%);">
+                <div class="tbl-preset-mini" style="background:rgba(200,200,220,0.55); backdrop-filter:blur(4px); border:1px solid rgba(255,255,255,0.4); box-shadow:0 2px 8px rgba(0,0,0,0.3);">
+                  <div class="tbl-preset-mini-hd" style="background:rgba(255,255,255,0.15); border-bottom:1px solid rgba(0,0,0,0.1);"></div>
+                  <div class="tbl-preset-mini-r1" style="background:rgba(0,0,0,0.05);"></div>
+                  <div class="tbl-preset-mini-r2" style="background:rgba(255,255,255,0.08);"></div>
+                </div>
+                <div class="tbl-preset-name" style="color:rgba(255,255,255,0.9);">Glass Aurora</div>
+              </div>
+            </div>
+
+            <!-- 4. Sunset Glass -->
+            <div class="tbl-preset-card" id="preset-sunset-glass" onclick="ToolTable.applyFullPreset('sunset-glass')" title="Sunset Glass">
+              <div class="tbl-preset-inner" style="background:linear-gradient(135deg,#f97316 0%,#ef4444 50%,#7c3aed 100%);">
+                <div class="tbl-preset-mini" style="background:rgba(255,220,200,0.45); border:1px solid rgba(255,255,255,0.5); box-shadow:0 2px 8px rgba(0,0,0,0.3);">
+                  <div class="tbl-preset-mini-hd" style="background:rgba(255,255,255,0.2); border-bottom:1px solid rgba(0,0,0,0.08);"></div>
+                  <div class="tbl-preset-mini-r1" style="background:rgba(255,255,255,0.1);"></div>
+                  <div class="tbl-preset-mini-r2" style="background:rgba(0,0,0,0.04);"></div>
+                </div>
+                <div class="tbl-preset-name" style="color:rgba(255,255,255,0.95);">Sunset Glass</div>
+              </div>
+            </div>
+
+            <!-- 5. Ocean Blue -->
+            <div class="tbl-preset-card" id="preset-ocean-blue" onclick="ToolTable.applyFullPreset('ocean-blue')" title="Ocean Blue">
+              <div class="tbl-preset-inner" style="background:linear-gradient(135deg,#0ea5e9 0%,#2563eb 60%,#1e1b4b 100%);">
+                <div class="tbl-preset-mini" style="background:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.25);">
+                  <div class="tbl-preset-mini-hd" style="background:#1d4ed8;"></div>
+                  <div class="tbl-preset-mini-r1" style="background:#eff6ff;"></div>
+                  <div class="tbl-preset-mini-r2" style="background:#fff;"></div>
+                </div>
+                <div class="tbl-preset-name" style="color:#fff; text-shadow:0 1px 3px rgba(0,0,0,0.4);">Ocean Blue</div>
+              </div>
+            </div>
+
+            <!-- 6. Business Pro -->
+            <div class="tbl-preset-card" id="preset-business" onclick="ToolTable.applyFullPreset('business')" title="Business Pro">
+              <div class="tbl-preset-inner" style="background:linear-gradient(135deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%);">
+                <div class="tbl-preset-mini" style="background:#f8fafc; border:1px solid #cbd5e1; box-shadow:0 2px 6px rgba(0,0,0,0.2);">
+                  <div class="tbl-preset-mini-hd" style="background:#1e3a5f;"></div>
+                  <div class="tbl-preset-mini-r1" style="background:#f8fafc;"></div>
+                  <div class="tbl-preset-mini-r2" style="background:#e2e8f0;"></div>
+                </div>
+                <div class="tbl-preset-name" style="color:rgba(255,255,255,0.85);">Business Pro</div>
+              </div>
+            </div>
+
+            <!-- 7. Rose Garden -->
+            <div class="tbl-preset-card" id="preset-rose-garden" onclick="ToolTable.applyFullPreset('rose-garden')" title="Rose Garden">
+              <div class="tbl-preset-inner" style="background:linear-gradient(135deg,#c084fc 0%,#818cf8 50%,#38bdf8 100%);">
+                <div class="tbl-preset-mini" style="background:rgba(255,240,250,0.6); border:1px solid rgba(255,255,255,0.6); box-shadow:0 2px 8px rgba(0,0,0,0.25);">
+                  <div class="tbl-preset-mini-hd" style="background:rgba(255,255,255,0.2); border-bottom:1px solid rgba(190,24,93,0.25);"></div>
+                  <div class="tbl-preset-mini-r1" style="background:rgba(190,24,93,0.07);"></div>
+                  <div class="tbl-preset-mini-r2" style="background:rgba(255,255,255,0.2);"></div>
+                </div>
+                <div class="tbl-preset-name" style="color:#fff; text-shadow:0 1px 3px rgba(100,0,80,0.4);">Rose Garden</div>
+              </div>
+            </div>
+
+            <!-- 8. Minimal Grid -->
+            <div class="tbl-preset-card" id="preset-minimal" onclick="ToolTable.applyFullPreset('minimal')" title="Minimal Grid">
+              <div class="tbl-preset-inner" style="background:#f5f5f7;">
+                <div class="tbl-preset-mini" style="background:#fff; border:1.5px solid #e2e2e7; box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+                  <div class="tbl-preset-mini-hd" style="background:#475569;"></div>
+                  <div class="tbl-preset-mini-r1" style="background:#f8fafc;"></div>
+                  <div class="tbl-preset-mini-r2" style="background:#fff;"></div>
+                </div>
+                <div class="tbl-preset-name" style="color:#475569;">Minimal Grid</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
 
         <!-- 資料輸入 -->
         <div class="card">
@@ -1384,6 +1544,115 @@
     _autoTimer: null,
     _blobUrl: null,
 
+    // ── Full Preset System ────────────────────────────────────────
+    PRESETS: {
+      "keynote-light": {
+        bgStyle: "tahoe",     theme: "keynote", colorPreset: "snow",
+        font: "Inter",        fontSize: 24,  rowGap: 28, radius: 24, stripe: true,
+        accent: "#1d1d1f",    bg: "#ffffff",  hTxt: "#ffffff", bTxt: "#1d1d1f",
+        odd: "#ffffff",       even: "#f5f5f7"
+      },
+      "keynote-dark": {
+        bgStyle: "monterey",  theme: "dark",    colorPreset: "night",
+        font: "Inter",        fontSize: 24,  rowGap: 28, radius: 20, stripe: true,
+        accent: "#1e1e2e",    bg: "#181825",  hTxt: "#cdd6f4", bTxt: "#bac2de",
+        odd: "#1e1e2e",       even: "#313244"
+      },
+      "glass-aurora": {
+        bgStyle: "grad-aurora", theme: "glass", colorPreset: "custom",
+        font: "Inter",          fontSize: 22,  rowGap: 26, radius: 28, stripe: false,
+        accent: "#059669",      bg: "#0f172a",  hTxt: "#ffffff", bTxt: "#e2e8f0",
+        odd: "#0f172a",         even: "#1e293b"
+      },
+      "sunset-glass": {
+        bgStyle: "grad-sunset", theme: "glass", colorPreset: "custom",
+        font: "Noto Sans TC",   fontSize: 22,  rowGap: 24, radius: 24, stripe: false,
+        accent: "#f97316",      bg: "#1a0a00",  hTxt: "#ffffff", bTxt: "#fef3c7",
+        odd: "#1a0a00",         even: "#2a1000"
+      },
+      "ocean-blue": {
+        bgStyle: "grad-ocean",  theme: "keynote", colorPreset: "ocean",
+        font: "Inter",          fontSize: 24,  rowGap: 26, radius: 20, stripe: true,
+        accent: "#1d4ed8",      bg: "#ffffff",  hTxt: "#ffffff", bTxt: "#1e3a5f",
+        odd: "#ffffff",         even: "#eff6ff"
+      },
+      "business": {
+        bgStyle: "monterey",    theme: "bordered", colorPreset: "custom",
+        font: "Noto Serif TC",  fontSize: 22,  rowGap: 24, radius: 10, stripe: true,
+        accent: "#1e3a5f",      bg: "#f8fafc",  hTxt: "#ffffff", bTxt: "#1e293b",
+        odd: "#f8fafc",         even: "#e2e8f0"
+      },
+      "rose-garden": {
+        bgStyle: "grad-rose",   theme: "glass", colorPreset: "rose",
+        font: "Noto Serif TC",  fontSize: 22,  rowGap: 26, radius: 28, stripe: false,
+        accent: "#be185d",      bg: "#ffffff",  hTxt: "#ffffff", bTxt: "#881337",
+        odd: "#ffffff",         even: "#fdf2f8"
+      },
+      "minimal": {
+        bgStyle: "solid",       theme: "bordered", colorPreset: "slate",
+        font: "Inter",          fontSize: 22,  rowGap: 24, radius: 12, stripe: true,
+        accent: "#475569",      bg: "#f8fafc",  hTxt: "#ffffff", bTxt: "#334155",
+        odd: "#f8fafc",         even: "#e2e8f0",
+        canvasBg: "#f0f0f5"
+      }
+    },
+
+    _setVal: function(id, val) {
+      var el = document.getElementById(id);
+      if (el) el.value = val;
+    },
+    _setChk: function(id, val) {
+      var el = document.getElementById(id);
+      if (el) el.checked = val;
+    },
+
+    applyFullPreset: function(presetId) {
+      var p = this.PRESETS[presetId];
+      if (!p) return;
+
+      // Highlight active card
+      document.querySelectorAll(".tbl-preset-card").forEach(function(c) { c.classList.remove("active"); });
+      var activeCard = document.getElementById("preset-" + presetId);
+      if (activeCard) activeCard.classList.add("active");
+
+      // Apply all settings
+      this._setVal("tblBgStyle", p.bgStyle);
+      this._setVal("tblTheme", p.theme);
+      this._setVal("tblFont", p.font);
+      this._setVal("tblFontSize", p.fontSize);
+      this._setVal("tblRowGap", p.rowGap);
+      this._setVal("tblRadius", p.radius);
+      this._setVal("tblAccent", p.accent);
+      this._setVal("tblBg", p.bg);
+      this._setVal("tblHeaderTxt", p.hTxt);
+      this._setVal("tblBodyTxt", p.bTxt);
+      this._setVal("tblRowOdd", p.odd);
+      this._setVal("tblRowEven", p.even);
+      this._setChk("tblStripe", p.stripe !== false);
+      if (p.canvasBg) this._setVal("tblCanvasBg", p.canvasBg);
+      if (p.colorPreset) this._setVal("tblColorPreset", p.colorPreset);
+
+      // Update labels
+      var labMap = {tblFontSize:"tblFontSizeLabel", tblRowGap:"tblRowGapLabel", tblRadius:"tblRadiusLabel"};
+      Object.keys(labMap).forEach(function(inId) {
+        var sfxMap = {tblFontSize:"px", tblRowGap:"px", tblRadius:"px"};
+        App.updateLabel(inId, labMap[inId], sfxMap[inId]);
+      });
+
+      // Show/hide canvas solid color picker
+      var bgStyleEl = document.getElementById("tblBgStyle");
+      var wrap = document.getElementById("tblCanvasBgColorWrap");
+      if (wrap && bgStyleEl) wrap.style.display = bgStyleEl.value === "solid" ? "" : "none";
+
+      this.schedulePreview();
+      App.showFriendlyMessage("✨ 已套用「" + ({
+        "keynote-light":"Keynote Light","keynote-dark":"Keynote Dark",
+        "glass-aurora":"Glass Aurora","sunset-glass":"Sunset Glass",
+        "ocean-blue":"Ocean Blue","business":"Business Pro",
+        "rose-garden":"Rose Garden","minimal":"Minimal Grid"
+      }[presetId] || presetId) + "」模板！");
+    },
+
     loadTemplate: function(type) {
       var templates = {
         pricing: "方案\t免費版\tPro 版\t企業版\n月費\t$0\t$9.9\t$49\n儲存空間\t1 GB\t100 GB\t無限\n匯出品質\t720p\t1080p\t4K\n浮水印\t有\t無\t無\n商業授權\t否\t是\t是",
@@ -1568,6 +1837,7 @@
       var isGlass   = theme === "glass";
       var isDark    = theme === "dark";
       var fontStr   = fontSize + "px \"" + family + "\",\"Noto Sans TC\",Arial,sans-serif";
+      var headerFontStr = Math.round(fontSize * 1.08) + "px \"" + family + "\",\"Noto Sans TC\",Arial,sans-serif";
 
       // 字體載入：最多等 1.5 秒，避免 hang
       try {
@@ -1612,12 +1882,12 @@
 
       // 卡片
       if (isKeynote) {
-        var cp = Math.round(rowGap * 1.5);
-        ctx.save(); ctx.shadowColor="rgba(0,0,0,0.12)"; ctx.shadowBlur=48; ctx.shadowOffsetY=12;
+        var cp = Math.round(rowGap * 2.0);
+        ctx.save(); ctx.shadowColor="rgba(0,0,0,0.16)"; ctx.shadowBlur=60; ctx.shadowOffsetY=16;
         ctx.fillStyle="#ffffff"; self._rrect(ctx, tx-cp, ty-cp, tableW+cp*2, tableH+cp*2, Math.max(rad,24)); ctx.fill(); ctx.restore();
         ctx.fillStyle="#ffffff"; self._rrect(ctx, tx-cp, ty-cp, tableW+cp*2, tableH+cp*2, Math.max(rad,24)); ctx.fill();
       } else if (isGlass) {
-        var gp = Math.round(rowGap * 1.5), gr2 = Math.max(rad,28);
+        var gp = Math.round(rowGap * 2.0), gr2 = Math.max(rad,28);
         var sc = 1/8;
         var off = document.createElement("canvas");
         off.width = Math.max(1,Math.round((tableW+gp*2+80)*sc)); off.height = Math.max(1,Math.round((tableH+gp*2+80)*sc));
@@ -1647,8 +1917,8 @@
       }
       ctx.fillRect(tx, ty, tableW, rowH);
 
-      ctx.font = (isKeynote || isGlass) ? ("bold " + fontStr) : fontStr;
-      ctx.fillStyle = (isKeynote || isGlass) ? "rgba(0,0,0,0.85)" : (isDark ? "#f5f5f7" : hTxt);
+      ctx.font = "bold " + headerFontStr;
+      ctx.fillStyle = (isKeynote || isGlass) ? "rgba(0,0,0,0.82)" : (isDark ? "#f5f5f7" : hTxt);
       ctx.textBaseline = "middle";
       var cx = tx;
       headers.forEach(function(h, i) {
@@ -1660,12 +1930,12 @@
       rows.forEach(function(row, ri) {
         var ry = ty + rowH * (ri + 1);
         var rowBg = isDark ? (ri % 2 === 0 ? "#1c1c1e" : "#2c2c2e") :
-          isKeynote ? "#ffffff" : isGlass ? "rgba(0,0,0,0)" :
+          isKeynote ? (ri % 2 === 0 ? "#ffffff" : "#f9f9fb") : isGlass ? "rgba(0,0,0,0)" :
           (stripeOn ? (ri % 2 === 0 ? rowOdd : rowEven) : tableBg);
         ctx.fillStyle = rowBg; ctx.fillRect(tx, ry, tableW, rowH);
-        var divClr = isKeynote ? "rgba(0,0,0,0.08)" : isGlass ? "rgba(0,0,0,0.1)" : (isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)");
+        var divClr = isKeynote ? "rgba(0,0,0,0.06)" : isGlass ? "rgba(0,0,0,0.09)" : (isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)");
         ctx.strokeStyle = divClr; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(tx + rowGap, ry); ctx.lineTo(tx + tableW - rowGap, ry); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(tx + rowGap * 0.5, ry); ctx.lineTo(tx + tableW - rowGap * 0.5, ry); ctx.stroke();
         ctx.font = fontStr;
         ctx.fillStyle = isGlass ? "rgba(0,0,0,0.8)" : (isDark ? "#f5f5f7" : bTxt);
         ctx.textBaseline = "middle";
@@ -1676,12 +1946,10 @@
         });
       });
 
-      // Header underline
-      if (isKeynote || isGlass) {
-        ctx.strokeStyle = isGlass ? "rgba(0,0,0,0.12)" : "#1d1d1f";
-        ctx.lineWidth = isGlass ? 1 : 1.5;
-        ctx.beginPath(); ctx.moveTo(tx + rowGap, ty + rowH); ctx.lineTo(tx + tableW - rowGap, ty + rowH); ctx.stroke();
-      }
+      // Header separator line (always shown, style varies by theme)
+      ctx.strokeStyle = (isGlass) ? "rgba(0,0,0,0.15)" : (isDark ? "rgba(255,255,255,0.12)" : (isKeynote ? "rgba(0,0,0,0.18)" : "rgba(255,255,255,0.25)"));
+      ctx.lineWidth = isKeynote ? 1.5 : (isDark ? 1 : 1.5);
+      ctx.beginPath(); ctx.moveTo(tx + rowGap * 0.5, ty + rowH); ctx.lineTo(tx + tableW - rowGap * 0.5, ty + rowH); ctx.stroke();
       ctx.restore();
 
       // Update UI
@@ -2074,6 +2342,11 @@
       // 初始化 Pomodoro UI
       Pomo._updateUI();
       Pomo._updateRing(1);
+
+      // 表格工具：預設套用 Keynote Light 模板
+      if (typeof ToolTable !== "undefined" && ToolTable.applyFullPreset) {
+        ToolTable.applyFullPreset("keynote-light");
+      }
 
       // 表格工具：tblBgStyle 切換時顯示/隱藏純色選色器
       var tblBgStyleEl = document.getElementById("tblBgStyle");
