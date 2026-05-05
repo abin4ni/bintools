@@ -194,11 +194,54 @@
     --font-text: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   }
   [data-theme="dark"] {
-    --bg-main: #000000; --bg-card: #1c1c1e; --bg-nav: rgba(28, 28, 30, 0.72);
-    --bg-filter: #2c2c2e; --text-main: #f5f5f7; --text-muted: rgba(255,255,255,0.56);
-    --border-color: rgba(255,255,255,0.15); --button-active: #3a3a3c;
-    --shadow-card: rgba(0,0,0,0.4) 0px 10px 30px 0px;
+    /* ── 底色：質感黑 ── */
+    --bg-main:    #0d0d0d;
+    --bg-card:    #181818;
+    --bg-nav:     rgba(15, 15, 15, 0.82);
+    --bg-filter:  #212121;
+    --button-active: #2a2a2a;
+
+    /* ── 文字 ── */
+    --text-main:  #f2f2f2;
+    --text-muted: rgba(255,255,255,0.48);
+    --border-color: rgba(255,255,255,0.09);
+
+    /* ── McLaren 橘作為主色 ── */
+    --apple-blue: #FF6100;
+
+    /* ── 陰影 ── */
+    --shadow-card: rgba(0,0,0,0.55) 0px 12px 36px 0px;
+    --shadow-sm:   rgba(0,0,0,0.5)  0px 2px 10px 0px;
   }
+
+  /* 深色模式 accent 細節補強 */
+  [data-theme="dark"] .btn-blue {
+    background: #FF6100;
+    box-shadow: 0 0 18px rgba(255,97,0,0.28);
+  }
+  [data-theme="dark"] .btn-blue:hover {
+    background: #ff7a20;
+    box-shadow: 0 0 26px rgba(255,97,0,0.40);
+  }
+  [data-theme="dark"] .drop-zone:hover,
+  [data-theme="dark"] .tbl-preset-card:hover {
+    border-color: #FF6100;
+    box-shadow: 0 6px 18px rgba(255,97,0,0.18);
+  }
+  [data-theme="dark"] .tbl-preset-card.active {
+    border-color: #FF6100;
+    box-shadow: 0 0 0 3px rgba(255,97,0,0.22), 0 6px 18px rgba(255,97,0,0.15);
+  }
+  [data-theme="dark"] .nav-link:hover,
+  [data-theme="dark"] .drawer-item:hover { color: #FF6100; }
+  [data-theme="dark"] input[type="range"]::-webkit-slider-thumb { background: #FF6100; }
+  [data-theme="dark"] .pomo-btn-primary {
+    background: linear-gradient(135deg, #FF6100, #ff8533);
+    box-shadow: 0 4px 16px rgba(255,97,0,0.35);
+  }
+  [data-theme="dark"] .pomo-ring-prog { stroke: #FF6100; }
+  [data-theme="dark"] .b-logo { background: #FF6100; color: #fff; }
+  [data-theme="dark"] .toggle-switch input:checked + .slider-toggle { background-color: #FF6100; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: var(--bg-main); color: var(--text-main); font-family: var(--font-text); font-size: 15px; line-height: 1.47; transition: background-color 0.3s, color 0.3s; display: flex; flex-direction: column; min-height: 100vh; }
 
@@ -337,8 +380,8 @@
   /* ── TABLE POSTER: PRESET TEMPLATE SYSTEM ────────────────────── */
   .tbl-preset-row {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 7px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
     margin-bottom: 4px;
   }
   .tbl-preset-card {
@@ -406,8 +449,8 @@
 
   /* --- POMODORO TOOL --- */
   .pomo-wrap { display: flex; flex-direction: column; align-items: center; padding: 40px 20px; gap: 28px; }
-  .pomo-mode-bar { display: flex; position: relative; background: var(--button-active); border-radius: 12px; padding: 4px; width: 100%; max-width: 340px; }
-  .pomo-seg { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); border-radius: 9px; background: var(--bg-card); box-shadow: 0 2px 8px rgba(0,0,0,0.12); transition: transform 0.3s cubic-bezier(.4,0,.2,1); pointer-events: none; z-index: 0; }
+  .pomo-mode-bar { display: flex; position: relative; background: var(--button-active); border-radius: 12px; padding: 4px; width: 100%; max-width: 480px; }
+  .pomo-seg { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(33.333% - 4px); border-radius: 9px; background: var(--bg-card); box-shadow: 0 2px 8px rgba(0,0,0,0.12); transition: transform 0.3s cubic-bezier(.4,0,.2,1); pointer-events: none; z-index: 0; }
   .pomo-mode-btn { flex: 1; padding: 10px 8px; border: none; background: transparent; border-radius: 9px; cursor: pointer; color: var(--text-muted); font-size: 13px; font-weight: 500; transition: color 0.2s; text-align: center; position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
   .pomo-mode-btn.active { color: var(--text-main); font-weight: 700; }
   .pomo-mode-icon { font-size: 18px; }
@@ -495,7 +538,7 @@
     </div>
   </div>
   <div class="nav-right">
-    <button class="lang-btn" onclick="App.toggleTheme()">深淺色</button>
+    <button class="lang-btn" id="themeToggleBtn" onclick="App.toggleTheme()">🌙 深色模式</button>
     <div id="authArea"><button class="btn-outline" onclick="App.openAuthModal()">登入 / 註冊</button></div>
   </div>
 </nav>
@@ -557,97 +600,37 @@
 
             <!-- 1. Keynote Light -->
             <div class="tbl-preset-card active" id="preset-keynote-light" onclick="ToolTable.applyFullPreset('keynote-light')" title="Keynote Light">
-              <div class="tbl-preset-inner" style="background:linear-gradient(135deg,#a8bfd0 0%,#b8ccd8 50%,#d8cba8 100%);">
-                <div class="tbl-preset-mini" style="background:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.18);">
-                  <div class="tbl-preset-mini-hd" style="background:transparent; border-bottom:1.5px solid #1d1d1f;"></div>
-                  <div class="tbl-preset-mini-r1" style="background:#f5f5f7;"></div>
-                  <div class="tbl-preset-mini-r2" style="background:#fff;"></div>
+              <div class="tbl-preset-inner" style="background: radial-gradient(circle at top left, rgba(255,255,255,0.9), transparent 55%), linear-gradient(135deg, #f6f6f4 0%, #ffffff 100%);">
+                <div class="tbl-preset-mini" style="background:rgba(255,255,255,0.78); border:1px solid rgba(0,0,0,0.06); box-shadow:0 4px 14px rgba(0,0,0,0.08);">
+                  <div class="tbl-preset-mini-hd" style="background:transparent; border-bottom:1.5px solid rgba(0,0,0,0.08);"></div>
+                  <div class="tbl-preset-mini-r1" style="background:rgba(0,0,0,0.025);"></div>
+                  <div class="tbl-preset-mini-r2" style="background:rgba(0,0,0,0);"></div>
                 </div>
-                <div class="tbl-preset-name" style="color:#fff; text-shadow:0 1px 3px rgba(0,0,0,0.4);">Keynote Light</div>
+                <div class="tbl-preset-name" style="color:#161616;">Keynote Light</div>
               </div>
             </div>
 
             <!-- 2. Keynote Dark -->
             <div class="tbl-preset-card" id="preset-keynote-dark" onclick="ToolTable.applyFullPreset('keynote-dark')" title="Keynote Dark">
-              <div class="tbl-preset-inner" style="background:linear-gradient(135deg,#080820 0%,#0a0a28 50%,#060618 100%);">
-                <div class="tbl-preset-mini" style="background:#1c1c2e; box-shadow:0 2px 6px rgba(0,0,0,0.5);">
-                  <div class="tbl-preset-mini-hd" style="background:#2c2c3e;"></div>
-                  <div class="tbl-preset-mini-r1" style="background:#1c1c2e;"></div>
-                  <div class="tbl-preset-mini-r2" style="background:#242434;"></div>
+              <div class="tbl-preset-inner" style="background: radial-gradient(circle at 20% 10%, rgba(255,255,255,0.07), transparent 40%), linear-gradient(135deg, #0c0c0e 0%, #17181c 100%);">
+                <div class="tbl-preset-mini" style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); box-shadow:0 4px 16px rgba(0,0,0,0.45);">
+                  <div class="tbl-preset-mini-hd" style="background:rgba(255,255,255,0.0); border-bottom:1px solid rgba(255,255,255,0.08);"></div>
+                  <div class="tbl-preset-mini-r1" style="background:rgba(255,255,255,0.03);"></div>
+                  <div class="tbl-preset-mini-r2" style="background:rgba(0,0,0,0);"></div>
                 </div>
-                <div class="tbl-preset-name" style="color:rgba(255,255,255,0.85);">Keynote Dark</div>
+                <div class="tbl-preset-name" style="color:rgba(246,246,246,0.85);">Keynote Dark</div>
               </div>
             </div>
 
-            <!-- 3. Glass Aurora -->
-            <div class="tbl-preset-card" id="preset-glass-aurora" onclick="ToolTable.applyFullPreset('glass-aurora')" title="Glass Aurora">
-              <div class="tbl-preset-inner" style="background:linear-gradient(135deg,#059669 0%,#7c3aed 60%,#0f172a 100%);">
-                <div class="tbl-preset-mini" style="background:rgba(200,200,220,0.55); backdrop-filter:blur(4px); border:1px solid rgba(255,255,255,0.4); box-shadow:0 2px 8px rgba(0,0,0,0.3);">
-                  <div class="tbl-preset-mini-hd" style="background:rgba(255,255,255,0.15); border-bottom:1px solid rgba(0,0,0,0.1);"></div>
-                  <div class="tbl-preset-mini-r1" style="background:rgba(0,0,0,0.05);"></div>
-                  <div class="tbl-preset-mini-r2" style="background:rgba(255,255,255,0.08);"></div>
+            <!-- 3. Modern Glass -->
+            <div class="tbl-preset-card" id="preset-modern-glass" onclick="ToolTable.applyFullPreset('modern-glass')" title="Modern Glass">
+              <div class="tbl-preset-inner" style="background: radial-gradient(circle at 10% 10%, rgba(255,255,255,0.08), transparent 44%), linear-gradient(135deg, #0d1117 0%, #1a1f2b 100%);">
+                <div class="tbl-preset-mini" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); box-shadow:0 5px 20px rgba(0,0,0,0.42);">
+                  <div class="tbl-preset-mini-hd" style="background:rgba(255,255,255,0.0); border-bottom:1px solid rgba(255,255,255,0.1);"></div>
+                  <div class="tbl-preset-mini-r1" style="background:rgba(255,255,255,0.04);"></div>
+                  <div class="tbl-preset-mini-r2" style="background:rgba(0,0,0,0);"></div>
                 </div>
-                <div class="tbl-preset-name" style="color:rgba(255,255,255,0.9);">Glass Aurora</div>
-              </div>
-            </div>
-
-            <!-- 4. Sunset Glass -->
-            <div class="tbl-preset-card" id="preset-sunset-glass" onclick="ToolTable.applyFullPreset('sunset-glass')" title="Sunset Glass">
-              <div class="tbl-preset-inner" style="background:linear-gradient(135deg,#f97316 0%,#ef4444 50%,#7c3aed 100%);">
-                <div class="tbl-preset-mini" style="background:rgba(255,220,200,0.45); border:1px solid rgba(255,255,255,0.5); box-shadow:0 2px 8px rgba(0,0,0,0.3);">
-                  <div class="tbl-preset-mini-hd" style="background:rgba(255,255,255,0.2); border-bottom:1px solid rgba(0,0,0,0.08);"></div>
-                  <div class="tbl-preset-mini-r1" style="background:rgba(255,255,255,0.1);"></div>
-                  <div class="tbl-preset-mini-r2" style="background:rgba(0,0,0,0.04);"></div>
-                </div>
-                <div class="tbl-preset-name" style="color:rgba(255,255,255,0.95);">Sunset Glass</div>
-              </div>
-            </div>
-
-            <!-- 5. Ocean Blue -->
-            <div class="tbl-preset-card" id="preset-ocean-blue" onclick="ToolTable.applyFullPreset('ocean-blue')" title="Ocean Blue">
-              <div class="tbl-preset-inner" style="background:linear-gradient(135deg,#0ea5e9 0%,#2563eb 60%,#1e1b4b 100%);">
-                <div class="tbl-preset-mini" style="background:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.25);">
-                  <div class="tbl-preset-mini-hd" style="background:#1d4ed8;"></div>
-                  <div class="tbl-preset-mini-r1" style="background:#eff6ff;"></div>
-                  <div class="tbl-preset-mini-r2" style="background:#fff;"></div>
-                </div>
-                <div class="tbl-preset-name" style="color:#fff; text-shadow:0 1px 3px rgba(0,0,0,0.4);">Ocean Blue</div>
-              </div>
-            </div>
-
-            <!-- 6. Business Pro -->
-            <div class="tbl-preset-card" id="preset-business" onclick="ToolTable.applyFullPreset('business')" title="Business Pro">
-              <div class="tbl-preset-inner" style="background:linear-gradient(135deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%);">
-                <div class="tbl-preset-mini" style="background:#f8fafc; border:1px solid #cbd5e1; box-shadow:0 2px 6px rgba(0,0,0,0.2);">
-                  <div class="tbl-preset-mini-hd" style="background:#1e3a5f;"></div>
-                  <div class="tbl-preset-mini-r1" style="background:#f8fafc;"></div>
-                  <div class="tbl-preset-mini-r2" style="background:#e2e8f0;"></div>
-                </div>
-                <div class="tbl-preset-name" style="color:rgba(255,255,255,0.85);">Business Pro</div>
-              </div>
-            </div>
-
-            <!-- 7. Rose Garden -->
-            <div class="tbl-preset-card" id="preset-rose-garden" onclick="ToolTable.applyFullPreset('rose-garden')" title="Rose Garden">
-              <div class="tbl-preset-inner" style="background:linear-gradient(135deg,#c084fc 0%,#818cf8 50%,#38bdf8 100%);">
-                <div class="tbl-preset-mini" style="background:rgba(255,240,250,0.6); border:1px solid rgba(255,255,255,0.6); box-shadow:0 2px 8px rgba(0,0,0,0.25);">
-                  <div class="tbl-preset-mini-hd" style="background:rgba(255,255,255,0.2); border-bottom:1px solid rgba(190,24,93,0.25);"></div>
-                  <div class="tbl-preset-mini-r1" style="background:rgba(190,24,93,0.07);"></div>
-                  <div class="tbl-preset-mini-r2" style="background:rgba(255,255,255,0.2);"></div>
-                </div>
-                <div class="tbl-preset-name" style="color:#fff; text-shadow:0 1px 3px rgba(100,0,80,0.4);">Rose Garden</div>
-              </div>
-            </div>
-
-            <!-- 8. Minimal Grid -->
-            <div class="tbl-preset-card" id="preset-minimal" onclick="ToolTable.applyFullPreset('minimal')" title="Minimal Grid">
-              <div class="tbl-preset-inner" style="background:#f5f5f7;">
-                <div class="tbl-preset-mini" style="background:#fff; border:1.5px solid #e2e2e7; box-shadow:0 1px 4px rgba(0,0,0,0.08);">
-                  <div class="tbl-preset-mini-hd" style="background:#475569;"></div>
-                  <div class="tbl-preset-mini-r1" style="background:#f8fafc;"></div>
-                  <div class="tbl-preset-mini-r2" style="background:#fff;"></div>
-                </div>
-                <div class="tbl-preset-name" style="color:#475569;">Minimal Grid</div>
+                <div class="tbl-preset-name" style="color:rgba(255,255,255,0.82);">Modern Glass</div>
               </div>
             </div>
 
@@ -691,6 +674,9 @@
               <option value="dark">🌙 Dark 深色</option>
               <option value="bordered">📐 Bordered 全框線</option>
               <option value="glass">🔮 Glass 毛玻璃</option>
+              <option value="kn-light" style="display:none;">Keynote Light (v2)</option>
+              <option value="kn-dark"  style="display:none;">Keynote Dark (v2)</option>
+              <option value="mod-glass" style="display:none;">Modern Glass</option>
             </select>
           </div>
           <div class="settings-group" style="margin-bottom:12px;">
@@ -768,6 +754,11 @@
                 <option value="monterey">🫐 Monterey 深淵</option>
                 <option value="ventura">🔥 Ventura 熔岩</option>
                 <option value="tahoe" selected>💙 Tahoe 藍浪</option>
+              </optgroup>
+              <optgroup label="── Preset 模板專用 ──" id="tblBgPresetGroup">
+                <option value="bg-kn-light">Keynote Light BG</option>
+                <option value="bg-kn-dark">Keynote Dark BG</option>
+                <option value="bg-mod-glass">Modern Glass BG</option>
               </optgroup>
             </select>
           </div>
@@ -1059,6 +1050,11 @@
           <span>深度學習</span>
           <span style="font-size:11px; opacity:.7;">50 / 10 分鐘</span>
         </button>
+        <button class="pomo-mode-btn" onclick="Pomo.setMode('countdown', this)">
+          <span class="pomo-mode-icon">⏳</span>
+          <span>一小時衝刺</span>
+          <span style="font-size:11px; opacity:.7;">60 分鐘倒數</span>
+        </button>
       </div>
       <div class="pomo-ring-wrap">
         <svg class="pomo-ring-svg" viewBox="0 0 260 260">
@@ -1080,7 +1076,7 @@
         <div style="width:1px; background:var(--border-color);"></div>
         <div class="pomo-stat"><div class="pomo-stat-num" id="pomoMinutes">0</div><div class="pomo-stat-lbl">專注分鐘</div></div>
       </div>
-      <p style="font-size:13px; color:var(--text-muted); text-align:center;">💡 開始專注後會進入全螢幕模式，減少分心</p>
+      <p style="font-size:13px; color:var(--text-muted); text-align:center;">💡 開始後進入全螢幕，一小時衝刺模式完成即提示 🎉</p>
     </div>
     <div class="pomo-focus-overlay" id="pomoFocusOverlay">
       <div class="pomo-ring-wrap" style="width:340px;height:340px;">
@@ -1383,11 +1379,14 @@
       if (d) d.classList.remove("open");
     },
     toggleTheme: function() {
-      if (document.body.hasAttribute("data-theme")) {
+      var isDark = document.body.hasAttribute("data-theme");
+      if (isDark) {
         document.body.removeAttribute("data-theme");
       } else {
         document.body.setAttribute("data-theme", "dark");
       }
+      var btn = document.getElementById("themeToggleBtn");
+      if (btn) btn.textContent = isDark ? "🌙 深色模式" : "☀️ 淺色模式";
     },
     updateLabel: function(inId, lblId, sfx) {
       const input = document.getElementById(inId);
@@ -1547,53 +1546,22 @@
     // ── Full Preset System ────────────────────────────────────────
     PRESETS: {
       "keynote-light": {
-        bgStyle: "tahoe",     theme: "keynote", colorPreset: "snow",
-        font: "Inter",        fontSize: 24,  rowGap: 28, radius: 24, stripe: true,
-        accent: "#1d1d1f",    bg: "#ffffff",  hTxt: "#ffffff", bTxt: "#1d1d1f",
-        odd: "#ffffff",       even: "#f5f5f7"
+        bgStyle: "bg-kn-light",   theme: "kn-light",  colorPreset: "custom",
+        font: "Inter",             fontSize: 24, rowGap: 30, radius: 20, stripe: false,
+        accent: "#161616",         bg: "#ffffff",      hTxt: "#7a7a7a",             bTxt: "#2f2f2f",
+        odd: "#000000",            even: "#000000"  // unused when stripe:false, placeholder hex
       },
       "keynote-dark": {
-        bgStyle: "monterey",  theme: "dark",    colorPreset: "night",
-        font: "Inter",        fontSize: 24,  rowGap: 28, radius: 20, stripe: true,
-        accent: "#1e1e2e",    bg: "#181825",  hTxt: "#cdd6f4", bTxt: "#bac2de",
-        odd: "#1e1e2e",       even: "#313244"
+        bgStyle: "bg-kn-dark",    theme: "kn-dark",   colorPreset: "custom",
+        font: "Inter",             fontSize: 24, rowGap: 30, radius: 20, stripe: false,
+        accent: "#17181c",         bg: "#0c0c0e",      hTxt: "#787878",             bTxt: "#d6d6d6",
+        odd: "#ffffff",            even: "#000000"  // odd used for rgba tint in render
       },
-      "glass-aurora": {
-        bgStyle: "grad-aurora", theme: "glass", colorPreset: "custom",
-        font: "Inter",          fontSize: 22,  rowGap: 26, radius: 28, stripe: false,
-        accent: "#059669",      bg: "#0f172a",  hTxt: "#ffffff", bTxt: "#e2e8f0",
-        odd: "#0f172a",         even: "#1e293b"
-      },
-      "sunset-glass": {
-        bgStyle: "grad-sunset", theme: "glass", colorPreset: "custom",
-        font: "Noto Sans TC",   fontSize: 22,  rowGap: 24, radius: 24, stripe: false,
-        accent: "#f97316",      bg: "#1a0a00",  hTxt: "#ffffff", bTxt: "#fef3c7",
-        odd: "#1a0a00",         even: "#2a1000"
-      },
-      "ocean-blue": {
-        bgStyle: "grad-ocean",  theme: "keynote", colorPreset: "ocean",
-        font: "Inter",          fontSize: 24,  rowGap: 26, radius: 20, stripe: true,
-        accent: "#1d4ed8",      bg: "#ffffff",  hTxt: "#ffffff", bTxt: "#1e3a5f",
-        odd: "#ffffff",         even: "#eff6ff"
-      },
-      "business": {
-        bgStyle: "monterey",    theme: "bordered", colorPreset: "custom",
-        font: "Noto Serif TC",  fontSize: 22,  rowGap: 24, radius: 10, stripe: true,
-        accent: "#1e3a5f",      bg: "#f8fafc",  hTxt: "#ffffff", bTxt: "#1e293b",
-        odd: "#f8fafc",         even: "#e2e8f0"
-      },
-      "rose-garden": {
-        bgStyle: "grad-rose",   theme: "glass", colorPreset: "rose",
-        font: "Noto Serif TC",  fontSize: 22,  rowGap: 26, radius: 28, stripe: false,
-        accent: "#be185d",      bg: "#ffffff",  hTxt: "#ffffff", bTxt: "#881337",
-        odd: "#ffffff",         even: "#fdf2f8"
-      },
-      "minimal": {
-        bgStyle: "solid",       theme: "bordered", colorPreset: "slate",
-        font: "Inter",          fontSize: 22,  rowGap: 24, radius: 12, stripe: true,
-        accent: "#475569",      bg: "#f8fafc",  hTxt: "#ffffff", bTxt: "#334155",
-        odd: "#f8fafc",         even: "#e2e8f0",
-        canvasBg: "#f0f0f5"
+      "modern-glass": {
+        bgStyle: "bg-mod-glass",  theme: "mod-glass", colorPreset: "custom",
+        font: "Inter",             fontSize: 24, rowGap: 30, radius: 20, stripe: false,
+        accent: "#1a1f2b",         bg: "#0d1117",      hTxt: "#808080",             bTxt: "#dbdbdb",
+        odd: "#ffffff",            even: "#000000"
       }
     },
 
@@ -1646,10 +1614,9 @@
 
       this.schedulePreview();
       App.showFriendlyMessage("✨ 已套用「" + ({
-        "keynote-light":"Keynote Light","keynote-dark":"Keynote Dark",
-        "glass-aurora":"Glass Aurora","sunset-glass":"Sunset Glass",
-        "ocean-blue":"Ocean Blue","business":"Business Pro",
-        "rose-garden":"Rose Garden","minimal":"Minimal Grid"
+        "keynote-light":"Keynote Light",
+        "keynote-dark" :"Keynote Dark",
+        "modern-glass" :"Modern Glass"
       }[presetId] || presetId) + "」模板！");
     },
 
@@ -1795,6 +1762,30 @@
         ctx.save(); ctx.globalAlpha=0.6;
         ctx.beginPath(); ctx.moveTo(0,0.38*H); ctx.bezierCurveTo(0.28*W,0.55*H,0.6*W,0.66*H,W,0.48*H);
         ctx.lineWidth = Math.max(1,W*0.002); ctx.strokeStyle="rgba(255,255,255,0.9)"; ctx.stroke(); ctx.restore();
+      } else if (bgStyle === "bg-kn-light") {
+        // Keynote Light: linear #f6f6f4 → #ffffff + radial top-left white glow
+        var kll = ctx.createLinearGradient(0,0,W,H);
+        kll.addColorStop(0,"#f6f6f4"); kll.addColorStop(1,"#ffffff");
+        ctx.fillStyle = kll; ctx.fillRect(0,0,W,H);
+        var klr = ctx.createRadialGradient(0,0,0, 0,0,Math.max(W,H)*0.5);
+        klr.addColorStop(0,"rgba(255,255,255,0.90)"); klr.addColorStop(1,"transparent");
+        ctx.fillStyle = klr; ctx.fillRect(0,0,W,H);
+      } else if (bgStyle === "bg-kn-dark") {
+        // Keynote Dark: linear #0c0c0e → #17181c + radial 20%,10% white highlight
+        var kdl = ctx.createLinearGradient(0,0,W,H);
+        kdl.addColorStop(0,"#0c0c0e"); kdl.addColorStop(1,"#17181c");
+        ctx.fillStyle = kdl; ctx.fillRect(0,0,W,H);
+        var kdr = ctx.createRadialGradient(0.2*W,0.1*H,0, 0.2*W,0.1*H,0.38*Math.max(W,H));
+        kdr.addColorStop(0,"rgba(255,255,255,0.07)"); kdr.addColorStop(1,"transparent");
+        ctx.fillStyle = kdr; ctx.fillRect(0,0,W,H);
+      } else if (bgStyle === "bg-mod-glass") {
+        // Modern Glass: linear #0d1117 → #1a1f2b + radial 10%,10% soft highlight
+        var mgl = ctx.createLinearGradient(0,0,W,H);
+        mgl.addColorStop(0,"#0d1117"); mgl.addColorStop(1,"#1a1f2b");
+        ctx.fillStyle = mgl; ctx.fillRect(0,0,W,H);
+        var mgr = ctx.createRadialGradient(0.1*W,0.1*H,0, 0.1*W,0.1*H,0.42*Math.max(W,H));
+        mgr.addColorStop(0,"rgba(255,255,255,0.08)"); mgr.addColorStop(1,"transparent");
+        ctx.fillStyle = mgr; ctx.fillRect(0,0,W,H);
       } else {
         ctx.fillStyle = canvasBg || "#111114"; ctx.fillRect(0,0,W,H);
       }
@@ -1806,6 +1797,10 @@
       var data = this._getData();
       if (!data || data.length === 0) { App.showFriendlyMessage("請先輸入或上傳資料", "error"); return; }
       if (st) st.textContent = "⏳ 生成中…";
+
+      // ── [DEBUG] render entry ─────────────────────────────────
+      console.log("[ToolTable.render] data rows:", data.length);
+      console.log("[ToolTable.render] tblCanvas el:", document.getElementById("tblCanvas"));
 
       var theme     = (document.getElementById("tblTheme") || {}).value || "keynote";
       var family    = (document.getElementById("tblFont") || {}).value || "Noto Sans TC";
@@ -1833,9 +1828,14 @@
       outW = _clamped.w;
       outH = _clamped.h;
 
-      var isKeynote = theme === "keynote";
-      var isGlass   = theme === "glass";
-      var isDark    = theme === "dark";
+      var isKeynote  = theme === "keynote";
+      var isGlass    = theme === "glass";
+      var isDark     = theme === "dark";
+      var isKnLight  = theme === "kn-light";
+      var isKnDark   = theme === "kn-dark";
+      var isModGlass = theme === "mod-glass";
+      // shorthand: any of the 3 new v2 preset themes
+      var isV2 = isKnLight || isKnDark || isModGlass;
       var fontStr   = fontSize + "px \"" + family + "\",\"Noto Sans TC\",Arial,sans-serif";
       var headerFontStr = Math.round(fontSize * 1.08) + "px \"" + family + "\",\"Noto Sans TC\",Arial,sans-serif";
 
@@ -1902,6 +1902,35 @@
         ctx.fillStyle="rgba(0,0,0,0.001)"; self._rrect(ctx,tx-gp,ty-gp,tableW+gp*2,tableH+gp*2,gr2); ctx.fill(); ctx.restore();
         ctx.save(); self._rrect(ctx,tx-gp,ty-gp,tableW+gp*2,tableH+gp*2,gr2);
         ctx.strokeStyle="rgba(255,255,255,0.6)"; ctx.lineWidth=1; ctx.stroke(); ctx.restore();
+      } else if (isV2) {
+        // ── v2 preset card: spec-accurate frosted glass card ──
+        var vp  = Math.round(rowGap * 2.2);
+        var vr  = Math.max(rad, 20);
+        var vCardBg    = isKnLight  ? "rgba(255,255,255,0.78)"
+                       : isKnDark   ? "rgba(255,255,255,0.04)"
+                       :              "rgba(255,255,255,0.05)";
+        var vShadowClr = isKnLight  ? "rgba(0,0,0,0.08)"
+                       : isKnDark   ? "rgba(0,0,0,0.50)"
+                       :              "rgba(0,0,0,0.45)";
+        var vShadowBlr = isKnLight  ? 48  : isModGlass ? 80 : 60;
+        var vShadowOff = isKnLight  ? 10  : 14;
+        var vBorderClr = isKnLight  ? "rgba(0,0,0,0.06)"
+                       : isKnDark   ? "rgba(255,255,255,0.08)"
+                       :              "rgba(255,255,255,0.12)";
+        // shadow pass
+        ctx.save();
+        ctx.shadowColor = vShadowClr; ctx.shadowBlur = vShadowBlr; ctx.shadowOffsetY = vShadowOff;
+        ctx.fillStyle = vCardBg;
+        self._rrect(ctx, tx-vp, ty-vp, tableW+vp*2, tableH+vp*2, vr); ctx.fill();
+        ctx.restore();
+        // solid fill pass (clean edges)
+        ctx.fillStyle = vCardBg;
+        self._rrect(ctx, tx-vp, ty-vp, tableW+vp*2, tableH+vp*2, vr); ctx.fill();
+        // border
+        ctx.save();
+        ctx.strokeStyle = vBorderClr; ctx.lineWidth = 1;
+        self._rrect(ctx, tx-vp, ty-vp, tableW+vp*2, tableH+vp*2, vr); ctx.stroke();
+        ctx.restore();
       } else if (!isKeynote && !isGlass) {
         ctx.fillStyle = isDark ? "#1c1c1e" : tableBg;
         self._rrect(ctx, tx, ty, tableW, tableH, rad); ctx.fill();
@@ -1909,16 +1938,21 @@
 
       ctx.save(); self._rrect(ctx, tx, ty, tableW, tableH, rad); ctx.clip();
 
-      // Header
-      if (!isKeynote && !isGlass) {
+      // Header bg fill — v2 themes: no fill, keep transparent
+      if (!isKeynote && !isGlass && !isV2) {
         ctx.fillStyle = isDark ? "#2c2c2e" : accent;
       } else {
         ctx.fillStyle = "rgba(0,0,0,0)";
       }
       ctx.fillRect(tx, ty, tableW, rowH);
 
+      // Header text colour per theme
+      var hTextClr = isKnLight  ? "#7a7a7a"
+                   : (isKnDark || isModGlass) ? "rgba(255,255,255,0.46)"
+                   : (isKeynote || isGlass)   ? "rgba(0,0,0,0.82)"
+                   : (isDark ? "#f5f5f7" : hTxt);
       ctx.font = "bold " + headerFontStr;
-      ctx.fillStyle = (isKeynote || isGlass) ? "rgba(0,0,0,0.82)" : (isDark ? "#f5f5f7" : hTxt);
+      ctx.fillStyle = hTextClr;
       ctx.textBaseline = "middle";
       var cx = tx;
       headers.forEach(function(h, i) {
@@ -1929,15 +1963,33 @@
       // Rows
       rows.forEach(function(row, ri) {
         var ry = ty + rowH * (ri + 1);
-        var rowBg = isDark ? (ri % 2 === 0 ? "#1c1c1e" : "#2c2c2e") :
-          isKeynote ? (ri % 2 === 0 ? "#ffffff" : "#f9f9fb") : isGlass ? "rgba(0,0,0,0)" :
-          (stripeOn ? (ri % 2 === 0 ? rowOdd : rowEven) : tableBg);
+        // Row background — v2 themes use very subtle odd-row tint (even rows: fully transparent)
+        var rowBg = isDark     ? (ri % 2 === 0 ? "#1c1c1e" : "#2c2c2e")
+                  : isKnLight  ? (ri % 2 === 0 ? "rgba(0,0,0,0.025)"  : "rgba(0,0,0,0)")
+                  : isKnDark   ? (ri % 2 === 0 ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0)")
+                  : isModGlass ? (ri % 2 === 0 ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0)")
+                  : isKeynote  ? (ri % 2 === 0 ? "#ffffff" : "#f9f9fb")
+                  : isGlass    ? "rgba(0,0,0,0)"
+                  : (stripeOn  ? (ri % 2 === 0 ? rowOdd : rowEven) : tableBg);
         ctx.fillStyle = rowBg; ctx.fillRect(tx, ry, tableW, rowH);
-        var divClr = isKeynote ? "rgba(0,0,0,0.06)" : isGlass ? "rgba(0,0,0,0.09)" : (isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)");
+
+        // Divider line
+        var divClr = isKnLight  ? "rgba(0,0,0,0.05)"
+                   : (isKnDark || isModGlass) ? "rgba(255,255,255,0.06)"
+                   : isKeynote  ? "rgba(0,0,0,0.06)"
+                   : isGlass    ? "rgba(0,0,0,0.09)"
+                   : (isDark    ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)");
         ctx.strokeStyle = divClr; ctx.lineWidth = 1;
         ctx.beginPath(); ctx.moveTo(tx + rowGap * 0.5, ry); ctx.lineTo(tx + tableW - rowGap * 0.5, ry); ctx.stroke();
+
+        // Body text colour
+        var bodyClr = isKnLight  ? "#2f2f2f"
+                    : isKnDark   ? "rgba(255,255,255,0.84)"
+                    : isModGlass ? "rgba(255,255,255,0.86)"
+                    : isGlass    ? "rgba(0,0,0,0.8)"
+                    : (isDark    ? "#f5f5f7" : bTxt);
         ctx.font = fontStr;
-        ctx.fillStyle = isGlass ? "rgba(0,0,0,0.8)" : (isDark ? "#f5f5f7" : bTxt);
+        ctx.fillStyle = bodyClr;
         ctx.textBaseline = "middle";
         var cx2 = tx;
         row.forEach(function(cell, ci) {
@@ -1946,9 +1998,15 @@
         });
       });
 
-      // Header separator line (always shown, style varies by theme)
-      ctx.strokeStyle = (isGlass) ? "rgba(0,0,0,0.15)" : (isDark ? "rgba(255,255,255,0.12)" : (isKeynote ? "rgba(0,0,0,0.18)" : "rgba(255,255,255,0.25)"));
-      ctx.lineWidth = isKeynote ? 1.5 : (isDark ? 1 : 1.5);
+      // Header separator line
+      var sepClr = isKnLight  ? "rgba(0,0,0,0.08)"
+                 : (isKnDark || isModGlass) ? "rgba(255,255,255,0.08)"
+                 : isGlass    ? "rgba(0,0,0,0.15)"
+                 : isDark     ? "rgba(255,255,255,0.12)"
+                 : isKeynote  ? "rgba(0,0,0,0.18)"
+                 :              "rgba(255,255,255,0.25)";
+      ctx.strokeStyle = sepClr;
+      ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(tx + rowGap * 0.5, ty + rowH); ctx.lineTo(tx + tableW - rowGap * 0.5, ty + rowH); ctx.stroke();
       ctx.restore();
 
@@ -1960,15 +2018,20 @@
 
       // 生成 blob 供下載
       var usePng = transpBg || fmt === "png";
+      // ── [DEBUG] pre-toBlob ───────────────────────────────────
+      console.log("[ToolTable.render] canvas size:", cv.width, "x", cv.height, "| usePng:", usePng, "| bgStyle:", bgStyle, "| theme:", theme);
+      var anchor = document.getElementById("tblDlAnchor");
+      console.log("[ToolTable.render] tblDlAnchor el:", anchor);
       cv.toBlob(function(blob) {
+        console.log("[ToolTable.render] toBlob result:", blob, "size:", blob ? blob.size : 0);
         if (!blob) { if (st) st.textContent = "❌ 生成失敗"; return; }
         if (ToolTable._blobUrl) URL.revokeObjectURL(ToolTable._blobUrl);
         ToolTable._blobUrl = URL.createObjectURL(blob);
-        var anchor = document.getElementById("tblDlAnchor");
         if (anchor) {
           anchor.href = ToolTable._blobUrl;
           anchor.download = "BinTools_Table_" + outW + "x" + outH + "." + (usePng ? "png" : "jpg");
           anchor.style.display = "inline-flex";
+          console.log("[ToolTable.render] ✅ blob URL set on anchor:", ToolTable._blobUrl.substring(0,40));
         }
         if (st) st.textContent = "✓ 完成";
       }, usePng ? "image/png" : "image/jpeg", 0.95);
@@ -2206,7 +2269,7 @@
 
   /* ===================== POMODORO TIMER ===================== */
   var Pomo = {
-    MODES: { standard: { focus: 25, brk: 5 }, deep: { focus: 50, brk: 10 } },
+    MODES: { standard: { focus: 25, brk: 5 }, deep: { focus: 50, brk: 10 }, countdown: { focus: 60, brk: 0 } },
     mode: "standard",
     status: "idle",   // idle | focus | break
     timeLeft: 25 * 60,
@@ -2215,16 +2278,87 @@
     todayMinutes: 0,
 
     _beep: function() {
+      // 計時結束音：輕柔三連音上揚
+      try {
+        var ctx = new (window.AudioContext || window.webkitAudioContext)();
+        var master = ctx.createGain();
+        master.gain.value = 0.35;
+        master.connect(ctx.destination);
+        [0, 0.18, 0.36].forEach(function(t, i) {
+          var osc = ctx.createOscillator();
+          var g = ctx.createGain();
+          osc.connect(g); g.connect(master);
+          osc.type = "sine";
+          osc.frequency.value = [784, 988, 1175][i]; // G5 B5 D6
+          g.gain.setValueAtTime(0, ctx.currentTime + t);
+          g.gain.linearRampToValueAtTime(0.5, ctx.currentTime + t + 0.015);
+          g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.55);
+          osc.start(ctx.currentTime + t);
+          osc.stop(ctx.currentTime + t + 0.6);
+        });
+      } catch(_) {}
+    },
+    _tickBeep: function() {
       try {
         var ctx = new (window.AudioContext || window.webkitAudioContext)();
         var osc = ctx.createOscillator();
         var gain = ctx.createGain();
         osc.connect(gain); gain.connect(ctx.destination);
-        osc.frequency.value = 880;
-        gain.gain.setValueAtTime(0.3, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
-        osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.6);
+        osc.type = "sine";
+        osc.frequency.value = 1046;
+        gain.gain.setValueAtTime(0.25, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+        osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.12);
       } catch(_) {}
+    },
+    _dong: function() {
+      // 音叉式清鈴：單音乾淨，像 iOS 提示音
+      try {
+        var ctx = new (window.AudioContext || window.webkitAudioContext)();
+        var master = ctx.createGain();
+        master.gain.value = 0.32;
+        master.connect(ctx.destination);
+        var partials = [
+          { freq: 1047, gain: 1.0,  decay: 2.4 },  // C6 主音
+          { freq: 2093, gain: 0.18, decay: 1.0 },  // C7 八度泛音（非常輕）
+        ];
+        partials.forEach(function(p) {
+          var osc = ctx.createOscillator();
+          var g = ctx.createGain();
+          osc.connect(g); g.connect(master);
+          osc.type = "sine";
+          osc.frequency.value = p.freq;
+          g.gain.setValueAtTime(0, ctx.currentTime);
+          g.gain.linearRampToValueAtTime(p.gain, ctx.currentTime + 0.008);
+          g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + p.decay);
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + p.decay + 0.05);
+        });
+      } catch(_) {}
+    },
+    _countdownId: null,
+    _startCountdown: function() {
+      var self = this;
+      var count = 3;
+      var setTxt = function(id, v) { var el = document.getElementById(id); if (el) el.textContent = v; };
+      self._tickBeep();
+      setTxt("pomoTime", count); setTxt("pomoFocusTime", count);
+      setTxt("pomoPhase", "即將開始…"); setTxt("pomoFocusPhase", "即將開始…");
+      self._countdownId = setInterval(function() {
+        count--;
+        if (count > 0) {
+          self._tickBeep();
+          setTxt("pomoTime", count); setTxt("pomoFocusTime", count);
+        } else {
+          clearInterval(self._countdownId); self._countdownId = null;
+          self._dong();
+          var pauseBtn = document.getElementById("pomoPauseBtn");
+          if (pauseBtn) pauseBtn.style.display = "inline-flex";
+          self._updateUI();
+          if (self.timerId) clearInterval(self.timerId);
+          self.timerId = setInterval(function() { Pomo._tick(); }, 1000);
+        }
+      }, 1000);
     },
     _fmt: function(s) {
       return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
@@ -2249,9 +2383,14 @@
       setTxt("pomoFocusTime", str);
       setTxt("pomoCount", this.todayCount);
       setTxt("pomoMinutes", this.todayMinutes);
-      var phaseMap = { idle: "準備開始", focus: "專注中 🔥", break: "休息一下 ☕" };
+      var isCountdown = this.mode === "countdown";
+      var phaseMap = {
+        idle:  isCountdown ? "一小時衝刺" : "準備開始",
+        focus: isCountdown ? "衝刺中 ⚡"   : "專注中 🔥",
+        break: "休息一下 ☕"
+      };
       setTxt("pomoPhase", phaseMap[this.status] || "");
-      setTxt("pomoFocusPhase", this.status === "break" ? "休息時間" : "專注時間");
+      setTxt("pomoFocusPhase", this.status === "break" ? "休息時間" : (isCountdown ? "一小時衝刺" : "專注時間"));
       document.title = this.status !== "idle" ? "(" + str + ") BinTools" : "BinTools";
       var total = this.status === "break"
         ? this.MODES[this.mode].brk * 60
@@ -2266,18 +2405,25 @@
       document.querySelectorAll(".pomo-mode-btn").forEach(function(b) { b.classList.remove("active"); });
       if (btn) btn.classList.add("active");
       var seg = document.getElementById("pomoSeg");
-      if (seg) seg.style.transform = m === "deep" ? "translateX(100%)" : "translateX(0)";
+      var segIdx = { standard: 0, deep: 1, countdown: 2 };
+      if (seg) seg.style.transform = "translateX(" + ((segIdx[m] || 0) * 100) + "%)";
       this._updateUI();
     },
     start: function() {
+      var startBtn = document.getElementById("pomoStartBtn");
+      var pauseBtn = document.getElementById("pomoPauseBtn");
       if (this.status === "idle") {
+        // 首次開始：3 秒倒數後啟動
         this.status = "focus";
         var overlay = document.getElementById("pomoFocusOverlay");
         if (overlay) overlay.classList.add("active");
         document.documentElement.requestFullscreen && document.documentElement.requestFullscreen().catch(function(){});
+        if (startBtn) startBtn.style.display = "none";
+        if (pauseBtn) pauseBtn.style.display = "none"; // 倒數期間隱藏暫停
+        this._startCountdown();
+        return;
       }
-      var startBtn = document.getElementById("pomoStartBtn");
-      var pauseBtn = document.getElementById("pomoPauseBtn");
+      // 從暫停繼續：直接恢復，不重播倒數
       if (startBtn) startBtn.style.display = "none";
       if (pauseBtn) pauseBtn.style.display = "inline-flex";
       if (this.timerId) clearInterval(this.timerId);
@@ -2292,11 +2438,15 @@
     },
     reset: function() {
       clearInterval(this.timerId); this.timerId = null;
+      if (this._countdownId) { clearInterval(this._countdownId); this._countdownId = null; }
       this.status = "idle";
       this.timeLeft = this.MODES[this.mode].focus * 60;
       var startBtn = document.getElementById("pomoStartBtn");
       var pauseBtn = document.getElementById("pomoPauseBtn");
-      if (startBtn) { startBtn.style.display = "inline-flex"; startBtn.textContent = "▶ 開始專注"; }
+      if (startBtn) {
+        startBtn.style.display = "inline-flex";
+        startBtn.textContent = this.mode === "countdown" ? "⚡ 開始衝刺" : "▶ 開始專注";
+      }
       if (pauseBtn) pauseBtn.style.display = "none";
       this.exitFocus();
       this._updateUI();
@@ -2317,6 +2467,12 @@
       if (this.status === "focus") {
         this.todayCount++;
         this.todayMinutes += this.MODES[this.mode].focus;
+        // 一小時倒數模式：沒有休息階段，直接結束
+        if (this.mode === "countdown") {
+          this.reset();
+          App.showFriendlyMessage("🎉 一小時衝刺完成！太棒了，好好休息一下！", "success");
+          return;
+        }
         this.status = "break";
         this.timeLeft = this.MODES[this.mode].brk * 60;
         this.timerId = setInterval(function() { Pomo._tick(); }, 1000);
@@ -2347,8 +2503,6 @@
       if (typeof ToolTable !== "undefined" && ToolTable.applyFullPreset) {
         ToolTable.applyFullPreset("keynote-light");
       }
-
-      // 表格工具：tblBgStyle 切換時顯示/隱藏純色選色器
       var tblBgStyleEl = document.getElementById("tblBgStyle");
       if (tblBgStyleEl) {
         tblBgStyleEl.addEventListener("change", function() {
